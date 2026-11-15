@@ -1,95 +1,209 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Удалось расслышать фразу?</title>
-<meta name="robots" content="noindex">
+<title>Собери фразу</title>
+<meta name="robots" content="noindex"><meta name="theme-color" content="#0e1013">
+<script src="https://telegram.org/js/telegram-web-app.js" async></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600;700&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0e1013;--card:#161a20;--line:#262c36;--tx:#e8ebf0;--dim:#6f7885;--ok:#94cf6c;--bad:#ff6b6b;--acc:#8b5cf6}
-*{box-sizing:border-box}html,body{margin:0;min-height:100%}
-body{background:var(--bg);color:var(--tx);font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;display:flex;justify-content:center;padding:max(14px,env(safe-area-inset-top)) 14px 24px}
-#w{width:100%;max-width:420px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;text-align:center;align-self:flex-start}
-h2{font-size:16px;font-weight:400;color:var(--dim);margin:2px 0 14px}
-.tries{display:flex;justify-content:center;gap:7px;margin-top:14px}.tries i{width:9px;height:9px;border-radius:5px;background:var(--acc)}.x{background:var(--bad)!important}
-.slot{min-height:54px;display:flex;flex-wrap:wrap;justify-content:center;align-content:center;gap:6px;padding:8px;border:1px dashed #36404c;border-radius:12px;margin-bottom:14px}
-.slot.full{border:0;background:none;min-height:0;font-size:24px;line-height:1.35;font-weight:600;color:var(--ok);padding:4px 0 0;margin-bottom:0;animation:in .5s ease both}
-@keyframes in{from{opacity:0;transform:translateY(6px) scale(.98)}to{opacity:1;transform:none}}
-.pool{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-bottom:8px}
-button{font:inherit;color:var(--tx);background:#1f2630;border:1px solid #2f3742;border-radius:10px;padding:9px 14px;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.pool button.used{opacity:.28;background:#171c23;border-style:dashed;cursor:default}
-.slot button{padding:8px 12px}
-.slot button.ok{background:rgba(148,207,108,.14);border-color:#4b6b3a;color:var(--ok)}
-.slot button.no{background:rgba(255,107,107,.12);border-color:#7a3a3a;color:var(--bad)}
-.go{background:var(--acc);border-color:var(--acc);padding:10px 24px;margin-top:20px}.go:disabled{opacity:.3;cursor:default}
-#mn{position:relative}.lock #mn:after{content:'';position:absolute;inset:-4px;border-radius:12px;background:rgba(10,12,15,.82)}
-.lockbar{display:none;flex-direction:column;align-items:center;gap:4px;margin-top:14px;padding:12px 14px;border:1px solid #2f3742;border-radius:12px;background:#11151a}
-.lock .lockbar{display:flex}.lockbar b{display:block;font-size:14px}.lockbar small{display:block;color:var(--dim);font-size:12px;margin-top:1px}
-.fb{min-height:22px;max-height:40px;font-size:14px;margin:10px 0 2px;color:var(--dim);overflow:hidden;transition:opacity .4s,max-height .4s,margin .4s,min-height .4s}.fb.hide{opacity:0;max-height:0;min-height:0;margin:0}.fb.ok{color:var(--ok)}.fb.bad{color:var(--bad)}.fb.warn{color:#ffcc33}
-.soon{margin-top:16px;font-size:13px;color:#4d5663;animation:in .5s .3s ease both}#rv{font-size:13px;padding:7px 16px}.rb{display:grid;place-items:center;margin-top:10px}.rb>*{grid-area:1/1;transition:opacity .4s ease,transform .4s ease}.tx{opacity:0;transform:translateY(8px);font-size:16px;color:#c8cfda;pointer-events:none}.rb.on #rv{opacity:0;transform:scale(.94);pointer-events:none}.rb.on .tx{opacity:1;transform:none}
-.err{color:var(--dim);font-size:14px;padding:30px 6px}
-.aud{display:none;justify-content:center;gap:8px;margin-top:12px}.aud button{padding:7px 14px;font-size:14px}.aud button.on{background:#2a2540;border-color:var(--acc);color:#cdbcff}
+/* Вид и поведение повторяют модуль «Собери фразу» приложения Pith (панель ответа, чипы, пузыри, блик, тряска, салют) */
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%}
+body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',system-ui,sans-serif;font-size:14px;line-height:1.45;overflow-x:hidden}
+#feed{max-width:600px;margin:0 auto;padding:16px 14px 0;display:flex;flex-direction:column;gap:6px}
+#spacer{flex:none;height:0;transition:height .26s cubic-bezier(.16,1,.3,1)}
+.row{display:flex;justify-content:flex-start;padding:2px 0;animation:msgIn .34s cubic-bezier(.22,1,.36,1) both}
+.row.right{justify-content:flex-end}
+@keyframes msgIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.bubble{background:#1a1d22;border-radius:4px 18px 18px 18px;padding:10px 14px;max-width:80%;word-break:break-word;position:relative}
+.bubble.me{background:#16212e;border-radius:18px 18px 4px 18px;padding:6px 14px;max-width:80%}
+.bubble.me::after{content:'';display:inline-block;width:12px;margin-left:7px;font-size:12px;font-weight:700;text-align:center}
+.bubble.me.ok::after{content:'✓';color:#b6fe3b;animation:markIn .32s cubic-bezier(.22,1,.36,1) both,markFlash .5s cubic-bezier(.22,1,.36,1) 1.45s both}
+.bubble.me.err::after{content:'✕';color:#f87171;animation:markIn .32s cubic-bezier(.22,1,.36,1) both}
+.bubble.me.err{color:#f2c9c9}
+@keyframes markIn{from{opacity:0;transform:scale(.4)}60%{opacity:1;transform:scale(1.2)}to{opacity:1;transform:scale(1)}}
+@keyframes markFlash{0%{color:#b6fe3b;transform:scale(1)}40%{color:#fff;transform:scale(1.45)}100%{color:#b6fe3b;transform:scale(1)}}
+.sheen{position:absolute;inset:0;border-radius:inherit;overflow:hidden;pointer-events:none}
+.sheen::before{content:'';position:absolute;top:0;bottom:0;left:0;width:300%;background-image:linear-gradient(100deg,rgba(255,255,255,0) 36%,rgba(255,255,255,.18) 43%,rgba(255,255,255,.55) 47%,rgba(255,255,255,.95) 50%,rgba(255,255,255,.55) 53%,rgba(255,255,255,.18) 57%,rgba(255,255,255,0) 64%);transform:translateX(-66.7%);opacity:0;animation:sheen .7s cubic-bezier(.35,0,.25,1) .05s 2 both}
+@keyframes sheen{0%{transform:translateX(-66.7%);opacity:0}10%{opacity:1}80%{opacity:1}100%{transform:translateX(6.7%);opacity:0}}
+.hint.warn{color:#ffd93d}.hint.bad{color:#f2a8a8}
+/* голосовое «послушать» */
+.aud{display:flex;align-items:center;gap:12px;padding:8px 12px 8px 8px}
+.play{width:40px;height:40px;border-radius:50%;border:0;background:#b6fe3b;color:#101300;display:grid;place-items:center;cursor:pointer;flex:none;transition:transform .12s,box-shadow .2s}
+.play:active{transform:scale(.92)}.play svg{width:18px;height:18px}
+.aud.playing .play{box-shadow:0 0 0 6px rgba(182,254,59,.16),0 0 0 12px rgba(182,254,59,.07)}
+.bars{display:flex;align-items:center;gap:3px;height:28px}
+.bars i{display:block;width:3px;border-radius:2px;background:#4a5568;height:30%;transition:background .2s}
+.aud.playing .bars i{background:#b6fe3b;animation:bar .9s ease-in-out infinite}
+.bars i:nth-child(2n){animation-delay:.15s}.bars i:nth-child(3n){animation-delay:.3s}.bars i:nth-child(4n){animation-delay:.45s}.bars i:nth-child(5n){animation-delay:.6s}
+@keyframes bar{0%,100%{height:25%}50%{height:100%}}
+.spd{border:1px solid #2a2d35;background:#12141d;color:#9aa0b4;border-radius:10px;padding:5px 9px;font:inherit;font-size:12px;font-weight:700;cursor:pointer;transition:border-color .15s,color .15s,background .15s}
+.spd.on{border-color:#b6fe3b;color:#b6fe3b;background:rgba(182,254,59,.08)}
+/* перевод */
+.rv{border:2px solid #2a2d35;background:#12141d;color:#e0e0e0;border-radius:12px;padding:8px 16px;font:inherit;font-weight:600;cursor:pointer;transition:border-color .15s,transform .1s}
+.rv:hover{border-color:#b6fe3b}.rv:active{transform:scale(.97)}
+.tr{display:grid;place-items:start}.tr>*{grid-area:1/1;transition:opacity .4s ease,transform .4s ease}
+.tr .txt{opacity:0;transform:translateY(8px);pointer-events:none}.tr.on .rv{opacity:0;transform:scale(.94);pointer-events:none}.tr.on .txt{opacity:1;transform:none}
+.soon{font-size:12px;color:#5a6275}
+/* панель ответа */
+.phrasePanel{position:fixed;left:0;right:0;bottom:0;background:#1a1d22;border-top:1px solid #2a2d35;transform:translateY(100%);transition:transform .28s cubic-bezier(.4,0,1,1);z-index:80;padding-bottom:env(safe-area-inset-bottom,0)}
+.phrasePanel.show{transform:translateY(0);transition:transform .38s cubic-bezier(.22,1,.36,1)}
+.phraseInner{max-width:600px;margin:0 auto;display:flex;flex-direction:column;gap:10px;padding:12px 16px 14px}
+.phraseCounter{font-size:11px;color:#555d72;text-align:right;letter-spacing:.02em;opacity:0;transition:opacity .3s;min-height:16px}.phraseCounter.on{opacity:1}
+.phraseAnswerRow{min-height:50px;border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:8px 12px;display:flex;flex-wrap:wrap;gap:2px;align-items:center;justify-content:center;transition:border-color .2s,background .2s}
+.phraseAnswerRow.filled{border-color:rgba(255,255,255,.22)}
+.phraseAnswerRow.err{animation:shake .6s ease}
+.phraseAnswerPlaceholder{font-size:14px;color:#3a4050;margin:auto}
+.phraseAnswerChip{background:none;border:none;padding:2px;font:inherit;font-size:15px;font-weight:700;color:#e8eaee;cursor:pointer;transition:opacity .15s,transform .15s;animation:chipIn .22s cubic-bezier(.22,1,.36,1) both}
+.phraseAnswerChip:hover{opacity:.7;transform:scale(.95)}.phraseAnswerChip.red{color:#f87171}
+@keyframes chipIn{from{opacity:0;transform:translateY(10px) scale(.85)}to{opacity:1;transform:none}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+.phrasePool{--h:38px;display:flex;flex-wrap:wrap;column-gap:8px;row-gap:0;justify-content:center;align-content:center;margin:-4px 0}
+.phrasePool.two{min-height:calc(2*(var(--h) + 8px))}
+.br{display:none}.br.on{display:block;flex:0 0 100%;height:0}
+.phraseChip{height:var(--h);margin:4px 0;flex:0 0 auto;max-width:100%;display:inline-flex;align-items:center;white-space:nowrap;background:#12141d;border:2px solid #2a2d35;border-radius:12px;padding:0 16px;font:inherit;font-size:14px;font-weight:600;line-height:1;color:#e0e0e0;cursor:pointer;transition:border-color .15s,transform .1s,opacity .2s}
+.phraseChip:hover:not(:disabled){border-color:#b6fe3b;transform:translateY(-2px)}
+.phraseChip:active:not(:disabled){transform:scale(.95)}
+.phraseChip.used{opacity:.25;cursor:default;pointer-events:none}
+.phraseCheckBtn{display:flex;align-items:center;justify-content:center;width:100%;height:46px;margin:0;padding:0 16px;background:#12141d;border:2px solid #b6fe3b;border-radius:12px;font-family:inherit;font-size:clamp(13px,3.6vw,16px);font-weight:700;line-height:1;white-space:nowrap;color:#b6fe3b;cursor:pointer;touch-action:manipulation;transition:background .15s,color .15s}
+.phraseCheckBtn:hover:not(:disabled),.phraseCheckBtn:active:not(:disabled){background:#b6fe3b;color:#000}
+.phraseCheckBtn:active:not(:disabled){transform:scale(.98)}
+.phraseCheckBtn:disabled{opacity:.35;cursor:default}
+.tries{display:flex;justify-content:center;gap:7px;margin-top:-2px}.tries i{width:8px;height:8px;border-radius:4px;background:#8b5cf6;transition:background .3s,transform .3s}.tries i.x{background:#f87171;transform:scale(1.15)}
+.lockbar{display:none;flex-direction:column;align-items:center;gap:4px;padding:14px;text-align:center}
+.phrasePanel.locked .lockbar{display:flex}.phrasePanel.locked .phraseInner{display:none}
+.lockbar b{font-size:14px}.lockbar small{color:#6f7885;font-size:12px}.lockbar .lk{font-size:24px;animation:lk 2.4s ease-in-out infinite}
+@keyframes lk{0%,100%{transform:rotate(0)}10%{transform:rotate(-10deg)}20%{transform:rotate(9deg)}30%{transform:rotate(0)}}
+.err2{color:#6f7885;font-size:14px;padding:40px 18px;text-align:center}
+@media (prefers-reduced-motion:reduce){.sheen::before{animation:sheenStill .7s ease-out .05s both}@keyframes sheenStill{0%,100%{opacity:0}45%{opacity:1}}}
 </style></head><body>
-<div id="w"></div>
+<div id="feed"></div><div id="spacer"></div>
+<div class="phrasePanel" id="panel">
+ <div class="phraseInner">
+  <div class="phraseCounter" id="cnt"></div>
+  <div class="phraseAnswerRow" id="rowA"></div>
+  <div class="phrasePool" id="pool"></div>
+  <button class="phraseCheckBtn" id="chk" disabled>Проверить</button>
+  <div class="tries" id="tries"></div>
+ </div>
+ <div class="lockbar"><span class="lk">🔒</span><b>Следующая попытка через <span id="lc"></span></b><small id="lt"></small></div>
+</div>
 <script>
-// Фраза и перевод приходят в ссылке: #p=<base64url(JSON {e:"English phrase", r:"Перевод"})>. Серверной части нет; три слова-«ловушки» подбираются случайно: местоимение, служебное слово и обиходное короткое слово.
-// Попытки и блокировка хранятся в браузере (в localStorage): обход возможен очисткой данных сайта. Строгую блокировку по пользователю может дать только бот.
+// Задание: старая ссылка #p=…, короткая #<id> или Mini App (tgWebAppStartParam); задание и звук лежат рядом со страницей: t/<id>.json, a/<id>.mp3
+// Попытки и блокировка хранятся в браузере (localStorage); строгую блокировку по пользователю может дать только бот.
+(function(){
 var TRIES=3,LOCK_H=5;
 var P=["you","he","she","they","we","it","him"],G=["to","of","do","are","was","for","with","and"],E=["go","day","time","home","good","now","way","know"];
-var $=function(s){return document.querySelector(s)},W=$("#w");
+var $=function(s){return document.querySelector(s)};
 function R(){return Math.random()}
 function shuf(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=R()*(i+1)|0,t=a[i];a[i]=a[j];a[j]=t}return a}
-function mk(){return document.createElement("button")}
 function norm(s){return s.toLowerCase().replace(/[^a-z']/g,"")}
-function pick(list,used){return shuf(list).filter(function(x){return used.indexOf(norm(x))<0})[0]}
+function pick1(list,used){return shuf(list).filter(function(x){return used.indexOf(norm(x))<0})[0]}
 function dec64(s){s=s.replace(/-/g,"+").replace(/_/g,"/");while(s.length%4)s+="=";var b=atob(s),u=new Uint8Array(b.length);for(var i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return JSON.parse(new TextDecoder().decode(u))}
 function readC(){try{var m=/[#&]p=([^&]+)/.exec(location.hash);if(!m)return null;var c=dec64(m[1]);return c&&c.e?c:null}catch(e){return null}}
-var C=readC(),KEY="trainer:"+(C?C.e:""),mem=null;
-if(window.Telegram&&Telegram.WebApp){try{Telegram.WebApp.ready();Telegram.WebApp.expand()}catch(e){}}
-function load(){try{var s=JSON.parse(localStorage.getItem(KEY)||"null");if(s)mem=s}catch(e){}if(!mem)mem={left:TRIES,until:0,solved:false};if(mem.until&&Date.now()>=mem.until){mem={left:TRIES,until:0,solved:false};save()}return mem}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(mem))}catch(e){}}
-function boom(){
- var c=document.createElement("canvas"),d=Math.min(devicePixelRatio||1,2),w=innerWidth,h=innerHeight,x=c.getContext("2d"),ps=[],rk=[],K=["#94cf6c","#8b5cf6","#ffcc33"],t0=performance.now();
- c.width=w*d;c.height=h*d;c.style.cssText="position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:9";document.body.appendChild(c);x.scale(d,d);
- function go(px,ty,t){setTimeout(function(){rk.push({x:w*px,y:h,u:(R()-.5)*1.4,v:-Math.sqrt(.24*(h-h*ty)),c:K[R()*3|0]})},t)}
- go(.3,.3,0);go(.7,.22,260);go(.5,.38,520);
- function boomAt(r){for(var i=0;i<34;i++){var a=R()*6.283,v=.6+R()*3;ps.push({x:r.x,y:r.y,u:Math.cos(a)*v,v:Math.sin(a)*v,l:1,c:r.c})}}
- (function f(){x.clearRect(0,0,w,h);
-  for(var i=rk.length-1;i>=0;i--){var r=rk[i];r.x+=r.u;r.y+=r.v;r.v+=.12;x.globalAlpha=1;x.fillStyle=r.c;x.fillRect(r.x,r.y,3,6);if(r.v>=0){boomAt(r);rk.splice(i,1)}}
-  for(i=ps.length-1;i>=0;i--){var p=ps[i];p.x+=p.u;p.y+=p.v;p.v+=.07;p.u*=.985;p.v*=.99;p.l-=.011;if(p.l<=0){ps.splice(i,1);continue}x.globalAlpha=p.l;x.fillStyle=p.c;x.fillRect(p.x,p.y,2.5,2.5)}
-  if(performance.now()-t0<1500||rk.length||ps.length)requestAnimationFrame(f);else c.remove()})()}
-function left(ms){var m=Math.ceil(ms/60000),h=Math.floor(m/60);return h+" ч "+("0"+(m%60)).slice(-2)+" мин"}
-function at(t){var d=new Date(t),z=function(x){return("0"+x).slice(-2)};return"в "+z(d.getHours())+":"+z(d.getMinutes())}
-function start(){
- if(!C){W.innerHTML='<div class="err">Ссылка без задания.<br>Откройте тест по кнопке под видео.</div>';return}
- var S=load(),toks=C.e.split(/\s+/),dec=[];
- [P,G,E].forEach(function(l){dec.push(pick(l,toks.map(norm).concat(dec)))});
- var pool=shuf(toks.map(function(t){return{t:t}}).concat(dec.map(function(t){return{t:t}}))),line=[],marks=null,msg="",cls="";
- W.innerHTML='<div id="mn"><h2 id="h">Удалось расслышать фразу?</h2><div class="slot" id="sl"></div><div class="pool" id="pl"></div><button class="go" id="go">Проверить</button><div class="tries" id="tr"></div><div class="fb" id="fb"></div><div class="aud" id="au"><button id="ap">▶ Послушать</button><button id="as" title="В два раза медленнее">½×</button></div><div id="sn" style="display:none"><div class="rb" id="rb"><button id="rv">Раскрыть перевод</button><div class="tx" id="tx"></div></div><div class="soon">Скоро выйдет разбор этой фразы</div></div></div><div class="lockbar"><span style="font-size:22px">🔒</span><div><b>Следующая попытка через <span id="lc"></span></b><small id="lt"></small></div></div>';
+function idOf(){var h=location.hash,m=/[#&]tgWebAppStartParam=([0-9a-zA-Z_-]+)/.exec(h)||/^#([0-9a-f]{6,40})$/.exec(h);if(!m&&window.Telegram&&Telegram.WebApp&&Telegram.WebApp.initDataUnsafe&&Telegram.WebApp.initDataUnsafe.start_param)m=[0,Telegram.WebApp.initDataUnsafe.start_param];return m?m[1]:""}
+window.addEventListener("load",function(){if(window.Telegram&&Telegram.WebApp){try{var w=Telegram.WebApp;w.ready();w.expand();w.setHeaderColor("#0e1013");w.setBackgroundColor("#0e1013")}catch(e){}}});
+
+// ── звуки интерфейса (те же файлы, что в приложении)
+var snds={};function snd(n){try{var a=snds[n]||(snds[n]=new Audio("s/"+n+".mp3"));a.currentTime=0;var p=a.play();if(p&&p.catch)p.catch(function(){})}catch(e){}}
+
+// ── салют: DOM-частицы на WAAPI (как fireBurst в приложении): вся анимация на композиторе, JS после старта не участвует
+var COLORS=["#b6fe3b","#ff6b6b","#ffd93d","#6bcfff","#c77dff","#ff9f43","#ff6fd8"],SAMPLES=14,FRAMES=105,GRAVITY=.32;
+function particle(W,H,size){var speed=Math.sqrt(H*GRAVITY)*(.92+R()*.22),ang=-Math.PI/2+(R()-.5)*1.22,vx=Math.cos(ang)*speed*.6,vy=Math.sin(ang)*speed,life=FRAMES*(.78+R()*.42),spin=(3+R()*5)*(R()>.5?1:-1),fr=[];
+ for(var i=0;i<SAMPLES;i++){var p=i/(SAMPLES-1),t=p*life;fr.push({offset:p,transform:"translate("+(vx*t).toFixed(1)+"px,"+(vy*t+GRAVITY*t*t/2).toFixed(1)+"px) rotate("+(t*spin).toFixed(0)+"deg)",opacity:p<.55?1:Math.max(0,1-(p-.55)/.45)})}
+ return{left:W*(.2+R()*.6),size:size+R()*size,color:COLORS[R()*COLORS.length|0],round:R()>.5,duration:life*(1000/60),frames:fr}}
+function fireBurst(count,size){var host=document.createElement("div");host.style.cssText="position:fixed;inset:0;pointer-events:none;z-index:85;overflow:hidden;contain:strict";document.body.appendChild(host);
+ var W=innerWidth,H=innerHeight,longest=null;
+ for(var k=0;k<count;k++){var p=particle(W,H,size),el=document.createElement("i");el.style.cssText="position:absolute;left:"+p.left.toFixed(0)+"px;top:"+(H+8)+"px;width:"+p.size.toFixed(1)+"px;height:"+(p.size*.6).toFixed(1)+"px;background:"+p.color+";border-radius:"+(p.round?"50%":"1px");host.appendChild(el);
+  var an=el.animate(p.frames,{duration:p.duration,easing:"linear",fill:"forwards"});if(!longest||p.duration>longest.d)longest={d:p.duration,a:an}}
+ if(longest)longest.a.finished.then(function(){host.remove()}).catch(function(){host.remove()});else host.remove()}
+
+function start(C){
+ var KEY="trainer:"+C.e,S={left:TRIES,until:0,solved:false};
+ try{var s=JSON.parse(localStorage.getItem(KEY)||"null");if(s)S=s}catch(e){}
+ if(S.until&&Date.now()>=S.until)S={left:TRIES,until:0,solved:false};
+ function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+ var toks=C.e.split(/\s+/),dec=[];[P,G,E].forEach(function(l){dec.push(pick1(l,toks.map(norm).concat(dec)))});
+ var bank=shuf(toks.concat(dec)),placed=[],used={},red=[],busy=false,wrongN=TRIES-S.left;
+ var feed=$("#feed"),panel=$("#panel"),pool=$("#pool"),rowA=$("#rowA"),chk=$("#chk"),spacer=$("#spacer");
  function locked(){return S.until&&Date.now()<S.until}
- function draw(){
-  var lk=locked(),done=S.solved,sl=$("#sl"),pl=$("#pl");
-  W.className=lk?"lock":"";sl.className="slot"+(done?" full":"");sl.innerHTML="";pl.innerHTML="";
-  if(done){sl.textContent=C.e;pl.style.display="none";$("#tr").style.display="none"}
-  var u=TRIES-S.left;$("#tr").innerHTML=[0,1,2].map(function(i){return '<i class="'+(i<u?'x':'')+'"></i>'}).join("");
-  if(!done)line.forEach(function(it,k){var b=mk();b.textContent=it.t;if(marks)b.className=marks[k]?"ok":"no";b.disabled=lk||done;b.onclick=function(){line.splice(k,1);marks=null;msg="";draw()};sl.appendChild(b)});
-  if(!done)pool.forEach(function(it){var b=mk(),used=line.indexOf(it)>=0;b.textContent=it.t;if(used)b.className="used";b.disabled=lk||done;b.onclick=function(){if(used||lk||done)return;line.push(it);marks=null;msg="";draw()};pl.appendChild(b)});
-  $("#go").style.display=done?"none":"";$("#go").disabled=lk||!line.length;
-  var f=$("#fb");f.className="fb "+cls;f.textContent=lk?"":msg;
-  $("#au").style.display=C.a&&(done||S.left<TRIES)?"flex":"none";
-  $("#sn").style.display=done?"block":"none";$("#h").style.display=done?"none":"";
-  if(lk){$("#lc").textContent=left(S.until-Date.now());$("#lt").textContent="Откроется "+at(S.until)}
+ function toBottom(){setTimeout(function(){window.scrollTo({top:document.documentElement.scrollHeight,behavior:"smooth"})},60)}
+ function msg(cls,html,nosnd){var r=document.createElement("div");r.className="row"+(cls.indexOf("me")>=0?" right":"");var b=document.createElement("div");b.className="bubble "+cls;if(typeof html==="string")b.innerHTML=html;else b.appendChild(html);r.appendChild(b);feed.appendChild(r);if(!nosnd&&cls.indexOf("me")<0)snd("message-in");toBottom();return b}
+ function esc(s){return String(s).replace(/[&<>]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;"}[c]})}
+ function later(f,t){return setTimeout(f,t)}
+ function wordForm(n){var a=n%10,b=n%100;return b>=11&&b<=14?"слов":a===1?"слово":a>=2&&a<=4?"слова":"слов"}
+
+ // ── голосовое «послушать»
+ var audio=null,half=false;
+ function audioBubble(){
+  var h=document.createElement("div");h.className="aud";
+  h.innerHTML='<button class="play" aria-label="Послушать"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button><div class="bars">'+[40,70,45,90,60,100,55,80,35,65,50,75].map(function(v){return'<i style="height:'+v+'%"></i>'}).join("")+'</div><button class="spd" title="В два раза медленнее">½×</button>';
+  var b=msg("aud",h);b.style.padding="0";
+  var pl=h.querySelector(".play"),sp=h.querySelector(".spd"),icPlay='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>',icStop='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>';
+  function stopUi(){h.classList.remove("playing");pl.innerHTML=icPlay}
+  pl.onclick=function(){
+   if(!audio){audio=new Audio("a/"+C.a+".mp3");audio.preload="auto";audio.onended=stopUi;audio.onerror=function(){b.closest(".row").remove()}}
+   if(h.classList.contains("playing")){audio.pause();stopUi();return}
+   audio.playbackRate=half?.5:1;try{audio.preservesPitch=true;audio.webkitPreservesPitch=true}catch(e){}audio.currentTime=0;
+   var p=audio.play();if(p&&p.then)p.then(function(){h.classList.add("playing");pl.innerHTML=icStop}).catch(function(){});else{h.classList.add("playing");pl.innerHTML=icStop}};
+  sp.onclick=function(){half=!half;sp.classList.toggle("on",half);if(audio)audio.playbackRate=half?.5:1};
  }
- $("#go").onclick=function(){
-  if(locked()||!line.length)return;
-  marks=line.map(function(it,k){return norm(it.t)===norm(toks[k])});
-  var right=line.length===toks.length&&marks.every(Boolean);
-  if(right){S.solved=true;msg="Поздравляю, тебе удалось расслышать фразу!";cls="ok";setTimeout(boom,120)}
-  else if(line.length<toks.length&&marks.every(Boolean)){msg="Верно, но фраза не полная.";cls="warn";draw();return}
-  else{S.left--;if(S.left<=0){S.until=Date.now()+LOCK_H*3600000;msg="";cls="bad"}else{msg="Неверно. Осталось попыток: "+S.left;cls="bad"}}
-  save();draw()};
- var A=null,half=false;
- // звук фразы лежит рядом со страницей (a/<id>.mp3); замедление в два раза делает сам браузер, тон не меняется. Кнопка появляется после первой неверной попытки и после решения.
- if(C.a){$("#ap").onclick=function(){if(!A){A=new Audio("a/"+C.a+".mp3");A.preload="auto";A.onerror=function(){$("#au").style.display="none"}}A.playbackRate=half?0.5:1;try{A.preservesPitch=true;A.webkitPreservesPitch=true}catch(e){}A.currentTime=0;var p=A.play();if(p&&p.catch)p.catch(function(){})};$("#as").onclick=function(){half=!half;this.className=half?"on":"";if(A)A.playbackRate=half?0.5:1}}
- $("#tx").textContent=C.r||"";$("#rv").onclick=function(){$("#rb").classList.add("on");$("#fb").classList.add("hide")};
- clearInterval(window.__t);window.__t=setInterval(function(){if(S.until&&Date.now()>=S.until){start()}else if(locked())draw()},30000);
- draw()}
-start();
+
+ // ── панель ответа
+ function spacerSync(){spacer.style.height=panel.classList.contains("show")&&!panel.classList.contains("locked")?panel.offsetHeight+"px":panel.classList.contains("locked")?panel.offsetHeight+"px":"0"}
+ function layoutBank(){var chips=pool.querySelectorAll(".phraseChip"),brs=pool.querySelectorAll(".br");if(chips.length<4)return;var gap=parseFloat(getComputedStyle(pool).columnGap)||8,w=[].map.call(chips,function(e){return e.getBoundingClientRect().width}),max=pool.clientWidth,n=w.length,pre=[0];w.forEach(function(x){pre.push(pre[pre.length-1]+x)});
+  function rw(a,b){return pre[b]-pre[a]+gap*(b-a-1)}function fits(x){return x<=max+.5}
+  var best=null,cuts=[];for(var k=1;k<n;k++){var l=rw(0,k),r=rw(k,n);if(!fits(l)||!fits(r))continue;var d=Math.abs(l-r);if(!best||d<best.s-.01)best={s:d,c:[k-1]}}
+  if(!best)for(var i=1;i<n-1;i++)for(var j=i+1;j<n;j++){var rows=[rw(0,i),rw(i,j),rw(j,n)];if(!rows.every(fits))continue;var sp=Math.max.apply(0,rows)-Math.min.apply(0,rows);if(!best||sp<best.s-.01)best={s:sp,c:[i-1,j-1]}}
+  cuts=best?best.c:[];[].forEach.call(brs,function(b,i){b.classList.toggle("on",cuts.indexOf(i)>=0)})}
+ function drawBank(){pool.className="phrasePool"+(bank.length>=4?" two":"");pool.innerHTML="";bank.forEach(function(w,i){var b=document.createElement("button");b.className="phraseChip"+(used[i]?" used":"");b.textContent=w;b.disabled=!!used[i]||busy||locked();b.onclick=function(){if(used[i]||busy||locked())return;placed.push({w:w,i:i});used[i]=1;red=[];draw()};pool.appendChild(b);var br=document.createElement("span");br.className="br";pool.appendChild(br)});layoutBank();if(document.fonts&&document.fonts.ready)document.fonts.ready.then(layoutBank)}
+ function drawRow(animateLast){rowA.innerHTML="";rowA.className="phraseAnswerRow"+(placed.length?" filled":"");if(!placed.length){rowA.innerHTML='<span class="phraseAnswerPlaceholder">Собери фразу...</span>';return}
+  placed.forEach(function(p,k){var b=document.createElement("button");b.className="phraseAnswerChip"+(red.indexOf(p.i)>=0?" red":"");b.textContent=p.w;if(!(animateLast&&k===placed.length-1))b.style.animation="none";b.onclick=function(){if(busy||locked())return;used[p.i]=0;placed.splice(k,1);red=[];draw()};rowA.appendChild(b)})}
+ function drawTries(){var u=TRIES-S.left;$("#tries").innerHTML=[0,1,2].map(function(i){return'<i class="'+(i<u?"x":"")+'"></i>'}).join("")}
+ function draw(){var n=placed.length;drawBank();drawRow(true);chk.disabled=!n||busy||locked();drawTries();var c=$("#cnt");c.textContent="выбрано "+n+" "+wordForm(n)+" из "+toks.length;c.classList.toggle("on",wrongN>=2)}
+ function openPanel(){panel.classList.add("show");setTimeout(spacerSync,60);setTimeout(spacerSync,420);toBottom()}
+ function closePanel(){panel.classList.remove("show");spacer.style.height="0"}
+ function lockUi(){if(!locked())return;panel.classList.add("locked");$("#lc").textContent=leftTxt(S.until-Date.now());$("#lt").textContent="Откроется "+atTxt(S.until);panel.classList.add("show");spacerSync()}
+ function leftTxt(ms){var m=Math.ceil(ms/60000),h=Math.floor(m/60);return h+" ч "+("0"+(m%60)).slice(-2)+" мин"}
+ function atTxt(t){var d=new Date(t),z=function(x){return("0"+x).slice(-2)};return"в "+z(d.getHours())+":"+z(d.getMinutes())}
+ window.addEventListener("resize",function(){layoutBank();spacerSync()});
+
+ // ── финал: фраза ответом + перевод
+ function finale(fire){
+  var me=msg("me ok",esc(C.e),true);var sh=document.createElement("span");sh.className="sheen";me.appendChild(sh);
+  if(fire){snd("xp-gain")}
+  later(function(){var t=document.createElement("div");t.innerHTML='<div class="tr" id="tr"><button class="rv">Раскрыть перевод</button><div class="txt" style="font-size:16px;color:#c8cfda">'+esc(C.r||"")+'</div></div>';msg("",t);t.querySelector(".rv").onclick=function(){t.querySelector("#tr").classList.add("on")};
+   later(function(){msg("hint soon",'<span class="soon">Скоро выйдет разбор этой фразы</span>')},700)},fire?1700:300)}
+
+ chk.onclick=function(){
+  if(busy||locked()||!placed.length)return;
+  var marks=placed.map(function(p,k){return norm(p.w)===norm(toks[k]||"")}),right=placed.length===toks.length&&marks.every(Boolean);
+  if(right){busy=true;S.solved=true;save();snd("answer-correct");chk.disabled=true;
+   later(function(){fireBurst(30,4);later(function(){fireBurst(18,4)},260);closePanel();later(function(){finale(true)},420)},700);return}
+  if(placed.length<toks.length&&marks.every(Boolean)){msg("hint warn","Верно, но фраза не полная.");return}
+  // неверно
+  busy=true;S.left--;wrongN++;save();snd("answer-wrong");red=placed.map(function(p){return p.i});drawRow(false);rowA.classList.add("err");drawTries();
+  msg("me err",esc(placed.map(function(p){return p.w}).join(" ")),true);
+  if(S.left<=0){S.until=Date.now()+LOCK_H*3600000;save();
+   later(function(){closePanel();later(function(){msg("hint bad","Попытки закончились. Следующая попытка откроется "+atTxt(S.until)+".");panel.classList.add("locked");lockUi()},350)},700);return}
+  later(function(){
+   if(wrongN===1)msg("hint","Не совсем. Послушай ещё раз и попробуй снова.");
+   else msg("hint","Собери фразу из "+toks.length+" "+(toks.length%10===1&&toks.length!==11?"слова":"слов")+".");
+   rowA.classList.remove("err");red=[];busy=false;draw()},700)};
+
+ // ── запуск
+ msg("","<b>Удалось расслышать фразу?</b>");
+ if(C.a)later(audioBubble,420);
+ else later(function(){msg("hint","Звука для этой фразы нет: прислушайтесь к видео.")},420);
+ if(S.solved){later(function(){finale(false)},800);return}
+ if(locked()){later(function(){msg("hint bad","Попытки закончились. Следующая попытка откроется "+atTxt(S.until)+".");lockUi()},900);setInterval(function(){if(S.until&&Date.now()>=S.until)location.reload();else $("#lc").textContent=leftTxt(S.until-Date.now())},30000);return}
+ draw();later(openPanel,900)}
+
+function boot(){
+ var c=readC();if(c){start(c);return}
+ var id=idOf();if(!id){$("#feed").innerHTML='<div class="err2">Ссылка без задания.<br>Откройте тест по кнопке под видео.</div>';return}
+ $("#feed").innerHTML='<div class="err2">Загружаю задание…</div>';
+ fetch("t/"+id+".json",{cache:"no-store"}).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(j){if(!j||!j.e)throw 0;$("#feed").innerHTML="";start(j)}).catch(function(){$("#feed").innerHTML='<div class="err2">Не удалось загрузить задание.<br>Попробуйте ещё раз через минуту: страница обновляется.</div>'})}
+boot();
+})();
 </script></body></html>
