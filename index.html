@@ -140,7 +140,7 @@ function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.len
 window.__L=L;
 function tg(){var w=window.Telegram&&Telegram.WebApp;return w?("tg "+w.platform+" v"+w.version+" vh="+w.viewportHeight+" stable="+w.viewportStableHeight+" exp="+w.isExpanded):"без Telegram"}
 function snap(why){var f=document.getElementById("feed"),o=document.getElementById("outer"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollTop="+Math.round(o?o.scrollTop:0)+" scrollH="+(o?o.scrollHeight:0)+"/"+(o?o.clientHeight:0)+" docScroll="+Math.round(scrollY)+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
-var PAGE_V="2026-11-15.10";L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
+var PAGE_V="2026-11-15.11";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
 window.addEventListener("error",function(e){L("ОШИБКА: "+e.message+" @"+(e.filename||"").split("/").pop()+":"+e.lineno)});
 window.addEventListener("unhandledrejection",function(e){L("ОШИБКА промиса: "+(e.reason&&e.reason.message||e.reason))});
 // самообновление: Safari и GitHub Pages держат старый HTML в кэше. Раз за сессию страница запрашивает свежую копию и, если версия другая, перезагружается
@@ -149,7 +149,7 @@ window.__pvCheck=new Promise(function(res){try{if(sessionStorage.getItem("pv-rel
   if(m&&m[1]!==PAGE_V){sessionStorage.setItem("pv-reloaded","1");L("страница устарела ("+PAGE_V+" → "+m[1]+"), перезагрузка");var go=function(){res(true);location.reload()};fetch(location.pathname,{cache:"reload"}).then(go,go)}
   else{L("версия страницы актуальна");res(false)}}).catch(function(){res(false)})}catch(e){res(false)}});
 var jk=0,fr=0,worst=0,lastT=0,sumT=0,rafOn=true,t00=performance.now();
-(function perf(t){if(!rafOn)return;if(lastT){var d=t-lastT;fr++;if(d>24){jk++;if(d>worst)worst=d;if(d>45){var f=document.getElementById("feed"),lr=f&&f.lastElementChild;L("РЫВОК кадра "+Math.round(d)+" мс; последнее: "+(lr?String(lr.textContent).trim().slice(0,24)||lr.className:"-"))}}}lastT=t;if(t-t00>120000){rafOn=false;return}requestAnimationFrame(perf)})(performance.now());
+(function perf(t){if(!rafOn)return;if(lastT){var d=t-lastT;fr++;window.__pf.fr++;if(d>24){jk++;window.__pf.jk++;if(d>window.__pf.w)window.__pf.w=d;if(d>worst)worst=d;if(d>45){var f=document.getElementById("feed"),lr=f&&f.lastElementChild;L("РЫВОК кадра "+Math.round(d)+" мс; последнее: "+(lr?String(lr.textContent).trim().slice(0,24)||lr.className:"-"))}}}lastT=t;if(t-t00>120000){rafOn=false;return}requestAnimationFrame(perf)})(performance.now());
 setInterval(function(){if(fr>0){L("кадры за 5 с: "+fr+" (60 Гц = около 300), рывков >24 мс: "+jk+", худший "+Math.round(worst)+" мс");fr=0;jk=0;worst=0}},5000);
 var rs=0;window.addEventListener("resize",function(){rs++;L("resize #"+rs+" "+innerWidth+"x"+innerHeight)});
 if(window.visualViewport){var vc=0;visualViewport.addEventListener("resize",function(){vc++;if(vc<40)L("visualViewport resize "+Math.round(visualViewport.height))})}
@@ -165,6 +165,51 @@ document.getElementById("dbgBtn").onclick=function(){var tx=text();ta.value=tx;b
 document.getElementById("dbgCopy").onclick=function(){var tx=ta.value;try{navigator.clipboard.writeText(tx).then(function(){document.getElementById("dbgCopy").textContent="Скопировано ✓"},function(){ta.select();document.execCommand("copy")})}catch(e){ta.select();try{document.execCommand("copy")}catch(_){}}};
 document.getElementById("dbgReset").onclick=function(){try{Object.keys(localStorage).forEach(function(k){if(k.indexOf("trainer:")===0)localStorage.removeItem(k)})}catch(e){}location.reload()};
 document.getElementById("dbgClose").onclick=function(){box.classList.remove("on");document.getElementById("dbgCopy").textContent="Скопировать"}
+})();
+</script>
+<script src="stats-config.js"></script>
+<script>
+// Статистика тренажёра. Без stats-config.js (url и публичный ключ anon) ничего не отправляется.
+// Страница пишет события только через функцию trainer_log в базе (таблицы закрыты), хэшированием айпи и человека занимается база: здесь отправляется id Telegram или id устройства.
+// Личная мини-статистика (сколько фраз собрано, с первой попытки, дней подряд) живёт только в браузере человека.
+(function(){
+var CFG=window.TRAINER_STATS||{},ON=!!(CFG.url&&CFG.key),T0=Date.now(),Q=[],TASK="",STEP="",SOLVED=false,tm=0,SENT=0;
+function rnd(n){var a="abcdefghijklmnopqrstuvwxyz0123456789",s="";for(var i=0;i<n;i++)s+=a.charAt(Math.random()*a.length|0);return s}
+var SID=rnd(12);
+function dev(){try{var d=localStorage.getItem("trainer:dev");if(!d){d=rnd(16);localStorage.setItem("trainer:dev",d)}return d}catch(e){return"x"+SID}}
+function tgUser(){try{var u=window.Telegram&&Telegram.WebApp&&Telegram.WebApp.initDataUnsafe&&Telegram.WebApp.initDataUnsafe.user;return u&&u.id?String(u.id):""}catch(e){return""}}
+function person(){var t=tgUser();return t?"tg:"+t:"dev:"+dev()}
+function now(){return Date.now()-T0}
+function ev(kind,o){o=o||{};return{kind:kind,session:SID,person:person(),task:TASK||"-",step:o.step||STEP||null,attempt:o.attempt===undefined?null:o.attempt,ms:o.ms===undefined?now():o.ms,props:o.props||{},tg:!!tgUser()}}
+function rpc(name,body,keep){return fetch(CFG.url+"/rest/v1/rpc/"+name,{method:"POST",keepalive:!!keep,headers:{"apikey":CFG.key,"Authorization":"Bearer "+CFG.key,"Content-Type":"application/json"},body:JSON.stringify(body)})}
+function log(m){if(window.__L)window.__L(m)}
+function flush(final){if(!ON||!Q.length)return;var b=Q.splice(0,40);
+ try{rpc("trainer_log",{p:b},true).then(function(r){SENT+=b.length;log("статистика: отправлено "+b.length+" (HTTP "+r.status+")")},function(e){log("статистика: ошибка отправки "+e)})}catch(e){}
+ if(Q.length)flush(final)}
+function schedule(){if(tm)return;tm=setTimeout(function(){tm=0;flush()},3000)}
+// личная статистика на устройстве
+function today(){var d=new Date();return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2)}
+function dayNum(s){var p=s.split("-");return Math.round(Date.UTC(+p[0],+p[1]-1,+p[2])/86400000)}
+function loadP(){try{return JSON.parse(localStorage.getItem("trainer:stats")||"null")||{}}catch(e){return{}}}
+function saveP(p){try{localStorage.setItem("trainer:stats",JSON.stringify(p))}catch(e){}}
+window.TS={on:ON,
+ begin:function(task){TASK=String(task||"-");var p=loadP();p.visits=(p.visits||0)+1;saveP(p);var w=window.Telegram&&Telegram.WebApp;
+  this.track("open",{ms:0,props:{w:innerWidth,h:innerHeight,lang:navigator.language,tzo:new Date().getTimezoneOffset(),plat:w&&w.platform||"web",ver:window.__PV||"",visits:p.visits,ua:/iPhone|iPad/.test(navigator.userAgent)?"ios":/Android/.test(navigator.userAgent)?"android":"other"}});
+  log("статистика: "+(ON?"включена":"выключена (нет stats-config.js)")+", задание "+TASK)},
+ track:function(kind,o){if(!ON)return;Q.push(ev(kind,o));if(Q.length>200)Q.shift();schedule()},
+ step:function(s){STEP=s;this.track("step",{step:s})},
+ solved:function(){SOLVED=true},
+ flush:flush,
+ // записать результат в личную статистику; повторное открытие уже решённого задания счётчики не увеличивает
+ record:function(attempt){var p=loadP();p.done=p.done||{};var isNew=!p.done[TASK];
+  if(isNew){p.done[TASK]=attempt||1;p.n=(p.n||0)+1;if((attempt||1)===1)p.first=(p.first||0)+1;var t=today();if(p.last!==t){var gap=p.last?dayNum(t)-dayNum(p.last):0;p.streak=gap===1?(p.streak||1)+1:1;p.last=t}}
+  saveP(p);return{n:p.n||0,first:p.first||0,streak:p.streak||1,isNew:isNew}},
+ // публичные счётчики по заданию (без личных данных) для мотивации; не дольше 2,5 с
+ pub:function(){if(!ON)return Promise.resolve(null);
+  return Promise.race([rpc("trainer_public_stats",{p_task:TASK}).then(function(r){return r.ok?r.json():null}).catch(function(){return null}),new Promise(function(r){setTimeout(function(){r(null)},2500)})])}};
+function leave(){if(!ON||!TASK)return;var pf=window.__pf||{};TS.track("leave",{props:{step:STEP,solved:SOLVED,sec:Math.round(now()/1000),fr:pf.fr,jk:pf.jk,w:Math.round(pf.w||0)}});flush(true)}
+document.addEventListener("visibilitychange",function(){if(document.visibilityState==="hidden")leave()});
+window.addEventListener("pagehide",leave);
 })();
 </script>
 <script>
@@ -209,6 +254,7 @@ function start(C){
  function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
  var toks=C.e.split(/\s+/),dec=[];[P,G,E].forEach(function(l){dec.push(pick1(l,toks.map(norm).concat(dec)))});
  var bank=shuf(toks.concat(dec)),placed=[],used={},red=[],busy=false,wrongN=TRIES-S.left;
+ var PANEL_AT=0;
  var outer=$("#outer"),inner=$("#inner"),app=$("#app"),feed=$("#feed"),panel=$("#panel"),pool=$("#pool"),rowA=$("#rowA"),chk=$("#chk"),spacer=$("#spacer");
  function locked(){return S.until&&Date.now()<S.until}
  function scrollNow(){outer.scrollTop=0}
@@ -250,11 +296,11 @@ function start(C){
   function tick(){if(!audio)return;var ct=audio.currentTime,total=isFinite(audio.duration)&&audio.duration>0?audio.duration:(dur||1),from=bounds?bounds.lead:0,len=bounds?Math.max(.1,total-bounds.lead-bounds.tail):total;paint(Math.min(1,Math.max(0,(ct-from)/len)));var left=fmt(Math.max(0,(dur||total)-ct));if(durEl.textContent!==left)durEl.textContent=left;raf=requestAnimationFrame(tick)}
   function fadeEnd(){var t0=performance.now();(function f(now){var a=1-Math.min(1,(now-t0)/550);paint(a>0?1:0,a);if(a>0)raf=requestAnimationFrame(f);else{paint(0);raf=0}})(t0)}
   function ensure(){if(audio)return audio;audio=new Audio("a/"+key+".mp3");audio.preload="auto";
-   audio.onended=function(){if(endRes)endRes();stopRaf();setPlayingUi(false);durEl.textContent=fmt(dur||audio.duration);fadeEnd()};
+   audio.onended=function(){TS.track("voice_end",{props:{n:slow?2:1}});if(endRes)endRes();stopRaf();setPlayingUi(false);durEl.textContent=fmt(dur||audio.duration);fadeEnd()};
    audio.onpause=function(){stopRaf();setPlayingUi(false)};audio.onplay=function(){setPlayingUi(true);if(!raf)raf=requestAnimationFrame(tick)};
    audio.onwaiting=function(){btn.innerHTML=ICON_RING};audio.onplaying=function(){setPlayingUi(true)};
    audio.onerror=function(){b.closest(".row").remove()};return audio}
-  btn.onclick=function(){var a=ensure();if(!a.paused){a.pause();return}stopRaf();if(a.ended)a.currentTime=0;a.loop=loop;a.playbackRate=half?.5:1;try{a.preservesPitch=true;a.webkitPreservesPitch=true}catch(e){}
+  btn.onclick=function(){var a=ensure();if(!a.paused){a.pause();return}TS.track("voice_play",{props:{n:slow?2:1}});stopRaf();if(a.ended)a.currentTime=0;a.loop=loop;a.playbackRate=half?.5:1;try{a.preservesPitch=true;a.webkitPreservesPitch=true}catch(e){}
    var p=a.play();if(p&&p.catch)p.catch(function(){setPlayingUi(false)})};
   if(spd.parentNode)spd.parentNode.removeChild(spd);
   spd.onclick=function(){half=!half;spd.classList.toggle("on",half);if(audio)audio.playbackRate=half?.5:1};
@@ -287,7 +333,7 @@ function start(C){
   placed.forEach(function(p,k){var b=document.createElement("button");b.className="phraseAnswerChip"+(red.indexOf(p.i)>=0?" red":"");b.textContent=p.w;if(!(animateLast&&k===placed.length-1))b.style.animation="none";b.onclick=function(){if(busy||locked())return;used[p.i]=0;placed.splice(k,1);red=[];draw()};rowA.appendChild(b)})}
  function drawTries(){var u=TRIES-S.left;$("#tries").innerHTML=[0,1,2].map(function(i){return'<i class="'+(i<u?"x":"")+'"></i>'}).join("")}
  function draw(){var n=placed.length;drawBank();drawRow(true);chk.disabled=!n||busy||locked();drawTries();var c=$("#cnt");c.textContent="выбрано "+n+" "+wordForm(n)+" из "+toks.length;c.classList.toggle("on",wrongN>=2)}
- function openPanel(){runPanel(true)}
+ function openPanel(){TS.step("panel");PANEL_AT=Date.now();runPanel(true)}
  function closePanel(){runPanel(false)}
  function lockUi(){if(!locked())return;panel.classList.add("locked");$("#lc").textContent=leftTxt(S.until-Date.now());$("#lt").textContent="Откроется "+atTxt(S.until);if(!panel.classList.contains("show"))runPanel(true);else spacerSync()}
  function leftTxt(ms){var m=Math.ceil(ms/60000),h=Math.floor(m/60);return h+" ч "+("0"+(m%60)).slice(-2)+" мин"}
@@ -315,30 +361,40 @@ function start(C){
   function init(){W=cv.clientWidth;H=cv.clientHeight;if(!W||!H)return;cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);var n=Math.max(22,Math.min(64,Math.round(W*H/90)));pts=[];for(var k=0;k<n;k++)pts.push({x:R()*W,y:R()*H,vx:(R()-.5)*.7,vy:(R()-.5)*.7,r:1.3+R()*1.6,a:.4+R()*.55,g:R()<.35})}
   function frame(){if(open)return;ctx.clearRect(0,0,W,H);for(var k=0;k<pts.length;k++){var p=pts[k];p.vx+=(R()-.5)*.1;p.vy+=(R()-.5)*.1;var sp=Math.sqrt(p.vx*p.vx+p.vy*p.vy);if(sp>.75){p.vx*=.75/sp;p.vy*=.75/sp}p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>W)p.vx*=-1;if(p.y<0||p.y>H)p.vy*=-1;ctx.beginPath();ctx.fillStyle=p.g?"rgba(182,254,59,"+p.a+")":"rgba(255,255,255,"+p.a+")";ctx.arc(p.x,p.y,p.r,0,6.2832);ctx.fill()}raf=requestAnimationFrame(frame)}
   later(function(){init();frame()},40);
-  cv.onclick=function(){if(open)return;open=true;w.classList.add("open");later(function(){cancelAnimationFrame(raf)},600)}}
+  cv.onclick=function(){if(open)return;open=true;TS.track("translation_open");w.classList.add("open");later(function(){cancelAnimationFrame(raf)},600)}}
  function exitBtn(){var r=document.createElement("div");r.className="row exitRow";r.innerHTML='<button class="exitBtn">Выйти</button>';feed.appendChild(r);scrollNow();slideIn(r,false);
-  r.querySelector("button").onclick=function(){try{if(window.Telegram&&Telegram.WebApp&&Telegram.WebApp.initData){Telegram.WebApp.close();return}}catch(e){}try{window.close()}catch(e){}later(function(){r.innerHTML='<div class="bubble sys">Можно закрыть эту страницу</div>'},300)}}
+  r.querySelector("button").onclick=function(){TS.track("exit_click");TS.flush(true);try{if(window.Telegram&&Telegram.WebApp&&Telegram.WebApp.initData){Telegram.WebApp.close();return}}catch(e){}try{window.close()}catch(e){}later(function(){r.innerHTML='<div class="bubble sys">Можно закрыть эту страницу</div>'},300)}}
 
  // ── финал: фраза ответом, смайлик отдельным сообщением, перевод под точками, «скоро выйдет разбор», «Выйти»
+ // мотивация: личные итоги из браузера человека и (если людей набралось достаточно) общий процент по этому заданию
+ function dayWord(n){var a=n%10,b=n%100;return b>=11&&b<=14?"дней":a===1?"день":a>=2&&a<=4?"дня":"дней"}
+ function motivation(att,ps,g){var L=[];
+  if(att===1)L.push("С первой попытки! Отличный слух.");else if(att===2)L.push("Со второй попытки, главное, что получилось.");else if(att>=3)L.push("Получилось с последней попытки. Так и учатся.");
+  if(ps.n<=1)L.push("Это твоя первая собранная фраза.");else L.push("Собрано фраз: "+ps.n+", с первой попытки: "+ps.first+".");
+  if(ps.streak>=2)L.push("Занимаешься "+ps.streak+" "+dayWord(ps.streak)+" подряд.");
+  if(g&&g.solved>=10){var pct=Math.round(g.first/g.solved*100);L.push("С первого раза эту фразу собирают "+pct+"% людей.")}
+  return L}
+ // ответ → пауза → смайлик-салют → точки → бокс с переводом → точки → мотивация → точки 2 с → «Скоро выйдет полный разбор» → точки 1 с → «Выйти»
  function finale(fire){
+  var att=S.att||0,pubP=TS.pub();TS.step("finale");
   var me=msg("me ok",esc(C.e),true);var sh=document.createElement("span");sh.className="sheen";me.appendChild(sh);
   if(fire){snd("xp-gain")}
-  // ответ → пауза → смайлик-салют → точки «печатает» → бокс с переводом → точки 2 с → «Скоро выйдет полный разбор» → точки 1 с → «Выйти»
   later(function(){emo("🎉");
    later(function(){typing(TYPE_NEXT,function(){spoilerBubble(C.r||"");
-    later(function(){typing(2000,function(){msg("","Скоро выйдет полный разбор этой фразы");
-     later(function(){typing(1000,exitBtn)},REACT)})},900)})},REACT)},fire?2600:300)}
+    later(function(){typing(TYPE_NEXT,function(){pubP.then(function(g){var ps=TS.record(att||1);msg("",motivation(att,ps,g).map(esc).join("<br>"));
+     later(function(){typing(2000,function(){msg("","Скоро выйдет полный разбор этой фразы");
+      later(function(){typing(1000,exitBtn)},REACT)})},REACT)})},pubP)},900)})},REACT)},fire?2600:300)}
 
  chk.onclick=function(){
   if(busy||locked()||!placed.length)return;
   var marks=placed.map(function(p,k){return norm(p.w)===norm(toks[k]||"")}),right=placed.length===toks.length&&marks.every(Boolean);
-  if(right){busy=true;S.solved=true;save();snd("answer-correct");chk.disabled=true;
+  if(right){busy=true;S.solved=true;S.att=wrongN+1;save();TS.solved();TS.track("check",{attempt:wrongN+1,props:{r:"ok"}});TS.track("solved",{attempt:wrongN+1,props:{pms:Date.now()-PANEL_AT}});snd("answer-correct");chk.disabled=true;
    later(function(){fireBurst(30,4);later(function(){fireBurst(18,4)},260);closePanel();later(function(){finale(true)},420)},700);return}
-  if(placed.length<toks.length&&marks.every(Boolean)){msg("hint","Ты на верном пути, фраза не полная");later(function(){emo("👍")},REACT);return}
+  if(placed.length<toks.length&&marks.every(Boolean)){TS.track("check",{attempt:wrongN+1,props:{r:"inc",words:placed.length}});msg("hint","Ты на верном пути, фраза не полная");later(function(){emo("👍")},REACT);return}
   // неверно: ответ в чат, смайлик, подсказка учителя и системное сообщение с числом оставшихся попыток
-  busy=true;S.left--;wrongN++;save();snd("answer-wrong");red=placed.map(function(p){return p.i});drawRow(false);rowA.classList.add("err");drawTries();
+  busy=true;S.left--;wrongN++;save();TS.track("check",{attempt:wrongN,props:{r:"wrong",words:placed.length}});snd("answer-wrong");red=placed.map(function(p){return p.i});drawRow(false);rowA.classList.add("err");drawTries();
   msg("me err",esc(placed.map(function(p){return p.w}).join(" ")),true);
-  if(S.left<=0){S.until=Date.now()+LOCK_H*3600000;save();
+  if(S.left<=0){S.until=Date.now()+LOCK_H*3600000;save();TS.track("locked",{attempt:wrongN});
    later(function(){closePanel();later(function(){msg("hint bad","Попытки закончились. Следующая попытка откроется "+atTxt(S.until)+".");panel.classList.add("locked");lockUi()},350)},700);return}
   later(function(){emo("🤔");later(function(){typing(600,function(){
    if(wrongN===1)msg("hint bad","Не совсем. Послушай ещё раз и попробуй снова.");
@@ -358,14 +414,15 @@ function start(C){
  // чат стартует только когда готовы оба звука и снято затемнение загрузки: точки и их звук видны и слышны с самого начала
  var ready=Promise.all([AP,SP]).then(function(){return new Promise(function(r){later(function(){veilOff();later(r,450)},200)})},function(){veilOff()});
  ready.then(function(){
+  TS.track("ready",{props:{audio:!!AU,slow:!!SU}});
   typing(TYPE_FIRST,function(){
    if(!AU){msg("hint","Звука для этой фразы нет: прислушайтесь к видео.");toPanel();return}
-   msg("","Послушай ещё раз");
+   TS.step("q_text");msg("","Послушай ещё раз");
    later(function(){typing(TYPE_NEXT,function(){
-    var v1=audioBubble(AU.w,AK,false);
+    TS.step("voice1");var v1=audioBubble(AU.w,AK,false);
     if(!SU){listened(v1).then(toPanel);return}
-    listened(v1).then(function(){typing(TYPE_NEXT,function(){msg("","Давай послушаем замедленно");
-     later(function(){typing(TYPE_NEXT,function(){audioBubble(SU.w,SK,true);later(toPanel,REACT)})},REACT)})})})},REACT)})})}
+    listened(v1).then(function(){typing(TYPE_NEXT,function(){TS.step("text2");msg("","Давай послушаем замедленно");
+     later(function(){typing(TYPE_NEXT,function(){TS.step("voice2");audioBubble(SU.w,SK,true);later(toPanel,REACT)})},REACT)})})})},REACT)})})}
 
 // звуки интерфейса грузятся заранее, чтобы первое сообщение не ждало файлов
 function preloadSounds(){["message-in","typing-1","answer-correct","answer-wrong","xp-gain"].forEach(function(n){try{var a=new Audio("s/"+n+".mp3");a.preload="auto";snds[n]=a}catch(e){}})}
@@ -373,9 +430,10 @@ function cleanTxt(t){return String(t||"").replace(/\s*\[пост\]/gi,"").replac
 function veilOff(){var v=document.getElementById("veil");if(v)v.classList.add("off")}
 function boot(){
  preloadSounds();
- var c=readC();if(c){c.e=cleanTxt(c.e);c.r=cleanTxt(c.r);start(c);return}
+ var c=readC();if(c){c.e=cleanTxt(c.e);c.r=cleanTxt(c.r);TS.begin("long");start(c);return}
  var id=idOf();if(!id){$("#feed").innerHTML='<div class="err2">Ссылка без задания.<br>Откройте тест по кнопке под видео.</div>';veilOff();return}
  // звук и задание лежат под одним id: оба файла просим одновременно, пока страница ещё показывает кружок
+ TS.begin(id);
  var pre=loadWave("a/"+id+".mp3"),preS=loadWave("a/"+id+"s.mp3");
  
  fetch("t/"+id+".json",{cache:"no-store"}).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(j){if(!j||!j.e)throw 0;j.e=cleanTxt(j.e);j.r=cleanTxt(j.r);if(window.__L)window.__L("задание: "+JSON.stringify({e:j.e,a:j.a,s:j.s,t:j.t}));j.id=id;j.pre=pre;j.preS=preS;$("#feed").innerHTML="";start(j)}).catch(function(){$("#feed").innerHTML='<div class="err2">Не удалось загрузить задание.<br>Попробуйте ещё раз через минуту: страница обновляется.</div>';veilOff()})}
