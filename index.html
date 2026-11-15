@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Удалось расслышать фразу?</title>
+<meta name="robots" content="noindex">
+<style>
+:root{--bg:#0e1013;--card:#161a20;--line:#262c36;--tx:#e8ebf0;--dim:#6f7885;--ok:#94cf6c;--bad:#ff6b6b;--acc:#8b5cf6}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%}
+body{background:var(--bg);color:var(--tx);font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;display:flex;justify-content:center;padding:max(14px,env(safe-area-inset-top)) 14px 24px}
+#w{width:100%;max-width:420px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;text-align:center;align-self:flex-start}
+h2{font-size:16px;font-weight:400;color:var(--dim);margin:2px 0 14px}
+.tries{display:flex;justify-content:center;gap:7px;margin-top:14px}.tries i{width:9px;height:9px;border-radius:5px;background:var(--acc)}.x{background:var(--bad)!important}
+.slot{min-height:54px;display:flex;flex-wrap:wrap;justify-content:center;align-content:center;gap:6px;padding:8px;border:1px dashed #36404c;border-radius:12px;margin-bottom:14px}
+.slot.full{border:0;background:none;min-height:0;font-size:24px;line-height:1.35;font-weight:600;color:var(--ok);padding:4px 0 0;margin-bottom:0;animation:in .5s ease both}
+@keyframes in{from{opacity:0;transform:translateY(6px) scale(.98)}to{opacity:1;transform:none}}
+.pool{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-bottom:8px}
+button{font:inherit;color:var(--tx);background:#1f2630;border:1px solid #2f3742;border-radius:10px;padding:9px 14px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.pool button.used{opacity:.28;background:#171c23;border-style:dashed;cursor:default}
+.slot button{padding:8px 12px}
+.slot button.ok{background:rgba(148,207,108,.14);border-color:#4b6b3a;color:var(--ok)}
+.slot button.no{background:rgba(255,107,107,.12);border-color:#7a3a3a;color:var(--bad)}
+.go{background:var(--acc);border-color:var(--acc);padding:10px 24px;margin-top:20px}.go:disabled{opacity:.3;cursor:default}
+#mn{position:relative}.lock #mn:after{content:'';position:absolute;inset:-4px;border-radius:12px;background:rgba(10,12,15,.82)}
+.lockbar{display:none;flex-direction:column;align-items:center;gap:4px;margin-top:14px;padding:12px 14px;border:1px solid #2f3742;border-radius:12px;background:#11151a}
+.lock .lockbar{display:flex}.lockbar b{display:block;font-size:14px}.lockbar small{display:block;color:var(--dim);font-size:12px;margin-top:1px}
+.fb{min-height:22px;max-height:40px;font-size:14px;margin:10px 0 2px;color:var(--dim);overflow:hidden;transition:opacity .4s,max-height .4s,margin .4s,min-height .4s}.fb.hide{opacity:0;max-height:0;min-height:0;margin:0}.fb.ok{color:var(--ok)}.fb.bad{color:var(--bad)}.fb.warn{color:#ffcc33}
+.soon{margin-top:16px;font-size:13px;color:#4d5663;animation:in .5s .3s ease both}#rv{font-size:13px;padding:7px 16px}.rb{display:grid;place-items:center;margin-top:10px}.rb>*{grid-area:1/1;transition:opacity .4s ease,transform .4s ease}.tx{opacity:0;transform:translateY(8px);font-size:16px;color:#c8cfda;pointer-events:none}.rb.on #rv{opacity:0;transform:scale(.94);pointer-events:none}.rb.on .tx{opacity:1;transform:none}
+.err{color:var(--dim);font-size:14px;padding:30px 6px}
+</style></head><body>
+<div id="w"></div>
+<script>
+// Фраза и перевод приходят в ссылке: #p=<base64url(JSON {e:"English phrase", r:"Перевод"})>. Серверной части нет; три слова-«ловушки» подбираются случайно: местоимение, служебное слово и обиходное короткое слово.
+// Попытки и блокировка хранятся в браузере (в localStorage): обход возможен очисткой данных сайта. Строгую блокировку по пользователю может дать только бот.
+var TRIES=3,LOCK_H=5;
+var P=["you","he","she","they","we","it","him"],G=["to","of","do","are","was","for","with","and"],E=["go","day","time","home","good","now","way","know"];
+var $=function(s){return document.querySelector(s)},W=$("#w");
+function R(){return Math.random()}
+function shuf(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=R()*(i+1)|0,t=a[i];a[i]=a[j];a[j]=t}return a}
+function mk(){return document.createElement("button")}
+function norm(s){return s.toLowerCase().replace(/[^a-z']/g,"")}
+function pick(list,used){return shuf(list).filter(function(x){return used.indexOf(norm(x))<0})[0]}
+function dec64(s){s=s.replace(/-/g,"+").replace(/_/g,"/");while(s.length%4)s+="=";var b=atob(s),u=new Uint8Array(b.length);for(var i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return JSON.parse(new TextDecoder().decode(u))}
+function readC(){try{var m=/[#&]p=([^&]+)/.exec(location.hash);if(!m)return null;var c=dec64(m[1]);return c&&c.e?c:null}catch(e){return null}}
+var C=readC(),KEY="trainer:"+(C?C.e:""),mem=null;
+if(window.Telegram&&Telegram.WebApp){try{Telegram.WebApp.ready();Telegram.WebApp.expand()}catch(e){}}
+function load(){try{var s=JSON.parse(localStorage.getItem(KEY)||"null");if(s)mem=s}catch(e){}if(!mem)mem={left:TRIES,until:0,solved:false};if(mem.until&&Date.now()>=mem.until){mem={left:TRIES,until:0,solved:false};save()}return mem}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(mem))}catch(e){}}
+function boom(){
+ var c=document.createElement("canvas"),d=Math.min(devicePixelRatio||1,2),w=innerWidth,h=innerHeight,x=c.getContext("2d"),ps=[],rk=[],K=["#94cf6c","#8b5cf6","#ffcc33"],t0=performance.now();
+ c.width=w*d;c.height=h*d;c.style.cssText="position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:9";document.body.appendChild(c);x.scale(d,d);
+ function go(px,ty,t){setTimeout(function(){rk.push({x:w*px,y:h,u:(R()-.5)*1.4,v:-Math.sqrt(.24*(h-h*ty)),c:K[R()*3|0]})},t)}
+ go(.3,.3,0);go(.7,.22,260);go(.5,.38,520);
+ function boomAt(r){for(var i=0;i<34;i++){var a=R()*6.283,v=.6+R()*3;ps.push({x:r.x,y:r.y,u:Math.cos(a)*v,v:Math.sin(a)*v,l:1,c:r.c})}}
+ (function f(){x.clearRect(0,0,w,h);
+  for(var i=rk.length-1;i>=0;i--){var r=rk[i];r.x+=r.u;r.y+=r.v;r.v+=.12;x.globalAlpha=1;x.fillStyle=r.c;x.fillRect(r.x,r.y,3,6);if(r.v>=0){boomAt(r);rk.splice(i,1)}}
+  for(i=ps.length-1;i>=0;i--){var p=ps[i];p.x+=p.u;p.y+=p.v;p.v+=.07;p.u*=.985;p.v*=.99;p.l-=.011;if(p.l<=0){ps.splice(i,1);continue}x.globalAlpha=p.l;x.fillStyle=p.c;x.fillRect(p.x,p.y,2.5,2.5)}
+  if(performance.now()-t0<1500||rk.length||ps.length)requestAnimationFrame(f);else c.remove()})()}
+function left(ms){var m=Math.ceil(ms/60000),h=Math.floor(m/60);return h+" ч "+("0"+(m%60)).slice(-2)+" мин"}
+function at(t){var d=new Date(t),z=function(x){return("0"+x).slice(-2)};return"в "+z(d.getHours())+":"+z(d.getMinutes())}
+function start(){
+ if(!C){W.innerHTML='<div class="err">Ссылка без задания.<br>Откройте тест по кнопке под видео.</div>';return}
+ var S=load(),toks=C.e.split(/\s+/),dec=[];
+ [P,G,E].forEach(function(l){dec.push(pick(l,toks.map(norm).concat(dec)))});
+ var pool=shuf(toks.map(function(t){return{t:t}}).concat(dec.map(function(t){return{t:t}}))),line=[],marks=null,msg="",cls="";
+ W.innerHTML='<div id="mn"><h2 id="h">Удалось расслышать фразу?</h2><div class="slot" id="sl"></div><div class="pool" id="pl"></div><button class="go" id="go">Проверить</button><div class="tries" id="tr"></div><div class="fb" id="fb"></div><div id="sn" style="display:none"><div class="rb" id="rb"><button id="rv">Раскрыть перевод</button><div class="tx" id="tx"></div></div><div class="soon">Скоро выйдет разбор этой фразы</div></div></div><div class="lockbar"><span style="font-size:22px">🔒</span><div><b>Следующая попытка через <span id="lc"></span></b><small id="lt"></small></div></div>';
+ function locked(){return S.until&&Date.now()<S.until}
+ function draw(){
+  var lk=locked(),done=S.solved,sl=$("#sl"),pl=$("#pl");
+  W.className=lk?"lock":"";sl.className="slot"+(done?" full":"");sl.innerHTML="";pl.innerHTML="";
+  if(done){sl.textContent=C.e;pl.style.display="none";$("#tr").style.display="none"}
+  var u=TRIES-S.left;$("#tr").innerHTML=[0,1,2].map(function(i){return '<i class="'+(i<u?'x':'')+'"></i>'}).join("");
+  if(!done)line.forEach(function(it,k){var b=mk();b.textContent=it.t;if(marks)b.className=marks[k]?"ok":"no";b.disabled=lk||done;b.onclick=function(){line.splice(k,1);marks=null;msg="";draw()};sl.appendChild(b)});
+  if(!done)pool.forEach(function(it){var b=mk(),used=line.indexOf(it)>=0;b.textContent=it.t;if(used)b.className="used";b.disabled=lk||done;b.onclick=function(){if(used||lk||done)return;line.push(it);marks=null;msg="";draw()};pl.appendChild(b)});
+  $("#go").style.display=done?"none":"";$("#go").disabled=lk||!line.length;
+  var f=$("#fb");f.className="fb "+cls;f.textContent=lk?"":msg;
+  $("#sn").style.display=done?"block":"none";$("#h").style.display=done?"none":"";
+  if(lk){$("#lc").textContent=left(S.until-Date.now());$("#lt").textContent="Откроется "+at(S.until)}
+ }
+ $("#go").onclick=function(){
+  if(locked()||!line.length)return;
+  marks=line.map(function(it,k){return norm(it.t)===norm(toks[k])});
+  var right=line.length===toks.length&&marks.every(Boolean);
+  if(right){S.solved=true;msg="Поздравляю, тебе удалось расслышать фразу!";cls="ok";setTimeout(boom,120)}
+  else if(line.length<toks.length&&marks.every(Boolean)){msg="Верно, но фраза не полная.";cls="warn";draw();return}
+  else{S.left--;if(S.left<=0){S.until=Date.now()+LOCK_H*3600000;msg="";cls="bad"}else{msg="Неверно. Осталось попыток: "+S.left;cls="bad"}}
+  save();draw()};
+ $("#tx").textContent=C.r||"";$("#rv").onclick=function(){$("#rb").classList.add("on");$("#fb").classList.add("hide")};
+ clearInterval(window.__t);window.__t=setInterval(function(){if(S.until&&Date.now()>=S.until){start()}else if(locked())draw()},30000);
+ draw()}
+start();
+</script></body></html>
