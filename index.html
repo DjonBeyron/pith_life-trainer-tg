@@ -140,7 +140,7 @@ function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.len
 window.__L=L;
 function tg(){var w=window.Telegram&&Telegram.WebApp;return w?("tg "+w.platform+" v"+w.version+" vh="+w.viewportHeight+" stable="+w.viewportStableHeight+" exp="+w.isExpanded):"без Telegram"}
 function snap(why){var f=document.getElementById("feed"),o=document.getElementById("outer"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollTop="+Math.round(o?o.scrollTop:0)+" scrollH="+(o?o.scrollHeight:0)+"/"+(o?o.clientHeight:0)+" docScroll="+Math.round(scrollY)+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
-var PAGE_V="2026-11-15.8";L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
+var PAGE_V="2026-11-15.9";L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
 window.addEventListener("error",function(e){L("ОШИБКА: "+e.message+" @"+(e.filename||"").split("/").pop()+":"+e.lineno)});
 window.addEventListener("unhandledrejection",function(e){L("ОШИБКА промиса: "+(e.reason&&e.reason.message||e.reason))});
 // самообновление: Safari и GitHub Pages держат старый HTML в кэше. Раз за сессию страница запрашивает свежую копию и, если версия другая, перезагружается
@@ -148,6 +148,9 @@ window.__pvCheck=new Promise(function(res){try{if(sessionStorage.getItem("pv-rel
  fetch(location.pathname+"?v="+Date.now(),{cache:"reload"}).then(function(r){return r.text()}).then(function(t){var m=/PAGE_V="([^"]+)"/.exec(t);
   if(m&&m[1]!==PAGE_V){sessionStorage.setItem("pv-reloaded","1");L("страница устарела ("+PAGE_V+" → "+m[1]+"), перезагрузка");var go=function(){res(true);location.reload()};fetch(location.pathname,{cache:"reload"}).then(go,go)}
   else{L("версия страницы актуальна");res(false)}}).catch(function(){res(false)})}catch(e){res(false)}});
+var jk=0,fr=0,worst=0,lastT=0,sumT=0,rafOn=true,t00=performance.now();
+(function perf(t){if(!rafOn)return;if(lastT){var d=t-lastT;fr++;if(d>24){jk++;if(d>worst)worst=d;if(d>45){var f=document.getElementById("feed"),lr=f&&f.lastElementChild;L("РЫВОК кадра "+Math.round(d)+" мс; последнее: "+(lr?String(lr.textContent).trim().slice(0,24)||lr.className:"-"))}}}lastT=t;if(t-t00>120000){rafOn=false;return}requestAnimationFrame(perf)})(performance.now());
+setInterval(function(){if(fr>0){L("кадры за 5 с: "+fr+" (60 Гц = около 300), рывков >24 мс: "+jk+", худший "+Math.round(worst)+" мс");fr=0;jk=0;worst=0}},5000);
 var rs=0;window.addEventListener("resize",function(){rs++;L("resize #"+rs+" "+innerWidth+"x"+innerHeight)});
 if(window.visualViewport){var vc=0;visualViewport.addEventListener("resize",function(){vc++;if(vc<40)L("visualViewport resize "+Math.round(visualViewport.height))})}
 var sc=0,sl=0;document.getElementById("outer").addEventListener("scroll",function(){sc++;var n=Date.now();if(n-sl>400){sl=n;L("лента scrollTop → "+Math.round(this.scrollTop)+" (событий "+sc+")");sc=0}},{passive:true});window.addEventListener("scroll",function(){L("СТРАНИЦА прокрутилась → "+Math.round(scrollY))},{passive:true});
@@ -308,8 +311,8 @@ function start(C){
  // ── перевод под плавающими точками: нажатие на точки раскрывает перевод (брендовый зелёный)
  function spoilerBubble(text){
   var w=document.createElement("div");w.className="spoil";w.innerHTML='<span class="spt">'+esc(text)+'</span><canvas class="spc" aria-label="Нажмите, чтобы раскрыть перевод"></canvas>';
-  var b=msg("tr2",w),cv=w.querySelector(".spc"),dpr=window.devicePixelRatio||1,W=0,H=0,pts=[],raf=0,open=false,ctx=cv.getContext("2d");
-  function init(){W=cv.clientWidth;H=cv.clientHeight;if(!W||!H)return;cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);var n=Math.max(26,Math.round(W*H/55));pts=[];for(var k=0;k<n;k++)pts.push({x:R()*W,y:R()*H,vx:(R()-.5)*.7,vy:(R()-.5)*.7,r:1.3+R()*1.6,a:.4+R()*.55,g:R()<.35})}
+  var b=msg("tr2",w),cv=w.querySelector(".spc"),dpr=Math.min(2,window.devicePixelRatio||1),W=0,H=0,pts=[],raf=0,open=false,ctx=cv.getContext("2d");
+  function init(){W=cv.clientWidth;H=cv.clientHeight;if(!W||!H)return;cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);var n=Math.max(22,Math.min(64,Math.round(W*H/90)));pts=[];for(var k=0;k<n;k++)pts.push({x:R()*W,y:R()*H,vx:(R()-.5)*.7,vy:(R()-.5)*.7,r:1.3+R()*1.6,a:.4+R()*.55,g:R()<.35})}
   function frame(){if(open)return;ctx.clearRect(0,0,W,H);for(var k=0;k<pts.length;k++){var p=pts[k];p.vx+=(R()-.5)*.1;p.vy+=(R()-.5)*.1;var sp=Math.sqrt(p.vx*p.vx+p.vy*p.vy);if(sp>.75){p.vx*=.75/sp;p.vy*=.75/sp}p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>W)p.vx*=-1;if(p.y<0||p.y>H)p.vy*=-1;ctx.beginPath();ctx.fillStyle=p.g?"rgba(182,254,59,"+p.a+")":"rgba(255,255,255,"+p.a+")";ctx.arc(p.x,p.y,p.r,0,6.2832);ctx.fill()}raf=requestAnimationFrame(frame)}
   later(function(){init();frame()},40);
   cv.onclick=function(){if(open)return;open=true;w.classList.add("open");later(function(){cancelAnimationFrame(raf)},600)}}
