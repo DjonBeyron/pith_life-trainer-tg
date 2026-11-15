@@ -190,11 +190,11 @@ function fireBurst(count,size){var host=document.createElement("div");host.style
 
 function decodeWaveBuf(buf){var AC=window.AudioContext||window.webkitAudioContext,ac=new AC();return ac.decodeAudioData(buf).then(function(ab){try{ac.close()}catch(e){}var fs=Math.floor(ab.sampleRate/30),d=ab.getChannelData(0),rms=[];for(var i=0;i<d.length;i+=fs){var sum=0,end=Math.min(i+fs,d.length);for(var j=i;j<end;j++)sum+=d[j]*d[j];rms.push(Math.sqrt(sum/(end-i)))}var so=rms.slice().sort(function(a,b){return a-b}),p99=so[Math.floor(so.length*.99)]||.001;return{wave:rms.map(function(v){return Math.round(Math.min(v/p99,1)*255)}),dur:ab.duration}})}
 // null: файла звука нет; {w}: звук есть (w — волна или null, если не декодировалась)
-function loadWave(url){return fetch(url).then(function(r){if(!r.ok)return null;return r.arrayBuffer().then(function(b){return decodeWaveBuf(b).then(function(w){return{w:w}},function(){return{w:null}})})},function(){return null})}
+function loadWave(url){return fetch(url).then(function(r){if(window.__L)window.__L("звук "+url+" → HTTP "+r.status);if(!r.ok)return null;return r.arrayBuffer().then(function(b){return decodeWaveBuf(b).then(function(w){return{w:w}},function(){return{w:null}})})},function(e){if(window.__L)window.__L("звук "+url+" → сеть: "+e);return null})}
 
 function start(C){
  var AK=C.id||C.a||"",SK=C.id?C.id+"s":(C.s||""),AP=C.pre||(C.a?loadWave("a/"+C.a+".mp3"):Promise.resolve(null)),SP=C.preS||(SK?loadWave("a/"+SK+".mp3"):Promise.resolve(null));
- var KEY="trainer:"+C.e,S={left:TRIES,until:0,solved:false};
+ var KEY="trainer:"+C.e+(C.t?":"+C.t:""),S={left:TRIES,until:0,solved:false};
  try{var s=JSON.parse(localStorage.getItem(KEY)||"null");if(s)S=s}catch(e){}
  if(S.until&&Date.now()>=S.until)S={left:TRIES,until:0,solved:false};
  function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
@@ -362,7 +362,7 @@ function boot(){
  // звук и задание лежат под одним id: оба файла просим одновременно, пока страница ещё показывает кружок
  var pre=loadWave("a/"+id+".mp3"),preS=loadWave("a/"+id+"s.mp3");
  $("#feed").innerHTML='<div class="loadRow"><span class="spin"></span></div>';
- fetch("t/"+id+".json",{cache:"no-store"}).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(j){if(!j||!j.e)throw 0;j.e=cleanTxt(j.e);j.r=cleanTxt(j.r);j.id=id;j.pre=pre;j.preS=preS;$("#feed").innerHTML="";start(j)}).catch(function(){$("#feed").innerHTML='<div class="err2">Не удалось загрузить задание.<br>Попробуйте ещё раз через минуту: страница обновляется.</div>'})}
+ fetch("t/"+id+".json",{cache:"no-store"}).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(j){if(!j||!j.e)throw 0;j.e=cleanTxt(j.e);j.r=cleanTxt(j.r);if(window.__L)window.__L("задание: "+JSON.stringify({e:j.e,a:j.a,s:j.s,t:j.t}));j.id=id;j.pre=pre;j.preS=preS;$("#feed").innerHTML="";start(j)}).catch(function(){$("#feed").innerHTML='<div class="err2">Не удалось загрузить задание.<br>Попробуйте ещё раз через минуту: страница обновляется.</div>'})}
 boot();
 })();
 </script></body></html>
