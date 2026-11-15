@@ -8,10 +8,19 @@
 <style>
 /* Вид и поведение повторяют модуль «Собери фразу» приложения Pith (панель ответа, чипы, пузыри, блик, тряска, салют) */
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;min-height:100%}
-body{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;justify-content:flex-end;background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',system-ui,sans-serif;font-size:14px;line-height:1.45;overflow-x:hidden}
-#feed{overflow:hidden;overflow:clip;width:100%;max-width:600px;margin:0 auto;padding:16px 14px 0;display:flex;flex-direction:column;gap:6px}
-#spacer{flex:none;height:0}
+html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none}
+body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',system-ui,sans-serif;font-size:14px;line-height:1.45;overflow-x:hidden}
+/* Система чата приложения (PlayerFeed + feed.css): корень fixed, лента - отдельный прокручиваемый контейнер, перевёрнутый дважды (scaleY(-1)),
+   поэтому scrollTop=0 = нижний край чата и новое сообщение видно без единой прокрутки; страница сама не прокручивается и дёргаться ей нечему.
+   Индикатор «печатает» лежит вне потока в постоянно зарезервированном месте (--wait-slot), его появление ничего не двигает. */
+:root{--wait-slot:28px;--safe-b:env(safe-area-inset-bottom,0px)}
+#app{position:fixed;inset:0;display:flex;flex-direction:column;background:#0e1013}
+#app::after{content:'';position:absolute;left:0;right:0;bottom:0;height:calc(12px + var(--safe-b) + var(--wait-slot));pointer-events:none;z-index:90;background:linear-gradient(to top,rgba(14,16,19,1) 0%,rgba(14,16,19,.78) 28%,rgba(14,16,19,.42) 56%,rgba(14,16,19,.16) 80%,transparent 100%)}
+.playerFeed{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;transform:scaleY(-1);overflow-anchor:none;overscroll-behavior:none;padding:calc(12px + var(--safe-b) + var(--wait-slot)) 0 12px;scrollbar-width:none}
+.playerFeed::-webkit-scrollbar{display:none;width:0;height:0}
+.inner{transform:scaleY(-1);position:relative;display:flex;flex-direction:column;max-width:600px;width:100%;margin:0 auto;padding:0 10px;box-sizing:border-box}
+#feed{display:flex;flex-direction:column;gap:6px;padding-top:16px}
+#spacer{flex:none;height:0;margin-bottom:calc((var(--safe-b) + var(--wait-slot)) * -1);min-height:calc(var(--safe-b) + var(--wait-slot))}
 .row{display:flex;justify-content:flex-start;padding:2px 0}
 .row.right{justify-content:flex-end}
 .bubble{background:#1a1d22;border-radius:4px 18px 18px 18px;padding:10px 14px;max-width:80%;word-break:break-word;position:relative}
@@ -32,7 +41,7 @@ body{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;justi
 .bubble.emo{background:none;padding:0 4px;font-size:30px;line-height:1.2}
 .bubble.hint.bad{background:rgba(248,113,113,.10);color:#f87171}
 /* «печатает»: три точки как WaitingDots приложения (пузырь #1a1d22, точка 5px, прыжок 1.2 с, выход 150 мс) */
-.typingRow{animation:typIn .18s cubic-bezier(.34,1.56,.64,1) both;transform-origin:left bottom}.typingRow.out{animation:typOut .15s ease-in both}
+.typingRow{position:absolute;left:0;right:0;bottom:calc(12px + var(--safe-b));height:24px;max-width:600px;margin:0 auto;padding:0 10px;z-index:70;pointer-events:none;animation:typIn .18s cubic-bezier(.34,1.56,.64,1) both;transform-origin:left bottom}.typingRow .bubble{display:inline-block;height:24px}.typingRow.out{animation:typOut .15s ease-in both}
 @keyframes typIn{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:scale(1)}}@keyframes typOut{to{opacity:0;transform:scale(.4)}}
 .typingB{border-radius:4px 14px 14px 14px;padding:5px 12px}
 .dots{display:inline-flex;align-items:center;height:14px}
@@ -111,7 +120,7 @@ body{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;justi
 .dbgBox button{height:38px;border-radius:10px;border:2px solid #b6fe3b;background:#12141d;color:#b6fe3b;font:700 14px 'Montserrat',system-ui,sans-serif}
 </style></head><body>
 <button class="dbgBtn" id="dbgBtn" aria-label="Лог">лог</button><div class="dbgBox" id="dbgBox"><textarea id="dbgTa" readonly></textarea><button id="dbgCopy">Скопировать</button><button id="dbgReset" style="border-color:#f87171;color:#f87171">Сбросить прогресс и начать заново</button><button id="dbgClose" style="border-color:#2a2d35;color:#9aa0b4">Закрыть</button></div>
-<div id="feed"></div><div id="spacer"></div>
+<div id="app"><div class="playerFeed" id="outer"><div class="inner" id="inner"><div id="feed"></div><div id="spacer"></div></div></div></div>
 <div class="phrasePanel" id="panel">
  <div class="phraseInner">
   <div class="phraseCounter" id="cnt"></div>
@@ -129,18 +138,18 @@ var t0=Date.now(),LG=[],last={};
 function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.length>900)LG.shift()}
 window.__L=L;
 function tg(){var w=window.Telegram&&Telegram.WebApp;return w?("tg "+w.platform+" v"+w.version+" vh="+w.viewportHeight+" stable="+w.viewportStableHeight+" exp="+w.isExpanded):"без Telegram"}
-function snap(why){var f=document.getElementById("feed"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollY="+Math.round(scrollY)+" docH="+document.documentElement.scrollHeight+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
+function snap(why){var f=document.getElementById("feed"),o=document.getElementById("outer"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollTop="+Math.round(o?o.scrollTop:0)+" scrollH="+(o?o.scrollHeight:0)+"/"+(o?o.clientHeight:0)+" docScroll="+Math.round(scrollY)+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
 L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
 window.addEventListener("error",function(e){L("ОШИБКА: "+e.message+" @"+(e.filename||"").split("/").pop()+":"+e.lineno)});
 window.addEventListener("unhandledrejection",function(e){L("ОШИБКА промиса: "+(e.reason&&e.reason.message||e.reason))});
 var rs=0;window.addEventListener("resize",function(){rs++;L("resize #"+rs+" "+innerWidth+"x"+innerHeight)});
 if(window.visualViewport){var vc=0;visualViewport.addEventListener("resize",function(){vc++;if(vc<40)L("visualViewport resize "+Math.round(visualViewport.height))})}
-var sc=0,sl=0;window.addEventListener("scroll",function(){sc++;var n=Date.now();if(n-sl>400){sl=n;L("scroll → "+Math.round(scrollY)+" (событий "+sc+")");sc=0}},{passive:true});
+var sc=0,sl=0;document.getElementById("outer").addEventListener("scroll",function(){sc++;var n=Date.now();if(n-sl>400){sl=n;L("лента scrollTop → "+Math.round(this.scrollTop)+" (событий "+sc+")");sc=0}},{passive:true});window.addEventListener("scroll",function(){L("СТРАНИЦА прокрутилась → "+Math.round(scrollY))},{passive:true});
 // переходы, которые страница сама делает: сообщения, панель
 new MutationObserver(function(ms){ms.forEach(function(m){m.addedNodes.forEach(function(n){if(n.nodeType===1&&n.className&&String(n.className).indexOf("row")>=0)L("+ "+String(n.firstElementChild&&n.firstElementChild.className||n.className)+": "+String(n.textContent).trim().slice(0,40))});m.removedNodes.forEach(function(n){if(n.nodeType===1&&String(n.className).indexOf("typingRow")>=0)L("- точки")})})}).observe(document.getElementById("feed"),{childList:true});
 var pn=document.getElementById("panel");if(pn)new MutationObserver(function(){L(snap("панель "+(pn.classList.contains("show")?"показана":"скрыта")))}).observe(pn,{attributes:true,attributeFilter:["class"]});
 // каждые 700 мс: если размеры/прокрутка поменялись, запись (так видно дрожание: прокрутка и высота прыгают без причины)
-setInterval(function(){var f=document.getElementById("feed"),k=scrollY+"|"+document.documentElement.scrollHeight+"|"+innerHeight+"|"+(f?f.offsetHeight:0);if(k!==last.k){last.k=k;L(snap("изменение"))}},700);
+setInterval(function(){var f=document.getElementById("feed"),o=document.getElementById("outer"),k=(o?o.scrollTop+"|"+o.scrollHeight:"")+"|"+scrollY+"|"+innerHeight+"|"+(f?f.offsetHeight:0);if(k!==last.k){last.k=k;L(snap("изменение"))}},700);
 function text(){return LG.join("\n")+"\n"+snap("итог")+"\n"+tg()}
 var box=document.getElementById("dbgBox"),ta=document.getElementById("dbgTa");
 document.getElementById("dbgBtn").onclick=function(){var tx=text();ta.value=tx;box.classList.add("on");try{navigator.clipboard.writeText(tx).then(function(){document.getElementById("dbgCopy").textContent="Скопировано ✓"},function(){})}catch(e){}};
@@ -191,9 +200,9 @@ function start(C){
  function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
  var toks=C.e.split(/\s+/),dec=[];[P,G,E].forEach(function(l){dec.push(pick1(l,toks.map(norm).concat(dec)))});
  var bank=shuf(toks.concat(dec)),placed=[],used={},red=[],busy=false,wrongN=TRIES-S.left;
- var feed=$("#feed"),panel=$("#panel"),pool=$("#pool"),rowA=$("#rowA"),chk=$("#chk"),spacer=$("#spacer");
+ var outer=$("#outer"),app=$("#app"),feed=$("#feed"),panel=$("#panel"),pool=$("#pool"),rowA=$("#rowA"),chk=$("#chk"),spacer=$("#spacer");
  function locked(){return S.until&&Date.now()<S.until}
- function scrollNow(){window.scrollTo(0,document.documentElement.scrollHeight)}
+ function scrollNow(){outer.scrollTop=0}
  // появление сообщения как в PlayerFeed: влетает снизу (путь 200px, 240 мс), звук «новое сообщение» за 60 мс до конца; у реплик ученика звука нет
  function slideIn(r,sound){try{r.animate([{transform:"translateY(200px)",easing:"cubic-bezier(0.4,0,1,1)"},{transform:"translateY(0)"}],{duration:240,fill:"backwards"})}catch(e){}if(sound)later(function(){snd("message-in")},180)}
  function msg(cls,html,nosnd){var r=document.createElement("div");r.className="row"+(cls.indexOf("me")>=0?" right":"");var b=document.createElement("div");b.className="bubble "+cls;if(typeof html==="string")b.innerHTML=html;else b.appendChild(html);r.appendChild(b);feed.appendChild(r);scrollNow();slideIn(r,cls.indexOf("me")<0&&!nosnd);return b}
@@ -266,13 +275,16 @@ function start(C){
  function leftTxt(ms){var m=Math.ceil(ms/60000),h=Math.floor(m/60);return h+" ч "+("0"+(m%60)).slice(-2)+" мин"}
  function atTxt(t){var d=new Date(t),z=function(x){return("0"+x).slice(-2)};return"в "+z(d.getHours())+":"+z(d.getMinutes())}
  window.addEventListener("resize",function(){layoutBank();spacerSync()});
+ // колесо мыши: лента перевёрнута, браузер двигает scrollTop не в ту сторону (wheelScrollShift приложения)
+ outer.addEventListener("wheel",function(e){e.preventDefault();outer.scrollTop-=e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?outer.clientHeight:1)},{passive:false});
 
  // ── «печатает»: три точки со звуком typing-1 перед сообщением учителя (как WaitingDots приложения); wait — обещание, которое тоже надо дождаться
  var TYPE_FIRST=700,TYPE_NEXT=1000,REACT=350;
  function typing(ms,fn,wait){
-  var r=document.createElement("div");r.className="row typingRow";r.innerHTML='<div class="bubble typingB"><span class="dots"><i></i><i></i><i></i></span></div>';feed.appendChild(r);scrollNow();snd("typing-1");
+  // пока панель ответа открыта, индикатор не показывается (как в приложении): только пауза
+  var r=null;if(!panel.classList.contains("show")){r=document.createElement("div");r.className="typingRow";r.innerHTML='<div class="bubble typingB"><span class="dots"><i></i><i></i><i></i></span></div>';app.appendChild(r);snd("typing-1")}
   var t0=Date.now();
-  function done(){later(function(){r.classList.add("out");later(function(){r.remove();fn()},150)},Math.max(0,ms-(Date.now()-t0)))}
+  function done(){later(function(){if(!r){fn();return}r.classList.add("out");later(function(){r.remove();fn()},150)},Math.max(0,ms-(Date.now()-t0)))}
   if(wait&&wait.then)wait.then(done,done);else done()}
  function emo(e){return msg("emo",e,true)}
  function sys(t){return msg("sys",esc(t),true)}
