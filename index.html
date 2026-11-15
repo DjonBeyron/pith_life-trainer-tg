@@ -41,7 +41,7 @@ body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',syste
 .bubble.emo{background:none;padding:0 4px;font-size:30px;line-height:1.2}
 .bubble.hint.bad{background:rgba(248,113,113,.10);color:#f87171}
 /* «печатает»: три точки как WaitingDots приложения (пузырь #1a1d22, точка 5px, прыжок 1.2 с, выход 150 мс) */
-.typingRow{position:absolute;left:0;right:0;bottom:calc(12px + var(--safe-b));height:24px;max-width:600px;margin:0 auto;padding:0 10px;z-index:70;pointer-events:none;animation:typIn .18s cubic-bezier(.34,1.56,.64,1) both;transform-origin:left bottom}.typingRow .bubble{display:inline-block;height:24px}.typingRow.out{animation:typOut .15s ease-in both}
+.typingRow{position:absolute;left:0;right:0;bottom:calc(12px + var(--safe-b));height:24px;max-width:600px;margin:0 auto;padding:0 10px;z-index:95;pointer-events:none;animation:typIn .18s cubic-bezier(.34,1.56,.64,1) both;transform-origin:left bottom}.typingRow .bubble{display:inline-block;height:24px}.typingRow.out{animation:typOut .15s ease-in both}
 @keyframes typIn{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:scale(1)}}@keyframes typOut{to{opacity:0;transform:scale(.4)}}
 .typingB{border-radius:4px 14px 14px 14px;padding:5px 12px}
 .dots{display:inline-flex;align-items:center;height:14px}
@@ -139,9 +139,11 @@ function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.len
 window.__L=L;
 function tg(){var w=window.Telegram&&Telegram.WebApp;return w?("tg "+w.platform+" v"+w.version+" vh="+w.viewportHeight+" stable="+w.viewportStableHeight+" exp="+w.isExpanded):"без Telegram"}
 function snap(why){var f=document.getElementById("feed"),o=document.getElementById("outer"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollTop="+Math.round(o?o.scrollTop:0)+" scrollH="+(o?o.scrollHeight:0)+"/"+(o?o.clientHeight:0)+" docScroll="+Math.round(scrollY)+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
-L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
+var PAGE_V="2026-11-15.6";L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
 window.addEventListener("error",function(e){L("ОШИБКА: "+e.message+" @"+(e.filename||"").split("/").pop()+":"+e.lineno)});
 window.addEventListener("unhandledrejection",function(e){L("ОШИБКА промиса: "+(e.reason&&e.reason.message||e.reason))});
+// самообновление: Safari и GitHub Pages держат старый HTML в кэше. Раз за сессию страница запрашивает свежую копию и, если версия другая, перезагружается
+try{if(!sessionStorage.getItem("pv-reloaded")){fetch(location.pathname+"?v="+Date.now(),{cache:"reload"}).then(function(r){return r.text()}).then(function(t){var m=/PAGE_V="([^"]+)"/.exec(t);if(m&&m[1]!==PAGE_V){sessionStorage.setItem("pv-reloaded","1");L("страница устарела ("+PAGE_V+" → "+m[1]+"), перезагрузка");fetch(location.pathname,{cache:"reload"}).then(function(){location.reload()},function(){location.reload()})}else L("версия страницы актуальна")}).catch(function(){})}}catch(e){}
 var rs=0;window.addEventListener("resize",function(){rs++;L("resize #"+rs+" "+innerWidth+"x"+innerHeight)});
 if(window.visualViewport){var vc=0;visualViewport.addEventListener("resize",function(){vc++;if(vc<40)L("visualViewport resize "+Math.round(visualViewport.height))})}
 var sc=0,sl=0;document.getElementById("outer").addEventListener("scroll",function(){sc++;var n=Date.now();if(n-sl>400){sl=n;L("лента scrollTop → "+Math.round(this.scrollTop)+" (событий "+sc+")");sc=0}},{passive:true});window.addEventListener("scroll",function(){L("СТРАНИЦА прокрутилась → "+Math.round(scrollY))},{passive:true});
