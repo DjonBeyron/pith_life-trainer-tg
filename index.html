@@ -10,7 +10,7 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;min-height:100%}
 body{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;justify-content:flex-end;background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',system-ui,sans-serif;font-size:14px;line-height:1.45;overflow-x:hidden}
-#feed{width:100%;max-width:600px;margin:0 auto;padding:16px 14px 0;display:flex;flex-direction:column;gap:6px}
+#feed{overflow:hidden;overflow:clip;width:100%;max-width:600px;margin:0 auto;padding:16px 14px 0;display:flex;flex-direction:column;gap:6px}
 #spacer{flex:none;height:0}
 .row{display:flex;justify-content:flex-start;padding:2px 0}
 .row.right{justify-content:flex-end}
@@ -110,7 +110,7 @@ body{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;justi
 .dbgBox.on{display:flex}.dbgBox textarea{flex:1;background:#12141d;color:#cfd6e4;border:1px solid #2a2d35;border-radius:10px;padding:8px;font:11px/1.35 Consolas,monospace;resize:none}
 .dbgBox button{height:38px;border-radius:10px;border:2px solid #b6fe3b;background:#12141d;color:#b6fe3b;font:700 14px 'Montserrat',system-ui,sans-serif}
 </style></head><body>
-<button class="dbgBtn" id="dbgBtn" aria-label="Лог">лог</button><div class="dbgBox" id="dbgBox"><textarea id="dbgTa" readonly></textarea><button id="dbgCopy">Скопировать</button><button id="dbgClose" style="border-color:#2a2d35;color:#9aa0b4">Закрыть</button></div>
+<button class="dbgBtn" id="dbgBtn" aria-label="Лог">лог</button><div class="dbgBox" id="dbgBox"><textarea id="dbgTa" readonly></textarea><button id="dbgCopy">Скопировать</button><button id="dbgReset" style="border-color:#f87171;color:#f87171">Сбросить прогресс и начать заново</button><button id="dbgClose" style="border-color:#2a2d35;color:#9aa0b4">Закрыть</button></div>
 <div id="feed"></div><div id="spacer"></div>
 <div class="phrasePanel" id="panel">
  <div class="phraseInner">
@@ -145,6 +145,7 @@ function text(){return LG.join("\n")+"\n"+snap("итог")+"\n"+tg()}
 var box=document.getElementById("dbgBox"),ta=document.getElementById("dbgTa");
 document.getElementById("dbgBtn").onclick=function(){var tx=text();ta.value=tx;box.classList.add("on");try{navigator.clipboard.writeText(tx).then(function(){document.getElementById("dbgCopy").textContent="Скопировано ✓"},function(){})}catch(e){}};
 document.getElementById("dbgCopy").onclick=function(){var tx=ta.value;try{navigator.clipboard.writeText(tx).then(function(){document.getElementById("dbgCopy").textContent="Скопировано ✓"},function(){ta.select();document.execCommand("copy")})}catch(e){ta.select();try{document.execCommand("copy")}catch(_){}}};
+document.getElementById("dbgReset").onclick=function(){try{Object.keys(localStorage).forEach(function(k){if(k.indexOf("trainer:")===0)localStorage.removeItem(k)})}catch(e){}location.reload()};
 document.getElementById("dbgClose").onclick=function(){box.classList.remove("on");document.getElementById("dbgCopy").textContent="Скопировать"}
 })();
 </script>
