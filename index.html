@@ -48,7 +48,7 @@ body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',syste
 .dots i{width:5px;height:5px;margin:0 2px;border-radius:50%;background:#9aa0b4;animation:wb 1.2s infinite ease-in-out}.dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
 @keyframes wb{0%,80%,100%{transform:translateY(0);opacity:.5}40%{transform:translateY(-3px);opacity:1}}
 /* кружок загрузки (как launchSpinner приложения) */
-.loadRow{display:flex;justify-content:center;padding:44px 0}
+.veil{position:fixed;inset:0;z-index:150;display:flex;align-items:center;justify-content:center;background:rgba(14,16,19,.86);transition:opacity .4s ease}.veil.off{opacity:0;pointer-events:none}
 .spin{width:26px;height:26px;border-radius:50%;border:3px solid rgba(255,255,255,.15);border-top-color:#b6fe3b;animation:spinr .78s linear infinite}@keyframes spinr{to{transform:rotate(360deg)}}
 /* перевод под плавающими точками: нажатие раскрывает */
 .bubble.tr2{padding:10px 14px}
@@ -120,6 +120,7 @@ body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',syste
 .dbgBox button{height:38px;border-radius:10px;border:2px solid #b6fe3b;background:#12141d;color:#b6fe3b;font:700 14px 'Montserrat',system-ui,sans-serif}
 </style></head><body>
 <button class="dbgBtn" id="dbgBtn" aria-label="Лог">лог</button><div class="dbgBox" id="dbgBox"><textarea id="dbgTa" readonly></textarea><button id="dbgCopy">Скопировать</button><button id="dbgReset" style="border-color:#f87171;color:#f87171">Сбросить прогресс и начать заново</button><button id="dbgClose" style="border-color:#2a2d35;color:#9aa0b4">Закрыть</button></div>
+<div class="veil" id="veil"><span class="spin"></span></div>
 <div id="app"><div class="playerFeed" id="outer"><div class="inner" id="inner"><div id="feed"></div><div id="spacer"></div></div></div></div>
 <div class="phrasePanel" id="panel">
  <div class="phraseInner">
@@ -139,11 +140,14 @@ function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.len
 window.__L=L;
 function tg(){var w=window.Telegram&&Telegram.WebApp;return w?("tg "+w.platform+" v"+w.version+" vh="+w.viewportHeight+" stable="+w.viewportStableHeight+" exp="+w.isExpanded):"без Telegram"}
 function snap(why){var f=document.getElementById("feed"),o=document.getElementById("outer"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollTop="+Math.round(o?o.scrollTop:0)+" scrollH="+(o?o.scrollHeight:0)+"/"+(o?o.clientHeight:0)+" docScroll="+Math.round(scrollY)+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
-var PAGE_V="2026-11-15.6";L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
+var PAGE_V="2026-11-15.7";L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
 window.addEventListener("error",function(e){L("ОШИБКА: "+e.message+" @"+(e.filename||"").split("/").pop()+":"+e.lineno)});
 window.addEventListener("unhandledrejection",function(e){L("ОШИБКА промиса: "+(e.reason&&e.reason.message||e.reason))});
 // самообновление: Safari и GitHub Pages держат старый HTML в кэше. Раз за сессию страница запрашивает свежую копию и, если версия другая, перезагружается
-try{if(!sessionStorage.getItem("pv-reloaded")){fetch(location.pathname+"?v="+Date.now(),{cache:"reload"}).then(function(r){return r.text()}).then(function(t){var m=/PAGE_V="([^"]+)"/.exec(t);if(m&&m[1]!==PAGE_V){sessionStorage.setItem("pv-reloaded","1");L("страница устарела ("+PAGE_V+" → "+m[1]+"), перезагрузка");fetch(location.pathname,{cache:"reload"}).then(function(){location.reload()},function(){location.reload()})}else L("версия страницы актуальна")}).catch(function(){})}}catch(e){}
+window.__pvCheck=new Promise(function(res){try{if(sessionStorage.getItem("pv-reloaded")){res(false);return}
+ fetch(location.pathname+"?v="+Date.now(),{cache:"reload"}).then(function(r){return r.text()}).then(function(t){var m=/PAGE_V="([^"]+)"/.exec(t);
+  if(m&&m[1]!==PAGE_V){sessionStorage.setItem("pv-reloaded","1");L("страница устарела ("+PAGE_V+" → "+m[1]+"), перезагрузка");var go=function(){res(true);location.reload()};fetch(location.pathname,{cache:"reload"}).then(go,go)}
+  else{L("версия страницы актуальна");res(false)}}).catch(function(){res(false)})}catch(e){res(false)}});
 var rs=0;window.addEventListener("resize",function(){rs++;L("resize #"+rs+" "+innerWidth+"x"+innerHeight)});
 if(window.visualViewport){var vc=0;visualViewport.addEventListener("resize",function(){vc++;if(vc<40)L("visualViewport resize "+Math.round(visualViewport.height))})}
 var sc=0,sl=0;document.getElementById("outer").addEventListener("scroll",function(){sc++;var n=Date.now();if(n-sl>400){sl=n;L("лента scrollTop → "+Math.round(this.scrollTop)+" (событий "+sc+")");sc=0}},{passive:true});window.addEventListener("scroll",function(){L("СТРАНИЦА прокрутилась → "+Math.round(scrollY))},{passive:true});
@@ -177,7 +181,7 @@ function idOf(){var h=location.hash,m=/[#&]tgWebAppStartParam=([0-9a-zA-Z_-]+)/.
 window.addEventListener("load",function(){if(window.Telegram&&Telegram.WebApp){try{var w=Telegram.WebApp;w.ready();w.expand();w.setHeaderColor("#0e1013");w.setBackgroundColor("#0e1013")}catch(e){}}});
 
 // ── звуки интерфейса (те же файлы, что в приложении)
-var snds={};function snd(n){try{var a=snds[n]||(snds[n]=new Audio("s/"+n+".mp3"));a.currentTime=0;var p=a.play();if(p&&p.catch)p.catch(function(){})}catch(e){}}
+var snds={},lastSnd={};function snd(n){var tn=Date.now();if(lastSnd[n]&&tn-lastSnd[n]<300)return;lastSnd[n]=tn;try{var a=snds[n]||(snds[n]=new Audio("s/"+n+".mp3"));a.currentTime=0;var p=a.play();if(p&&p.catch)p.catch(function(){})}catch(e){}}
 
 // ── салют: DOM-частицы на WAAPI (как fireBurst в приложении): вся анимация на композиторе, JS после старта не участвует
 var COLORS=["#b6fe3b","#ff6b6b","#ffd93d","#6bcfff","#c77dff","#ff9f43","#ff6fd8"],SAMPLES=14,FRAMES=105,GRAVITY=.32;
@@ -316,10 +320,11 @@ function start(C){
  function finale(fire){
   var me=msg("me ok",esc(C.e),true);var sh=document.createElement("span");sh.className="sheen";me.appendChild(sh);
   if(fire){snd("xp-gain")}
+  // ответ → пауза → смайлик-салют → точки «печатает» → бокс с переводом → точки 2 с → «Скоро выйдет полный разбор» → точки 1 с → «Выйти»
   later(function(){emo("🎉");
-   later(function(){spoilerBubble(C.r||"");
+   later(function(){typing(TYPE_NEXT,function(){spoilerBubble(C.r||"");
     later(function(){typing(2000,function(){msg("","Скоро выйдет полный разбор этой фразы");
-     later(function(){typing(1000,exitBtn)},REACT)})},900)},REACT+300)},fire?1500:300)}
+     later(function(){typing(1000,exitBtn)},REACT)})},900)})},REACT)},fire?2600:300)}
 
  chk.onclick=function(){
   if(busy||locked()||!placed.length)return;
@@ -343,6 +348,7 @@ function start(C){
   if(locked()){later(function(){msg("hint bad","Попытки закончились. Следующая попытка откроется "+atTxt(S.until)+".");lockUi()},500);setInterval(function(){if(S.until&&Date.now()>=S.until)location.reload();else $("#lc").textContent=leftTxt(S.until-Date.now())},30000);return}
   draw();later(openPanel,600)}
  var AU,SU;AP.then(function(v){AU=v});SP.then(function(v){SU=v});
+ Promise.all([AP,SP]).then(function(){later(function(){veilOff()},200)},function(){veilOff()});
  // слушание: следующее сообщение выходит, когда голосовое дослушано, а если его не включали, то через 3 с после появления
  function listened(vc){return new Promise(function(res){var d=false;function fin(){if(!d){d=true;res()}}vc.ended.then(fin);later(function(){if(!vc.isPlaying())fin();else later(fin,15000)},3000)})}
  // сценарий: точки → голосовое (обычное) → точки → «Вот в два раза медленнее» → точки → голосовое (замедленное) → точки → панель сборки выезжает
@@ -357,14 +363,15 @@ function start(C){
 // звуки интерфейса грузятся заранее, чтобы первое сообщение не ждало файлов
 function preloadSounds(){["message-in","typing-1","answer-correct","answer-wrong","xp-gain"].forEach(function(n){try{var a=new Audio("s/"+n+".mp3");a.preload="auto";snds[n]=a}catch(e){}})}
 function cleanTxt(t){return String(t||"").replace(/\s*\[пост\]/gi,"").replace(/\s+/g," ").trim()}
+function veilOff(){var v=document.getElementById("veil");if(v)v.classList.add("off")}
 function boot(){
  preloadSounds();
  var c=readC();if(c){c.e=cleanTxt(c.e);c.r=cleanTxt(c.r);start(c);return}
- var id=idOf();if(!id){$("#feed").innerHTML='<div class="err2">Ссылка без задания.<br>Откройте тест по кнопке под видео.</div>';return}
+ var id=idOf();if(!id){$("#feed").innerHTML='<div class="err2">Ссылка без задания.<br>Откройте тест по кнопке под видео.</div>';veilOff();return}
  // звук и задание лежат под одним id: оба файла просим одновременно, пока страница ещё показывает кружок
  var pre=loadWave("a/"+id+".mp3"),preS=loadWave("a/"+id+"s.mp3");
- $("#feed").innerHTML='<div class="loadRow"><span class="spin"></span></div>';
- fetch("t/"+id+".json",{cache:"no-store"}).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(j){if(!j||!j.e)throw 0;j.e=cleanTxt(j.e);j.r=cleanTxt(j.r);if(window.__L)window.__L("задание: "+JSON.stringify({e:j.e,a:j.a,s:j.s,t:j.t}));j.id=id;j.pre=pre;j.preS=preS;$("#feed").innerHTML="";start(j)}).catch(function(){$("#feed").innerHTML='<div class="err2">Не удалось загрузить задание.<br>Попробуйте ещё раз через минуту: страница обновляется.</div>'})}
-boot();
+ 
+ fetch("t/"+id+".json",{cache:"no-store"}).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(j){if(!j||!j.e)throw 0;j.e=cleanTxt(j.e);j.r=cleanTxt(j.r);if(window.__L)window.__L("задание: "+JSON.stringify({e:j.e,a:j.a,s:j.s,t:j.t}));j.id=id;j.pre=pre;j.preS=preS;$("#feed").innerHTML="";start(j)}).catch(function(){$("#feed").innerHTML='<div class="err2">Не удалось загрузить задание.<br>Попробуйте ещё раз через минуту: страница обновляется.</div>';veilOff()})}
+(window.__pvCheck?Promise.race([window.__pvCheck,new Promise(function(r){setTimeout(function(){r(false)},1500)})]):Promise.resolve(false)).then(function(rl){if(!rl)boot()});
 })();
 </script></body></html>
