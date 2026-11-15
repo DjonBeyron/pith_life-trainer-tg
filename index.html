@@ -20,6 +20,8 @@ body{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;justi
 .bubble.me.ok::after{content:'✓';color:#b6fe3b;animation:markIn .32s cubic-bezier(.22,1,.36,1) both,markFlash .5s cubic-bezier(.22,1,.36,1) 1.45s both}
 .bubble.me.err::after{content:'✕';color:#f87171;animation:markIn .32s cubic-bezier(.22,1,.36,1) both}
 .bubble.me.err{color:#f2c9c9}
+/* жирным в чате только верный ответ и перевод */
+.bubble{font-weight:400}.bubble.me.ok{font-weight:700}
 @keyframes markIn{from{opacity:0;transform:scale(.4)}60%{opacity:1;transform:scale(1.2)}to{opacity:1;transform:scale(1)}}
 @keyframes markFlash{0%{color:#b6fe3b;transform:scale(1)}40%{color:#fff;transform:scale(1.45)}100%{color:#b6fe3b;transform:scale(1)}}
 .sheen{position:absolute;inset:0;border-radius:inherit;overflow:hidden;pointer-events:none}
@@ -42,10 +44,10 @@ body{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;justi
 /* перевод под плавающими точками: нажатие раскрывает */
 .bubble.tr2{padding:10px 14px}
 .spoil{position:relative;display:block;min-width:140px;min-height:20px}
-.spt{display:block;color:#b6fe3b;font-weight:600;opacity:0;transition:opacity .5s ease}
+.spt{display:block;color:#b6fe3b;font-weight:700;opacity:0;transition:opacity .5s ease}
 .spc{position:absolute;inset:-6px;width:calc(100% + 12px);height:calc(100% + 12px);cursor:pointer;transition:opacity .45s ease}
 .spoil.open .spt{opacity:1}.spoil.open .spc{opacity:0;pointer-events:none}
-.exitRow{justify-content:center;padding:10px 0 6px}
+.exitRow{justify-content:center;padding:14px 0 calc(40px + env(safe-area-inset-bottom,0px))}
 .exitBtn{display:flex;align-items:center;justify-content:center;min-width:180px;height:46px;padding:0 24px;background:#12141d;border:2px solid #b6fe3b;border-radius:12px;font:inherit;font-size:15px;font-weight:700;color:#b6fe3b;cursor:pointer;touch-action:manipulation;transition:background .15s,color .15s}
 .exitBtn:hover,.exitBtn:active{background:#b6fe3b;color:#000}
 /* голосовое сообщение: как в приложении (AudioModule + audio.css): кнопка, волна на canvas с заливкой прогресса, таймер */
@@ -102,7 +104,13 @@ body{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;justi
 @keyframes lk{0%,100%{transform:rotate(0)}10%{transform:rotate(-10deg)}20%{transform:rotate(9deg)}30%{transform:rotate(0)}}
 .err2{color:#6f7885;font-size:14px;padding:40px 18px;text-align:center}
 @media (prefers-reduced-motion:reduce){.sheen::before{animation:sheenStill .7s ease-out .05s both}@keyframes sheenStill{0%,100%{opacity:0}45%{opacity:1}}}
+.dbgBtn{position:fixed;top:calc(6px + env(safe-area-inset-top,0px));right:8px;z-index:200;height:22px;padding:0 8px;border-radius:11px;border:1px solid #2a2d35;background:rgba(18,20,29,.78);color:#6f7885;font:600 10px/20px 'Montserrat',system-ui,sans-serif;letter-spacing:.03em;cursor:pointer}
+.dbgBtn:active{color:#b6fe3b;border-color:#b6fe3b}
+.dbgBox{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.86);display:none;flex-direction:column;gap:8px;padding:12px}
+.dbgBox.on{display:flex}.dbgBox textarea{flex:1;background:#12141d;color:#cfd6e4;border:1px solid #2a2d35;border-radius:10px;padding:8px;font:11px/1.35 Consolas,monospace;resize:none}
+.dbgBox button{height:38px;border-radius:10px;border:2px solid #b6fe3b;background:#12141d;color:#b6fe3b;font:700 14px 'Montserrat',system-ui,sans-serif}
 </style></head><body>
+<button class="dbgBtn" id="dbgBtn" aria-label="Лог">лог</button><div class="dbgBox" id="dbgBox"><textarea id="dbgTa" readonly></textarea><button id="dbgCopy">Скопировать</button><button id="dbgClose" style="border-color:#2a2d35;color:#9aa0b4">Закрыть</button></div>
 <div id="feed"></div><div id="spacer"></div>
 <div class="phrasePanel" id="panel">
  <div class="phraseInner">
@@ -114,6 +122,32 @@ body{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;justi
  </div>
  <div class="lockbar"><span class="lk">🔒</span><b>Следующая попытка через <span id="lc"></span></b><small id="lt"></small></div>
 </div>
+<script>
+// Журнал для разбора: события страницы, размеры окна, ошибки. Кнопка «лог» сверху копирует его (или показывает текст, чтобы выделить и скопировать).
+(function(){
+var t0=Date.now(),LG=[],last={};
+function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.length>900)LG.shift()}
+window.__L=L;
+function tg(){var w=window.Telegram&&Telegram.WebApp;return w?("tg "+w.platform+" v"+w.version+" vh="+w.viewportHeight+" stable="+w.viewportStableHeight+" exp="+w.isExpanded):"без Telegram"}
+function snap(why){var f=document.getElementById("feed"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollY="+Math.round(scrollY)+" docH="+document.documentElement.scrollHeight+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
+L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
+window.addEventListener("error",function(e){L("ОШИБКА: "+e.message+" @"+(e.filename||"").split("/").pop()+":"+e.lineno)});
+window.addEventListener("unhandledrejection",function(e){L("ОШИБКА промиса: "+(e.reason&&e.reason.message||e.reason))});
+var rs=0;window.addEventListener("resize",function(){rs++;L("resize #"+rs+" "+innerWidth+"x"+innerHeight)});
+if(window.visualViewport){var vc=0;visualViewport.addEventListener("resize",function(){vc++;if(vc<40)L("visualViewport resize "+Math.round(visualViewport.height))})}
+var sc=0,sl=0;window.addEventListener("scroll",function(){sc++;var n=Date.now();if(n-sl>400){sl=n;L("scroll → "+Math.round(scrollY)+" (событий "+sc+")");sc=0}},{passive:true});
+// переходы, которые страница сама делает: сообщения, панель
+new MutationObserver(function(ms){ms.forEach(function(m){m.addedNodes.forEach(function(n){if(n.nodeType===1&&n.className&&String(n.className).indexOf("row")>=0)L("+ "+String(n.firstElementChild&&n.firstElementChild.className||n.className)+": "+String(n.textContent).trim().slice(0,40))});m.removedNodes.forEach(function(n){if(n.nodeType===1&&String(n.className).indexOf("typingRow")>=0)L("- точки")})})}).observe(document.getElementById("feed"),{childList:true});
+var pn=document.getElementById("panel");if(pn)new MutationObserver(function(){L(snap("панель "+(pn.classList.contains("show")?"показана":"скрыта")))}).observe(pn,{attributes:true,attributeFilter:["class"]});
+// каждые 700 мс: если размеры/прокрутка поменялись, запись (так видно дрожание: прокрутка и высота прыгают без причины)
+setInterval(function(){var f=document.getElementById("feed"),k=scrollY+"|"+document.documentElement.scrollHeight+"|"+innerHeight+"|"+(f?f.offsetHeight:0);if(k!==last.k){last.k=k;L(snap("изменение"))}},700);
+function text(){return LG.join("\n")+"\n"+snap("итог")+"\n"+tg()}
+var box=document.getElementById("dbgBox"),ta=document.getElementById("dbgTa");
+document.getElementById("dbgBtn").onclick=function(){var tx=text();ta.value=tx;box.classList.add("on");try{navigator.clipboard.writeText(tx).then(function(){document.getElementById("dbgCopy").textContent="Скопировано ✓"},function(){})}catch(e){}};
+document.getElementById("dbgCopy").onclick=function(){var tx=ta.value;try{navigator.clipboard.writeText(tx).then(function(){document.getElementById("dbgCopy").textContent="Скопировано ✓"},function(){ta.select();document.execCommand("copy")})}catch(e){ta.select();try{document.execCommand("copy")}catch(_){}}};
+document.getElementById("dbgClose").onclick=function(){box.classList.remove("on");document.getElementById("dbgCopy").textContent="Скопировать"}
+})();
+</script>
 <script>
 // Задание: старая ссылка #p=…, короткая #<id> или Mini App (tgWebAppStartParam); задание и звук лежат рядом со страницей: t/<id>.json, a/<id>.mp3
 // Попытки и блокировка хранятся в браузере (localStorage); строгую блокировку по пользователю может дать только бот.
@@ -284,7 +318,7 @@ function start(C){
   if(locked()){later(function(){msg("hint bad","Попытки закончились. Следующая попытка откроется "+atTxt(S.until)+".");lockUi()},500);setInterval(function(){if(S.until&&Date.now()>=S.until)location.reload();else $("#lc").textContent=leftTxt(S.until-Date.now())},30000);return}
   draw();later(openPanel,600)}
  var AU;AP.then(function(v){AU=v});
- typing(TYPE_FIRST,function(){msg("","<b>Удалось расслышать фразу?</b>");
+ typing(TYPE_FIRST,function(){msg("","Удалось расслышать фразу?");
   later(function(){typing(TYPE_NEXT,function(){
    if(AU){audioBubble(AU.w);afterVoice()}
    else{msg("hint","Звука для этой фразы нет: прислушайтесь к видео.");afterVoice()}},AP)},REACT)})}
