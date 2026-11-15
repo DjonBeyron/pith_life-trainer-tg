@@ -140,7 +140,7 @@ function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.len
 window.__L=L;
 function tg(){var w=window.Telegram&&Telegram.WebApp;return w?("tg "+w.platform+" v"+w.version+" vh="+w.viewportHeight+" stable="+w.viewportStableHeight+" exp="+w.isExpanded):"без Telegram"}
 function snap(why){var f=document.getElementById("feed"),o=document.getElementById("outer"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollTop="+Math.round(o?o.scrollTop:0)+" scrollH="+(o?o.scrollHeight:0)+"/"+(o?o.clientHeight:0)+" docScroll="+Math.round(scrollY)+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
-var PAGE_V="2026-11-15.7";L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
+var PAGE_V="2026-11-15.8";L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
 window.addEventListener("error",function(e){L("ОШИБКА: "+e.message+" @"+(e.filename||"").split("/").pop()+":"+e.lineno)});
 window.addEventListener("unhandledrejection",function(e){L("ОШИБКА промиса: "+(e.reason&&e.reason.message||e.reason))});
 // самообновление: Safari и GitHub Pages держат старый HTML в кэше. Раз за сессию страница запрашивает свежую копию и, если версия другая, перезагружается
@@ -253,7 +253,7 @@ function start(C){
    audio.onerror=function(){b.closest(".row").remove()};return audio}
   btn.onclick=function(){var a=ensure();if(!a.paused){a.pause();return}stopRaf();if(a.ended)a.currentTime=0;a.loop=loop;a.playbackRate=half?.5:1;try{a.preservesPitch=true;a.webkitPreservesPitch=true}catch(e){}
    var p=a.play();if(p&&p.catch)p.catch(function(){setPlayingUi(false)})};
-  if(slow)spd.style.display="none";
+  if(spd.parentNode)spd.parentNode.removeChild(spd);
   spd.onclick=function(){half=!half;spd.classList.toggle("on",half);if(audio)audio.playbackRate=half?.5:1};
   rep.onclick=function(){loop=!loop;rep.classList.toggle("on",loop);if(audio)audio.loop=loop};
   return{ended:ended,isPlaying:function(){return!!audio&&!audio.paused&&!audio.ended}}
@@ -348,17 +348,21 @@ function start(C){
   if(locked()){later(function(){msg("hint bad","Попытки закончились. Следующая попытка откроется "+atTxt(S.until)+".");lockUi()},500);setInterval(function(){if(S.until&&Date.now()>=S.until)location.reload();else $("#lc").textContent=leftTxt(S.until-Date.now())},30000);return}
   draw();later(openPanel,600)}
  var AU,SU;AP.then(function(v){AU=v});SP.then(function(v){SU=v});
- Promise.all([AP,SP]).then(function(){later(function(){veilOff()},200)},function(){veilOff()});
  // слушание: следующее сообщение выходит, когда голосовое дослушано, а если его не включали, то через 3 с после появления
  function listened(vc){return new Promise(function(res){var d=false;function fin(){if(!d){d=true;res()}}vc.ended.then(fin);later(function(){if(!vc.isPlaying())fin();else later(fin,15000)},3000)})}
  // сценарий: точки → голосовое (обычное) → точки → «Вот в два раза медленнее» → точки → голосовое (замедленное) → точки → панель сборки выезжает
  function toPanel(){typing(TYPE_NEXT,function(){afterVoice()})}
- typing(TYPE_FIRST,function(){
-  if(!AU){msg("hint","Звука для этой фразы нет: прислушайтесь к видео.");toPanel();return}
-  var v1=audioBubble(AU.w,AK,false);
-  if(!SU){listened(v1).then(toPanel);return}
-  listened(v1).then(function(){typing(TYPE_NEXT,function(){msg("","Вот в два раза медленнее");
-   later(function(){typing(TYPE_NEXT,function(){audioBubble(SU.w,SK,true);later(toPanel,REACT)})},REACT)})})},Promise.all([AP,SP]))}
+ // чат стартует только когда готовы оба звука и снято затемнение загрузки: точки и их звук видны и слышны с самого начала
+ var ready=Promise.all([AP,SP]).then(function(){return new Promise(function(r){later(function(){veilOff();later(r,450)},200)})},function(){veilOff()});
+ ready.then(function(){
+  typing(TYPE_FIRST,function(){
+   if(!AU){msg("hint","Звука для этой фразы нет: прислушайтесь к видео.");toPanel();return}
+   msg("","Послушай ещё раз");
+   later(function(){typing(TYPE_NEXT,function(){
+    var v1=audioBubble(AU.w,AK,false);
+    if(!SU){listened(v1).then(toPanel);return}
+    listened(v1).then(function(){typing(TYPE_NEXT,function(){msg("","Давай послушаем замедленно");
+     later(function(){typing(TYPE_NEXT,function(){audioBubble(SU.w,SK,true);later(toPanel,REACT)})},REACT)})})})},REACT)})})}
 
 // звуки интерфейса грузятся заранее, чтобы первое сообщение не ждало файлов
 function preloadSounds(){["message-in","typing-1","answer-correct","answer-wrong","xp-gain"].forEach(function(n){try{var a=new Audio("s/"+n+".mp3");a.preload="auto";snds[n]=a}catch(e){}})}
