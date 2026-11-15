@@ -25,6 +25,7 @@ button{font:inherit;color:var(--tx);background:#1f2630;border:1px solid #2f3742;
 .fb{min-height:22px;max-height:40px;font-size:14px;margin:10px 0 2px;color:var(--dim);overflow:hidden;transition:opacity .4s,max-height .4s,margin .4s,min-height .4s}.fb.hide{opacity:0;max-height:0;min-height:0;margin:0}.fb.ok{color:var(--ok)}.fb.bad{color:var(--bad)}.fb.warn{color:#ffcc33}
 .soon{margin-top:16px;font-size:13px;color:#4d5663;animation:in .5s .3s ease both}#rv{font-size:13px;padding:7px 16px}.rb{display:grid;place-items:center;margin-top:10px}.rb>*{grid-area:1/1;transition:opacity .4s ease,transform .4s ease}.tx{opacity:0;transform:translateY(8px);font-size:16px;color:#c8cfda;pointer-events:none}.rb.on #rv{opacity:0;transform:scale(.94);pointer-events:none}.rb.on .tx{opacity:1;transform:none}
 .err{color:var(--dim);font-size:14px;padding:30px 6px}
+.aud{display:none;justify-content:center;gap:8px;margin-top:12px}.aud button{padding:7px 14px;font-size:14px}.aud button.on{background:#2a2540;border-color:var(--acc);color:#cdbcff}
 </style></head><body>
 <div id="w"></div>
 <script>
@@ -61,7 +62,7 @@ function start(){
  var S=load(),toks=C.e.split(/\s+/),dec=[];
  [P,G,E].forEach(function(l){dec.push(pick(l,toks.map(norm).concat(dec)))});
  var pool=shuf(toks.map(function(t){return{t:t}}).concat(dec.map(function(t){return{t:t}}))),line=[],marks=null,msg="",cls="";
- W.innerHTML='<div id="mn"><h2 id="h">Удалось расслышать фразу?</h2><div class="slot" id="sl"></div><div class="pool" id="pl"></div><button class="go" id="go">Проверить</button><div class="tries" id="tr"></div><div class="fb" id="fb"></div><div id="sn" style="display:none"><div class="rb" id="rb"><button id="rv">Раскрыть перевод</button><div class="tx" id="tx"></div></div><div class="soon">Скоро выйдет разбор этой фразы</div></div></div><div class="lockbar"><span style="font-size:22px">🔒</span><div><b>Следующая попытка через <span id="lc"></span></b><small id="lt"></small></div></div>';
+ W.innerHTML='<div id="mn"><h2 id="h">Удалось расслышать фразу?</h2><div class="slot" id="sl"></div><div class="pool" id="pl"></div><button class="go" id="go">Проверить</button><div class="tries" id="tr"></div><div class="fb" id="fb"></div><div class="aud" id="au"><button id="ap">▶ Послушать</button><button id="as" title="В два раза медленнее">½×</button></div><div id="sn" style="display:none"><div class="rb" id="rb"><button id="rv">Раскрыть перевод</button><div class="tx" id="tx"></div></div><div class="soon">Скоро выйдет разбор этой фразы</div></div></div><div class="lockbar"><span style="font-size:22px">🔒</span><div><b>Следующая попытка через <span id="lc"></span></b><small id="lt"></small></div></div>';
  function locked(){return S.until&&Date.now()<S.until}
  function draw(){
   var lk=locked(),done=S.solved,sl=$("#sl"),pl=$("#pl");
@@ -72,6 +73,7 @@ function start(){
   if(!done)pool.forEach(function(it){var b=mk(),used=line.indexOf(it)>=0;b.textContent=it.t;if(used)b.className="used";b.disabled=lk||done;b.onclick=function(){if(used||lk||done)return;line.push(it);marks=null;msg="";draw()};pl.appendChild(b)});
   $("#go").style.display=done?"none":"";$("#go").disabled=lk||!line.length;
   var f=$("#fb");f.className="fb "+cls;f.textContent=lk?"":msg;
+  $("#au").style.display=C.a&&(done||S.left<TRIES)?"flex":"none";
   $("#sn").style.display=done?"block":"none";$("#h").style.display=done?"none":"";
   if(lk){$("#lc").textContent=left(S.until-Date.now());$("#lt").textContent="Откроется "+at(S.until)}
  }
@@ -83,6 +85,9 @@ function start(){
   else if(line.length<toks.length&&marks.every(Boolean)){msg="Верно, но фраза не полная.";cls="warn";draw();return}
   else{S.left--;if(S.left<=0){S.until=Date.now()+LOCK_H*3600000;msg="";cls="bad"}else{msg="Неверно. Осталось попыток: "+S.left;cls="bad"}}
   save();draw()};
+ var A=null,half=false;
+ // звук фразы лежит рядом со страницей (a/<id>.mp3); замедление в два раза делает сам браузер, тон не меняется. Кнопка появляется после первой неверной попытки и после решения.
+ if(C.a){$("#ap").onclick=function(){if(!A){A=new Audio("a/"+C.a+".mp3");A.preload="auto";A.onerror=function(){$("#au").style.display="none"}}A.playbackRate=half?0.5:1;try{A.preservesPitch=true;A.webkitPreservesPitch=true}catch(e){}A.currentTime=0;var p=A.play();if(p&&p.catch)p.catch(function(){})};$("#as").onclick=function(){half=!half;this.className=half?"on":"";if(A)A.playbackRate=half?0.5:1}}
  $("#tx").textContent=C.r||"";$("#rv").onclick=function(){$("#rb").classList.add("on");$("#fb").classList.add("hide")};
  clearInterval(window.__t);window.__t=setInterval(function(){if(S.until&&Date.now()>=S.until){start()}else if(locked())draw()},30000);
  draw()}
