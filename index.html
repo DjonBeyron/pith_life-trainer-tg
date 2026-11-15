@@ -140,7 +140,7 @@ function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.len
 window.__L=L;
 function tg(){var w=window.Telegram&&Telegram.WebApp;return w?("tg "+w.platform+" v"+w.version+" vh="+w.viewportHeight+" stable="+w.viewportStableHeight+" exp="+w.isExpanded):"без Telegram"}
 function snap(why){var f=document.getElementById("feed"),o=document.getElementById("outer"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollTop="+Math.round(o?o.scrollTop:0)+" scrollH="+(o?o.scrollHeight:0)+"/"+(o?o.clientHeight:0)+" docScroll="+Math.round(scrollY)+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
-var PAGE_V="2026-11-15.9";L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
+var PAGE_V="2026-11-15.10";L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
 window.addEventListener("error",function(e){L("ОШИБКА: "+e.message+" @"+(e.filename||"").split("/").pop()+":"+e.lineno)});
 window.addEventListener("unhandledrejection",function(e){L("ОШИБКА промиса: "+(e.reason&&e.reason.message||e.reason))});
 // самообновление: Safari и GitHub Pages держат старый HTML в кэше. Раз за сессию страница запрашивает свежую копию и, если версия другая, перезагружается
@@ -297,7 +297,7 @@ function start(C){
  outer.addEventListener("wheel",function(e){e.preventDefault();outer.scrollTop-=e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?outer.clientHeight:1)},{passive:false});
 
  // ── «печатает»: три точки со звуком typing-1 перед сообщением учителя (как WaitingDots приложения); wait — обещание, которое тоже надо дождаться
- var TYPE_FIRST=700,TYPE_NEXT=1000,REACT=350;
+ var TYPE_FIRST=1000,TYPE_NEXT=1400,REACT=350;
  function typing(ms,fn,wait){
   // пока панель ответа открыта, индикатор не показывается (как в приложении): только пауза
   var r=null;if(!panel.classList.contains("show")){r=document.createElement("div");r.className="typingRow";r.innerHTML='<div class="bubble typingB"><span class="dots"><i></i><i></i><i></i></span></div>';app.appendChild(r);snd("typing-1")}
