@@ -193,18 +193,24 @@ function decodeWaveBuf(buf){var AC=window.AudioContext||window.webkitAudioContex
 function loadWave(url){return fetch(url).then(function(r){if(!r.ok)return null;return r.arrayBuffer().then(function(b){return decodeWaveBuf(b).then(function(w){return{w:w}},function(){return{w:null}})})},function(){return null})}
 
 function start(C){
- var AK=C.id||C.a||"",AP=C.pre||(C.a?loadWave("a/"+C.a+".mp3"):Promise.resolve(null));
+ var AK=C.id||C.a||"",SK=C.id?C.id+"s":(C.s||""),AP=C.pre||(C.a?loadWave("a/"+C.a+".mp3"):Promise.resolve(null)),SP=C.preS||(SK?loadWave("a/"+SK+".mp3"):Promise.resolve(null));
  var KEY="trainer:"+C.e,S={left:TRIES,until:0,solved:false};
  try{var s=JSON.parse(localStorage.getItem(KEY)||"null");if(s)S=s}catch(e){}
  if(S.until&&Date.now()>=S.until)S={left:TRIES,until:0,solved:false};
  function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
  var toks=C.e.split(/\s+/),dec=[];[P,G,E].forEach(function(l){dec.push(pick1(l,toks.map(norm).concat(dec)))});
  var bank=shuf(toks.concat(dec)),placed=[],used={},red=[],busy=false,wrongN=TRIES-S.left;
- var outer=$("#outer"),app=$("#app"),feed=$("#feed"),panel=$("#panel"),pool=$("#pool"),rowA=$("#rowA"),chk=$("#chk"),spacer=$("#spacer");
+ var outer=$("#outer"),inner=$("#inner"),app=$("#app"),feed=$("#feed"),panel=$("#panel"),pool=$("#pool"),rowA=$("#rowA"),chk=$("#chk"),spacer=$("#spacer");
  function locked(){return S.until&&Date.now()<S.until}
  function scrollNow(){outer.scrollTop=0}
  // появление сообщения как в PlayerFeed: влетает снизу (путь 200px, 240 мс), звук «новое сообщение» за 60 мс до конца; у реплик ученика звука нет
- function slideIn(r,sound){try{r.animate([{transform:"translateY(200px)",easing:"cubic-bezier(0.4,0,1,1)"},{transform:"translateY(0)"}],{duration:240,fill:"backwards"})}catch(e){}if(sound)later(function(){snd("message-in")},180)}
+ var TRAVEL=200,SLIDE=240,EASE_FLY="cubic-bezier(0.4,0,1,1)",EASE_PUSH="cubic-bezier(0,0,0.2,1)";
+ function rowFrames(push){var c=Math.max(0,TRAVEL-push)/TRAVEL;if(c<=0)return[{transform:"translateY("+(TRAVEL-push)+"px)",easing:EASE_PUSH},{transform:"translateY(0)"}];return[{transform:"translateY("+(TRAVEL-push)+"px)",easing:EASE_FLY},{transform:"translateY(0)",offset:c,easing:EASE_PUSH},{transform:"translateY(0)"}]}
+ function histFrames(push){var c=Math.max(0,TRAVEL-push)/TRAVEL;if(c<=0)return[{transform:"scaleY(-1) translateY("+push+"px)",easing:EASE_PUSH},{transform:"scaleY(-1) translateY(0)"}];return[{transform:"scaleY(-1) translateY("+push+"px)",easing:"linear"},{transform:"scaleY(-1) translateY("+push+"px)",offset:c,easing:EASE_PUSH},{transform:"scaleY(-1) translateY(0)"}]}
+ // появление сообщения как в PlayerFeed: новая строка летит снизу (200px, 240 мс); история, которую вставка мгновенно сдвинула, отбрасывается назад и до касания стоит, потом едет вместе со строкой; звук за 60 мс до конца
+ function slideIn(r,sound){var prev=r.previousElementSibling,rb=r.getBoundingClientRect(),push=prev?Math.max(0,rb.bottom-prev.getBoundingClientRect().bottom):rb.height;
+  try{r.animate(rowFrames(push),{duration:SLIDE,fill:"backwards"});if(push>0)inner.animate(histFrames(push),{duration:SLIDE,fill:"backwards"})}catch(e){}
+  if(sound)later(function(){snd("message-in")},SLIDE-60)}
  function msg(cls,html,nosnd){var r=document.createElement("div");r.className="row"+(cls.indexOf("me")>=0?" right":"");var b=document.createElement("div");b.className="bubble "+cls;if(typeof html==="string")b.innerHTML=html;else b.appendChild(html);r.appendChild(b);feed.appendChild(r);scrollNow();slideIn(r,cls.indexOf("me")<0&&!nosnd);return b}
  function esc(s){return String(s).replace(/[&<>]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;"}[c]})}
  function later(f,t){return setTimeout(f,t)}
@@ -221,7 +227,8 @@ function start(C){
  var ICON_PLAY='<svg viewBox="0 0 24 24" stroke-width="2" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>',ICON_PAUSE='<svg viewBox="0 0 24 24" stroke-width="2" stroke-linejoin="round"><rect x="14" y="4" width="4" height="16" rx="1"/><rect x="6" y="4" width="4" height="16" rx="1"/></svg>';
  var ICON_RING='<svg class="audioRing" viewBox="0 0 20 20" width="14" height="14"><circle cx="10" cy="10" r="7" fill="none" stroke="#0e1013" stroke-width="2.2" stroke-opacity=".25"/><circle cx="10" cy="10" r="7" fill="none" stroke="#0e1013" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="14 30"/></svg>';
  var ICON_REPEAT='<svg viewBox="0 0 24 24"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg>';
- function audioBubble(wi){
+ function audioBubble(wi,key,slow){
+  var audio=null,half=false,loop=false,endRes=null,ended=new Promise(function(r){endRes=r});
   var wd=wi&&wi.wave||null,dur=wi&&wi.dur||0;
   var h=document.createElement("div");h.className="playerAudio";
   h.innerHTML='<div class="audioRow"><button class="audioBtn" aria-label="Воспроизвести">'+ICON_PLAY+'</button><div class="waveCol"><canvas class="wave"></canvas><div class="audMeta"><span class="dur">'+(dur?fmt(dur):"")+'</span><span class="ctl"><button class="chip" data-k="spd" title="В два раза медленнее">½×</button><button class="chip" data-k="rep" title="Повторять голосовое по кругу" aria-label="Повтор">'+ICON_REPEAT+'</button></span></div></div></div>';
@@ -233,15 +240,17 @@ function start(C){
   function setPlayingUi(on){btn.innerHTML=on?ICON_PAUSE:ICON_PLAY;btn.setAttribute("aria-label",on?"Пауза":"Воспроизвести")}
   function tick(){if(!audio)return;var ct=audio.currentTime,total=isFinite(audio.duration)&&audio.duration>0?audio.duration:(dur||1),from=bounds?bounds.lead:0,len=bounds?Math.max(.1,total-bounds.lead-bounds.tail):total;paint(Math.min(1,Math.max(0,(ct-from)/len)));var left=fmt(Math.max(0,(dur||total)-ct));if(durEl.textContent!==left)durEl.textContent=left;raf=requestAnimationFrame(tick)}
   function fadeEnd(){var t0=performance.now();(function f(now){var a=1-Math.min(1,(now-t0)/550);paint(a>0?1:0,a);if(a>0)raf=requestAnimationFrame(f);else{paint(0);raf=0}})(t0)}
-  function ensure(){if(audio)return audio;audio=new Audio("a/"+AK+".mp3");audio.preload="auto";
-   audio.onended=function(){stopRaf();setPlayingUi(false);durEl.textContent=fmt(dur||audio.duration);fadeEnd()};
+  function ensure(){if(audio)return audio;audio=new Audio("a/"+key+".mp3");audio.preload="auto";
+   audio.onended=function(){if(endRes)endRes();stopRaf();setPlayingUi(false);durEl.textContent=fmt(dur||audio.duration);fadeEnd()};
    audio.onpause=function(){stopRaf();setPlayingUi(false)};audio.onplay=function(){setPlayingUi(true);if(!raf)raf=requestAnimationFrame(tick)};
    audio.onwaiting=function(){btn.innerHTML=ICON_RING};audio.onplaying=function(){setPlayingUi(true)};
    audio.onerror=function(){b.closest(".row").remove()};return audio}
   btn.onclick=function(){var a=ensure();if(!a.paused){a.pause();return}stopRaf();if(a.ended)a.currentTime=0;a.loop=loop;a.playbackRate=half?.5:1;try{a.preservesPitch=true;a.webkitPreservesPitch=true}catch(e){}
    var p=a.play();if(p&&p.catch)p.catch(function(){setPlayingUi(false)})};
+  if(slow)spd.style.display="none";
   spd.onclick=function(){half=!half;spd.classList.toggle("on",half);if(audio)audio.playbackRate=half?.5:1};
-  rep.onclick=function(){loop=!loop;rep.classList.toggle("on",loop);if(audio)audio.loop=loop}
+  rep.onclick=function(){loop=!loop;rep.classList.toggle("on",loop);if(audio)audio.loop=loop};
+  return{ended:ended,isPlaying:function(){return!!audio&&!audio.paused&&!audio.ended}}
  }
 
  // ── панель ответа
@@ -306,8 +315,9 @@ function start(C){
   var me=msg("me ok",esc(C.e),true);var sh=document.createElement("span");sh.className="sheen";me.appendChild(sh);
   if(fire){snd("xp-gain")}
   later(function(){emo("🎉");
-   later(function(){typing(TYPE_NEXT,function(){spoilerBubble(C.r||"");
-    later(function(){typing(TYPE_NEXT,function(){msg("","Скоро выйдет разбор этой фразы");later(exitBtn,500)})},900)})},REACT+300)},fire?1500:300)}
+   later(function(){spoilerBubble(C.r||"");
+    later(function(){typing(2000,function(){msg("","Скоро выйдет полный разбор этой фразы");
+     later(function(){typing(1000,exitBtn)},REACT)})},900)},REACT+300)},fire?1500:300)}
 
  chk.onclick=function(){
   if(busy||locked()||!placed.length)return;
@@ -330,11 +340,17 @@ function start(C){
   if(S.solved){later(function(){finale(false)},500);return}
   if(locked()){later(function(){msg("hint bad","Попытки закончились. Следующая попытка откроется "+atTxt(S.until)+".");lockUi()},500);setInterval(function(){if(S.until&&Date.now()>=S.until)location.reload();else $("#lc").textContent=leftTxt(S.until-Date.now())},30000);return}
   draw();later(openPanel,600)}
- var AU;AP.then(function(v){AU=v});
- typing(TYPE_FIRST,function(){msg("","Удалось расслышать фразу?");
-  later(function(){typing(TYPE_NEXT,function(){
-   if(AU){audioBubble(AU.w);afterVoice()}
-   else{msg("hint","Звука для этой фразы нет: прислушайтесь к видео.");afterVoice()}},AP)},REACT)})}
+ var AU,SU;AP.then(function(v){AU=v});SP.then(function(v){SU=v});
+ // слушание: следующее сообщение выходит, когда голосовое дослушано, а если его не включали, то через 3 с после появления
+ function listened(vc){return new Promise(function(res){var d=false;function fin(){if(!d){d=true;res()}}vc.ended.then(fin);later(function(){if(!vc.isPlaying())fin();else later(fin,15000)},3000)})}
+ // сценарий: точки → голосовое (обычное) → точки → «Вот в два раза медленнее» → точки → голосовое (замедленное) → точки → панель сборки выезжает
+ function toPanel(){typing(TYPE_NEXT,function(){afterVoice()})}
+ typing(TYPE_FIRST,function(){
+  if(!AU){msg("hint","Звука для этой фразы нет: прислушайтесь к видео.");toPanel();return}
+  var v1=audioBubble(AU.w,AK,false);
+  if(!SU){listened(v1).then(toPanel);return}
+  listened(v1).then(function(){typing(TYPE_NEXT,function(){msg("","Вот в два раза медленнее");
+   later(function(){typing(TYPE_NEXT,function(){audioBubble(SU.w,SK,true);later(toPanel,REACT)})},REACT)})})},Promise.all([AP,SP]))}
 
 // звуки интерфейса грузятся заранее, чтобы первое сообщение не ждало файлов
 function preloadSounds(){["message-in","typing-1","answer-correct","answer-wrong","xp-gain"].forEach(function(n){try{var a=new Audio("s/"+n+".mp3");a.preload="auto";snds[n]=a}catch(e){}})}
@@ -344,9 +360,9 @@ function boot(){
  var c=readC();if(c){c.e=cleanTxt(c.e);c.r=cleanTxt(c.r);start(c);return}
  var id=idOf();if(!id){$("#feed").innerHTML='<div class="err2">Ссылка без задания.<br>Откройте тест по кнопке под видео.</div>';return}
  // звук и задание лежат под одним id: оба файла просим одновременно, пока страница ещё показывает кружок
- var pre=loadWave("a/"+id+".mp3");
+ var pre=loadWave("a/"+id+".mp3"),preS=loadWave("a/"+id+"s.mp3");
  $("#feed").innerHTML='<div class="loadRow"><span class="spin"></span></div>';
- fetch("t/"+id+".json",{cache:"no-store"}).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(j){if(!j||!j.e)throw 0;j.e=cleanTxt(j.e);j.r=cleanTxt(j.r);j.id=id;j.pre=pre;$("#feed").innerHTML="";start(j)}).catch(function(){$("#feed").innerHTML='<div class="err2">Не удалось загрузить задание.<br>Попробуйте ещё раз через минуту: страница обновляется.</div>'})}
+ fetch("t/"+id+".json",{cache:"no-store"}).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(j){if(!j||!j.e)throw 0;j.e=cleanTxt(j.e);j.r=cleanTxt(j.r);j.id=id;j.pre=pre;j.preS=preS;$("#feed").innerHTML="";start(j)}).catch(function(){$("#feed").innerHTML='<div class="err2">Не удалось загрузить задание.<br>Попробуйте ещё раз через минуту: страница обновляется.</div>'})}
 boot();
 })();
 </script></body></html>
