@@ -53,6 +53,8 @@ body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',syste
 /* перевод под плавающими точками: нажатие раскрывает */
 /* перевод открытым текстом: брендовый зелёный, жирный (жирным в чате только он и верный ответ) */
 .bubble.trv{color:#b6fe3b;font-weight:700}
+.bubble.me.trv{background:#1a1d22}
+.trI{width:13px;height:13px;vertical-align:-1px;margin-right:7px;fill:none;stroke:#6d717c;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .bubble.me.pick::after{content:none}
 /* панель «Выбери слово» приложения (choose-word.css): варианты кнопками, вылетает снизу вместе с историей */
 .cwInner{max-width:600px;margin:0 auto;display:flex;flex-direction:column;gap:6px;padding:12px 16px 16px}
@@ -144,7 +146,7 @@ function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.len
 window.__L=L;
 function tg(){var w=window.Telegram&&Telegram.WebApp;return w?("tg "+w.platform+" v"+w.version+" vh="+w.viewportHeight+" stable="+w.viewportStableHeight+" exp="+w.isExpanded):"без Telegram"}
 function snap(why){var f=document.getElementById("feed"),o=document.getElementById("outer"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollTop="+Math.round(o?o.scrollTop:0)+" scrollH="+(o?o.scrollHeight:0)+"/"+(o?o.clientHeight:0)+" docScroll="+Math.round(scrollY)+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
-var PAGE_V="2026-11-16.11";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
+var PAGE_V="2026-11-16.13";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
 window.addEventListener("error",function(e){L("ОШИБКА: "+e.message+" @"+(e.filename||"").split("/").pop()+":"+e.lineno)});
 window.addEventListener("unhandledrejection",function(e){L("ОШИБКА промиса: "+(e.reason&&e.reason.message||e.reason))});
 // самообновление: Safari и GitHub Pages держат старый HTML в кэше. Раз за сессию страница запрашивает свежую копию и, если версия другая, перезагружается
@@ -409,7 +411,8 @@ function start(C){
  var RP=["ты","он","она","они","мы","вы","его","нам","меня","тебя"],RG=["и","не","на","в","с","что","как","для","это","был"],RE=["дом","день","время","хорошо","сейчас","жизнь","только","всегда","вместе","потом"];
  function normRu(t){return String(t).toLowerCase().replace(/ё/g,"е").replace(/[^а-яa-z0-9]/g,"")}
  function pickRu(list,usedN){return shuf(list).filter(function(x){return usedN.indexOf(normRu(x))<0})[0]}
- function showTranslation(lead,done){typing(1400,function(){if(lead)msg("",lead);later(function(){msg("trv",esc(C.r));later(done,1000)},lead?700:0)})}
+ var TR_ICON='<svg class="trI" viewBox="0 0 24 24"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>';
+ function showTranslation(lead,done){typing(1400,function(){if(lead)msg("",lead);later(function(){msg("me pick trv",TR_ICON+esc(C.r),true);later(done,1000)},lead?700:0)})}
  function startRu(done){
   var rt=String(C.r).split(/\s+/).map(function(w){return w.replace(/^[^\wа-яА-ЯёЁ]+|[^\wа-яА-ЯёЁ]+$/g,"")}).filter(Boolean),dec=[],names=rt.map(normRu);
   [RP,RG,RE].forEach(function(l){var d=pickRu(l,names.concat(dec.map(normRu)));if(d)dec.push(d)});
@@ -436,9 +439,8 @@ function start(C){
      snd(k==="try"?"answer-correct":"message-in");
      [].forEach.call(btns,function(o){o.disabled=true;o.classList.add(o===b?"pick":"dim")});
      later(function(){curPanel=cwp;runPanel(false,function(){
-      msg("me pick",esc(b.textContent),true);
-      if(k==="reveal"){later(function(){showTranslation("",done)},700)}
-      else{later(function(){typing(1400,function(){msg("","Тогда собери перевод из слов.");later(function(){startRu(done)},600)})},500)}})},760)}})},2000)})}
+      if(k==="reveal"){msg("me pick trv",TR_ICON+esc(C.r),true);later(done,1000)}
+      else{msg("me pick",esc(b.textContent),true);later(function(){typing(1400,function(){msg("","Тогда собери перевод из слов.");later(function(){startRu(done)},600)})},500)}})},760)}})},2000)})}
  // ответ → пауза → смайлик-салют → «Как думаешь, как переводится?» → выбор → перевод → мотивация → точки → «Скоро выйдет полный разбор» → точки → «Выйти»
  function finale(fire){
   var att=S.att||0,pubP=TS.pub();TS.step("finale");
