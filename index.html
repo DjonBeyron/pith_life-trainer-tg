@@ -36,7 +36,7 @@ body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',syste
 .sheen{position:absolute;inset:0;border-radius:inherit;overflow:hidden;pointer-events:none}
 .sheen::before{content:'';position:absolute;top:0;bottom:0;left:0;width:300%;background-image:linear-gradient(100deg,rgba(255,255,255,0) 36%,rgba(255,255,255,.18) 43%,rgba(255,255,255,.55) 47%,rgba(255,255,255,.95) 50%,rgba(255,255,255,.55) 53%,rgba(255,255,255,.18) 57%,rgba(255,255,255,0) 64%);transform:translateX(-66.7%);opacity:0;animation:sheen .7s cubic-bezier(.35,0,.25,1) .05s 2 both}
 @keyframes sheen{0%{transform:translateX(-66.7%);opacity:0}10%{opacity:1}80%{opacity:1}100%{transform:translateX(6.7%);opacity:0}}
-.row.mid{justify-content:center}
+.row.mid{justify-content:center;margin:24px 0}
 .bubble.sys{background:none;padding:2px 0;color:#6f7885;font-size:12px;max-width:100%;text-align:center;border-radius:0}
 .bubble.emo{background:none;padding:0 4px;font-size:30px;line-height:1.2}
 .bubble.hint.bad{background:rgba(248,113,113,.10);color:#f87171}
@@ -55,7 +55,8 @@ body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',syste
 .spoil{position:relative;display:block;min-width:140px;min-height:20px}
 .spt{display:block;color:#b6fe3b;font-weight:700;opacity:0;transition:opacity .5s ease}
 .spc{position:absolute;inset:-6px;width:calc(100% + 12px);height:calc(100% + 12px);cursor:pointer;transition:opacity .45s ease}
-.spoil.open .spt{opacity:1}.spoil.open .spc{opacity:0;pointer-events:none}
+.spl{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;font-size:13px;color:rgba(255,255,255,.38);pointer-events:none;transition:opacity .4s ease}
+.spoil.open .spt{opacity:1}.spoil.open .spc{opacity:0;pointer-events:none}.spoil.open .spl{opacity:0}
 .exitRow{justify-content:center;padding:14px 0 calc(40px + env(safe-area-inset-bottom,0px))}
 .exitBtn{display:flex;align-items:center;justify-content:center;min-width:180px;height:46px;padding:0 24px;background:#12141d;border:2px solid #b6fe3b;border-radius:12px;font:inherit;font-size:15px;font-weight:700;color:#b6fe3b;cursor:pointer;touch-action:manipulation;transition:background .15s,color .15s}
 .exitBtn:hover,.exitBtn:active{background:#b6fe3b;color:#000}
@@ -139,7 +140,7 @@ function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.len
 window.__L=L;
 function tg(){var w=window.Telegram&&Telegram.WebApp;return w?("tg "+w.platform+" v"+w.version+" vh="+w.viewportHeight+" stable="+w.viewportStableHeight+" exp="+w.isExpanded):"без Telegram"}
 function snap(why){var f=document.getElementById("feed"),o=document.getElementById("outer"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollTop="+Math.round(o?o.scrollTop:0)+" scrollH="+(o?o.scrollHeight:0)+"/"+(o?o.clientHeight:0)+" docScroll="+Math.round(scrollY)+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
-var PAGE_V="2026-11-16.4";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
+var PAGE_V="2026-11-16.5";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
 window.addEventListener("error",function(e){L("ОШИБКА: "+e.message+" @"+(e.filename||"").split("/").pop()+":"+e.lineno)});
 window.addEventListener("unhandledrejection",function(e){L("ОШИБКА промиса: "+(e.reason&&e.reason.message||e.reason))});
 // самообновление: Safari и GitHub Pages держат старый HTML в кэше. Раз за сессию страница запрашивает свежую копию и, если версия другая, перезагружается
@@ -265,6 +266,8 @@ function start(C){
  var toks=C.e.split(/\s+/),dec=[];[P,G,E].forEach(function(l){dec.push(pick1(l,toks.map(norm).concat(dec)))});
  var bank=shuf(toks.concat(dec)),placed=[],used={},red=[],busy=false,wrongN=TRIES-S.left;
  var PANEL_AT=0;
+ // «фраза не полная»: при повторах текст и смайлик меняются (по кругу)
+ var INC_TXT=["Ты на верном пути, фраза не полная","Уже ближе, но фраза ещё не полная","Почти получилось, не хватает слов","Хорошо идёшь, добавь недостающие слова","Правильное начало, продолжай собирать"],INC_EMO=["👍","💪","🙂","👌","🔥"],incN=0;
  var outer=$("#outer"),inner=$("#inner"),app=$("#app"),feed=$("#feed"),panel=$("#panel"),pool=$("#pool"),rowA=$("#rowA"),chk=$("#chk"),spacer=$("#spacer");
  function locked(){return S.until&&Date.now()<S.until}
  function scrollNow(){outer.scrollTop=0}
@@ -366,7 +369,7 @@ function start(C){
 
  // ── перевод под плавающими точками: нажатие на точки раскрывает перевод (брендовый зелёный)
  function spoilerBubble(text){
-  var w=document.createElement("div");w.className="spoil";w.innerHTML='<span class="spt">'+esc(text)+'</span><canvas class="spc" aria-label="Нажмите, чтобы раскрыть перевод"></canvas>';
+  var w=document.createElement("div");w.className="spoil";w.innerHTML='<span class="spt">'+esc(text)+'</span><canvas class="spc" aria-label="Нажмите, чтобы раскрыть перевод"></canvas><span class="spl">Раскрыть перевод</span>';
   var b=msg("tr2",w),cv=w.querySelector(".spc"),dpr=Math.min(2,window.devicePixelRatio||1),W=0,H=0,pts=[],raf=0,open=false,ctx=cv.getContext("2d");
   function init(){W=cv.clientWidth;H=cv.clientHeight;if(!W||!H)return;cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);var n=Math.max(22,Math.min(64,Math.round(W*H/90)));pts=[];for(var k=0;k<n;k++)pts.push({x:R()*W,y:R()*H,vx:(R()-.5)*.7,vy:(R()-.5)*.7,r:1.3+R()*1.6,a:.4+R()*.55,g:R()<.35})}
   function frame(){if(open)return;ctx.clearRect(0,0,W,H);for(var k=0;k<pts.length;k++){var p=pts[k];p.vx+=(R()-.5)*.1;p.vy+=(R()-.5)*.1;var sp=Math.sqrt(p.vx*p.vx+p.vy*p.vy);if(sp>.75){p.vx*=.75/sp;p.vy*=.75/sp}p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>W)p.vx*=-1;if(p.y<0||p.y>H)p.vy*=-1;ctx.beginPath();ctx.fillStyle=p.g?"rgba(182,254,59,"+p.a+")":"rgba(255,255,255,"+p.a+")";ctx.arc(p.x,p.y,p.r,0,6.2832);ctx.fill()}raf=requestAnimationFrame(frame)}
@@ -379,7 +382,9 @@ function start(C){
  // мотивация: личные итоги из браузера человека и (если людей набралось достаточно) общий процент по этому заданию
  function userWord(n){var a=n%10,b=n%100;return b>=11&&b<=14?"пользователей":a===1?"пользователь":a>=2&&a<=4?"пользователя":"пользователей"}
  // общие числа по заданию одной строкой для системного сообщения (показываем, когда набралось хотя бы 3 пользователя)
- function globalLine(att,g){if(!g||!(g.people>=1))return"";var t=g.people,f=g.first;if(att===1&&f<1)f=1;var x="Эту фразу "+(t%10===1&&t%100!==11?"уже пробовал ":"уже пробовали ")+t+" "+userWord(t);if(f>0)x+=", с первого раза её "+(f%10===1&&f%100!==11?"собрал ":"собрали ")+f;return x+"."}
+ // компактная фраза: «Из 40 пользователей с первого раза фразу расслышали 12.»; при одном пользователе (скорее всего, это он сам) ничего не пишем
+ function usersOf(n){var a=n%10,b=n%100;return a===1&&b!==11?"пользователя":"пользователей"}
+ function globalLine(att,g){if(!g||!(g.people>=2))return"";var t=g.people,f=g.first;if(att===1&&f<1)f=1;var x="Из "+t+" "+usersOf(t)+" с первого раза фразу ";x+=f>0?((f%10===1&&f%100!==11?"расслышал ":"расслышали ")+f):"пока никто не расслышал";return x+"."}
  function statLine(att){TS.pub().then(function(g){var l=globalLine(att,g);if(l)later(function(){sys(l)},900)})}
  function dayWord(n){var a=n%10,b=n%100;return b>=11&&b<=14?"дней":a===1?"день":a>=2&&a<=4?"дня":"дней"}
  // мотивация общими словами: личные итоги не пишем (человека можно опознать неверно)
@@ -394,10 +399,10 @@ function start(C){
   var me=msg("me ok",esc(C.e),true);var sh=document.createElement("span");sh.className="sheen";me.appendChild(sh);
   if(fire){snd("xp-gain")}
   later(function(){emo("🎉");
-   later(function(){typing(TYPE_NEXT,function(){spoilerBubble(C.r||"");
-    later(function(){typing(TYPE_NEXT,function(){pubP.then(function(g){msg("",motivation(att).map(esc).join("<br>"));var gl=globalLine(att,g);if(gl)later(function(){sys(gl)},REACT+200);
-     later(function(){typing(2000,function(){msg("","Скоро выйдет полный разбор этой фразы");
-      later(function(){typing(1000,exitBtn)},REACT)})},REACT)})},pubP)},900)})},REACT)},fire?2600:300)}
+   later(function(){typing(2000,function(){spoilerBubble(C.r||"");
+    later(function(){typing(2200,function(){pubP.then(function(g){msg("",motivation(att).map(esc).join("<br>"));var gl=globalLine(att,g);if(gl)later(function(){sys(gl)},1000);
+     later(function(){typing(2800,function(){msg("","Скоро выйдет полный разбор этой фразы");
+      later(function(){typing(1800,exitBtn)},900)})},1900)})},pubP)},1300)})},900)},fire?3300:300)}
 
  chk.onclick=function(){
   if(busy||locked()||!placed.length)return;
@@ -405,16 +410,16 @@ function start(C){
   var marks=placed.map(function(p,k){return norm(p.w)===norm(toks[k]||"")}),right=placed.length===toks.length&&marks.every(Boolean);
   if(right){busy=true;S.solved=true;S.att=PR;save();TS.solved();TS.track("check",{attempt:PR,props:{r:"ok"}});TS.track("solved",{attempt:PR,props:{pms:Date.now()-PANEL_AT}});snd("answer-correct");chk.disabled=true;
    later(function(){fireBurst(30,4);later(function(){fireBurst(18,4)},260);closePanel();later(function(){finale(true)},420)},700);return}
-  if(placed.length<toks.length&&marks.every(Boolean)){TS.track("check",{attempt:PR,props:{r:"inc",words:placed.length}});msg("hint","Ты на верном пути, фраза не полная");later(function(){emo("👍")},REACT);return}
+  if(placed.length<toks.length&&marks.every(Boolean)){TS.track("check",{attempt:PR,props:{r:"inc",words:placed.length}});var ix=incN++%INC_TXT.length;msg("hint",INC_TXT[ix]);later(function(){emo(INC_EMO[ix])},REACT);return}
   // неверно: ответ в чат, смайлик, подсказка учителя и системное сообщение с числом оставшихся попыток
   busy=true;S.left--;wrongN++;save();TS.track("check",{attempt:PR,props:{r:"wrong",words:placed.length}});snd("answer-wrong");red=placed.map(function(p){return p.i});drawRow(false);rowA.classList.add("err");drawTries();
   msg("me err",esc(placed.map(function(p){return p.w}).join(" ")),true);
   if(S.left<=0){S.until=Date.now()+LOCK_H*3600000;save();TS.track("locked",{attempt:PR});
    later(function(){closePanel();later(function(){msg("hint bad","Попытки закончились. Следующая попытка откроется "+atTxt(S.until)+".");panel.classList.add("locked");lockUi();statLine(0)},350)},700);return}
-  later(function(){emo("🤔");later(function(){typing(600,function(){
+  later(function(){emo("🤔");later(function(){
    if(wrongN===1)msg("hint bad","Не совсем. Послушай ещё раз и попробуй снова.");
    else msg("hint bad","Собери фразу из "+toks.length+" "+(toks.length%10===1&&toks.length!==11?"слова":"слов")+".");
-   later(function(){sys(triesLeft(S.left));rowA.classList.remove("err");red=[];busy=false;draw()},REACT)})},REACT)},500)};
+   later(function(){sys(triesLeft(S.left));rowA.classList.remove("err");red=[];busy=false;draw()},REACT+200)},REACT)},500)};
 
  // ── запуск: точки «печатает», реплика, точки, голосовое с дорожкой звука (его можно слушать и ставить на повтор), затем панель выезжает снизу
  function afterVoice(){
@@ -423,9 +428,9 @@ function start(C){
   draw();later(openPanel,600)}
  var AU,SU;AP.then(function(v){AU=v;TS.track("audio_ready",{props:{ok:!!v}})});SP.then(function(v){SU=v});
  // слушание. Первое голосовое: следующее сообщение выходит только после того, как человек дослушал его до конца; если он не нажимал играть, через 12 с мягкая подсказка.
- function heard(vc){return new Promise(function(res){vc.ended.then(function(){res()});later(function(){if(!vc.played())sys("Нажми кнопку воспроизведения, чтобы послушать")},12000)})}
+ function heard(vc){return new Promise(function(res){vc.ended.then(function(){later(res,400)});later(function(){if(!vc.played())sys("Нажми кнопку воспроизведения, чтобы послушать")},12000)})}
  // Второе голосовое: дослушано, либо через ms мс, если его не включали (если уже играет, ждём конец, но не дольше 15 с)
- function heardOr(vc,ms){return new Promise(function(res){var d=false;function fin(){if(!d){d=true;res()}}vc.ended.then(fin);later(function(){if(!vc.isPlaying())fin();else later(fin,15000)},ms)})}
+ function heardOr(vc,ms){return new Promise(function(res){var d=false;function fin(){if(!d){d=true;later(res,400)}}vc.ended.then(fin);later(function(){if(!vc.isPlaying())fin();else later(fin,15000)},ms)})}
  function toPanel(){typing(TYPE_NEXT,function(){afterVoice()})}
  // страница стартует сразу (затемнение снимается без ожидания звука), звук догружается в фоне: пока идут первые точки и текст, файл уже грузится;
  // голосовое выходит, когда файл готов, и не раньше, чем пройдут точки TYPE_VOICE
