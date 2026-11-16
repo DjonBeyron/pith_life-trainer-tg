@@ -2,11 +2,11 @@
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Собери фразу</title>
 <meta name="robots" content="noindex"><meta name="theme-color" content="#0e1013"><meta name="color-scheme" content="dark">
-<style>html,body{background:#0e1013;color-scheme:dark}</style>
+<style>html,body{background:#0e1013;color-scheme:dark}body{opacity:0}body.on{opacity:1;transition:opacity .22s ease-out}@keyframes showAnyway{to{opacity:1}}body{animation:showAnyway 0s 3s forwards}</style>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script>(function(){try{var w=window.Telegram&&Telegram.WebApp;if(!w)return;["setHeaderColor","setBackgroundColor","setBottomBarColor"].forEach(function(f){try{w[f]("#0e1013")}catch(e){}});try{w.ready()}catch(e){}}catch(e){}})()</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600;700&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600;700&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'"><noscript><link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600;700&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet"></noscript>
 <style>
 /* Вид и поведение повторяют модуль «Собери фразу» приложения Pith (панель ответа, чипы, пузыри, блик, тряска, салют) */
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
@@ -157,7 +157,7 @@ function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.len
 window.__L=L;
 function tg(){var w=window.Telegram&&Telegram.WebApp;return w?("tg "+w.platform+" v"+w.version+" vh="+w.viewportHeight+" stable="+w.viewportStableHeight+" exp="+w.isExpanded):"без Telegram"}
 function snap(why){var f=document.getElementById("feed"),o=document.getElementById("outer"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollTop="+Math.round(o?o.scrollTop:0)+" scrollH="+(o?o.scrollHeight:0)+"/"+(o?o.clientHeight:0)+" docScroll="+Math.round(scrollY)+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
-var PAGE_V="2026-11-17.3";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
+var PAGE_V="2026-11-17.4";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
 window.addEventListener("error",function(e){L("ОШИБКА: "+e.message+" @"+(e.filename||"").split("/").pop()+":"+e.lineno)});
 window.addEventListener("unhandledrejection",function(e){L("ОШИБКА промиса: "+(e.reason&&e.reason.message||e.reason))});
 // самообновление: Safari и GitHub Pages держат старый HTML в кэше. Раз за сессию страница запрашивает свежую копию и, если версия другая, перезагружается
@@ -364,7 +364,7 @@ function start(C){
   function stopRaf(){if(raf){cancelAnimationFrame(raf);raf=0}}
   function setPlayingUi(on){btn.innerHTML=on?ICON_PAUSE:ICON_PLAY;btn.setAttribute("aria-label",on?"Пауза":"Воспроизвести")}
   function tick(){if(!audio)return;var ct=audio.currentTime,total=isFinite(audio.duration)&&audio.duration>0?audio.duration:(dur||1),from=bounds?bounds.lead:0,len=bounds?Math.max(.1,total-bounds.lead-bounds.tail):total;var pg=Math.min(1,Math.max(0,(ct-from)/len));paint(pg);if(pg>=1&&!loop&&!faded&&bounds){faded=true;stopRaf();if(window.__L)window.__L("голосовое"+(slow?" (замедленное)":"")+": речь кончилась на "+ct.toFixed(2)+" с из "+(isFinite(audio.duration)?audio.duration.toFixed(2):"?")+" с, гашение полосок началось до конца файла");fadeEnd();return}var left=fmt(Math.max(0,(dur||total)-ct));if(durEl.textContent!==left)durEl.textContent=left;raf=requestAnimationFrame(tick)}
-  function fadeEnd(){var t0=performance.now(),dn=false;function done(){if(dn)return;dn=true;if(fraf){cancelAnimationFrame(fraf);fraf=0}paint(0)}var p0=prog;(function f(now){var k=Math.min(1,(now-t0)/1500),a=1-k*k*(3-2*k);paint(p0,a);if(a>0)fraf=requestAnimationFrame(f);else done()})(t0);later(done,1700)}
+  function fadeEnd(){var t0=performance.now(),dn=false;function done(){if(dn)return;dn=true;if(fraf){cancelAnimationFrame(fraf);fraf=0}paint(0);try{var cx=cv.getContext("2d"),dd=cx.getImageData(0,0,cv.width,cv.height).data,gn=0;for(var q=0;q<dd.length;q+=4)if(dd[q+1]>200&&dd[q]>150&&dd[q]<200&&dd[q+2]<100)gn++;if(window.__L)window.__L("голосовое"+(slow?" (замедленное)":"")+": после гашения зелёных пикселей "+gn+(gn?" ← ОСТАЛИСЬ":""))}catch(e){}}var p0=prog;(function f(now){var k=Math.min(1,(now-t0)/1500),a=1-k*k*(3-2*k);paint(p0,a);if(a>0)fraf=requestAnimationFrame(f);else done()})(t0);later(done,1700)}
   function ensure(){if(audio)return audio;audio=new Audio("a/"+key+".mp3");audio.preload="auto";
    audio.onended=function(){TS.track("voice_end",{props:{n:slow?2:1}});if(endRes)endRes();stopRaf();setPlayingUi(false);durEl.textContent=fmt(dur||audio.duration);if(!faded){faded=true;fadeEnd()}};
    audio.onpause=function(){stopRaf();setPlayingUi(false)};audio.onplay=function(){setPlayingUi(true);if(!raf)raf=requestAnimationFrame(tick)};
@@ -573,6 +573,7 @@ function boot(){
  var pre=loadWave("a/"+id+".mp3"),preS=loadWave("a/"+id+"s.mp3");
  
  fetch("t/"+id+".json",{cache:"no-store"}).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(j){if(!j||!j.e)throw 0;j.e=cleanTxt(j.e);j.r=cleanTxt(j.r);if(window.__L)window.__L("задание: "+JSON.stringify({e:j.e,a:j.a,s:j.s,t:j.t}));j.id=id;j.pre=pre;j.preS=preS;$("#feed").innerHTML="";start(j)}).catch(function(){$("#feed").innerHTML='<div class="err2">Не удалось загрузить задание.<br>Попробуйте ещё раз через минуту: страница обновляется.</div>';veilOff()})}
-(window.__pvCheck?Promise.race([window.__pvCheck,new Promise(function(r){setTimeout(function(){r(false)},1500)})]):Promise.resolve(false)).then(function(rl){if(!rl)boot()});
+(window.__pvCheck?Promise.race([window.__pvCheck,new Promise(function(r){setTimeout(function(){r(false)},1500)})]):Promise.resolve(false)).then(function(rl){if(rl)return;var shown=false;function show(){if(shown)return;shown=true;document.body.classList.add("on");boot()}
+  var ft=document.fonts&&document.fonts.ready?Promise.race([document.fonts.ready,new Promise(function(r){setTimeout(r,700)})]):Promise.resolve();ft.then(show,show);setTimeout(show,1100)});
 })();
 </script></body></html>
