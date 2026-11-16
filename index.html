@@ -139,7 +139,7 @@ function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.len
 window.__L=L;
 function tg(){var w=window.Telegram&&Telegram.WebApp;return w?("tg "+w.platform+" v"+w.version+" vh="+w.viewportHeight+" stable="+w.viewportStableHeight+" exp="+w.isExpanded):"без Telegram"}
 function snap(why){var f=document.getElementById("feed"),o=document.getElementById("outer"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollTop="+Math.round(o?o.scrollTop:0)+" scrollH="+(o?o.scrollHeight:0)+"/"+(o?o.clientHeight:0)+" docScroll="+Math.round(scrollY)+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
-var PAGE_V="2026-11-16.3";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
+var PAGE_V="2026-11-16.4";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
 window.addEventListener("error",function(e){L("ОШИБКА: "+e.message+" @"+(e.filename||"").split("/").pop()+":"+e.lineno)});
 window.addEventListener("unhandledrejection",function(e){L("ОШИБКА промиса: "+(e.reason&&e.reason.message||e.reason))});
 // самообновление: Safari и GitHub Pages держат старый HTML в кэше. Раз за сессию страница запрашивает свежую копию и, если версия другая, перезагружается
@@ -230,7 +230,16 @@ function idOf(){var h=location.hash,m=/[#&]tgWebAppStartParam=([0-9a-zA-Z_-]+)/.
 window.addEventListener("load",function(){if(window.Telegram&&Telegram.WebApp){try{var w=Telegram.WebApp;w.ready();w.expand();w.setHeaderColor("#0e1013");w.setBackgroundColor("#0e1013")}catch(e){}}});
 
 // ── звуки интерфейса (те же файлы, что в приложении)
-var snds={},lastSnd={};function snd(n){var tn=Date.now();if(lastSnd[n]&&tn-lastSnd[n]<300)return;lastSnd[n]=tn;try{var a=snds[n]||(snds[n]=new Audio("s/"+n+".mp3"));a.currentTime=0;var p=a.play();if(p&&p.catch)p.catch(function(){})}catch(e){}}
+// громкость как в приложении: часть звуков записана тихо, поэтому они усиливаются через Web Audio (GainNode, до ×3 как в sounds.js приложения); множители подобраны по пику файла, чтобы не было хруста
+var SGAIN={"typing-1":3,"message-in":3,"xp-gain":2,"answer-correct":2,"answer-wrong":1.5},snds={},lastSnd={},ACX=null,SBUF={};
+function acx(){if(!ACX){var AC=window.AudioContext||window.webkitAudioContext;if(AC){try{ACX=new AC();try{navigator.audioSession.type="playback"}catch(e){}}catch(e){}}}return ACX}
+function sbuf(n){var c=acx();if(!c)return Promise.reject(0);return SBUF[n]||(SBUF[n]=fetch("s/"+n+".mp3").then(function(r){return r.arrayBuffer()}).then(function(b){return new Promise(function(res,rej){c.decodeAudioData(b,res,rej)})}))}
+function playHtml(n){try{var a=snds[n]||(snds[n]=new Audio("s/"+n+".mp3"));a.currentTime=0;var p=a.play();if(p&&p.catch)p.catch(function(){})}catch(e){}}
+function snd(n){var tn=Date.now();if(lastSnd[n]&&tn-lastSnd[n]<300)return;lastSnd[n]=tn;var g=SGAIN[n]||1,c=g>1?acx():null;
+ if(!c){playHtml(n);return}
+ try{if(c.state==="suspended")c.resume()}catch(e){}
+ sbuf(n).then(function(buf){if(c.state!=="running"){playHtml(n);return}var s=c.createBufferSource(),gn=c.createGain();s.buffer=buf;gn.gain.value=g;s.connect(gn);gn.connect(c.destination);s.start(0)}).catch(function(){playHtml(n)})}
+document.addEventListener("pointerdown",function(){var c=acx();if(c&&c.state==="suspended")try{c.resume()}catch(e){}},{passive:true});
 
 // ── салют: DOM-частицы на WAAPI (как fireBurst в приложении): вся анимация на композиторе, JS после старта не участвует
 var COLORS=["#b6fe3b","#ff6b6b","#ffd93d","#6bcfff","#c77dff","#ff9f43","#ff6fd8"],SAMPLES=14,FRAMES=105,GRAVITY=.32;
@@ -284,7 +293,7 @@ function start(C){
  var ICON_RING='<svg class="audioRing" viewBox="0 0 20 20" width="14" height="14"><circle cx="10" cy="10" r="7" fill="none" stroke="#0e1013" stroke-width="2.2" stroke-opacity=".25"/><circle cx="10" cy="10" r="7" fill="none" stroke="#0e1013" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="14 30"/></svg>';
  var ICON_REPEAT='<svg viewBox="0 0 24 24"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg>';
  function audioBubble(wi,key,slow){
-  var audio=null,half=false,loop=false,endRes=null,ended=new Promise(function(r){endRes=r});
+  var audio=null,half=false,loop=false,played=false,endRes=null,ended=new Promise(function(r){endRes=r});
   var wd=wi&&wi.wave||null,dur=wi&&wi.dur||0;
   var h=document.createElement("div");h.className="playerAudio";
   h.innerHTML='<div class="audioRow"><button class="audioBtn" aria-label="Воспроизвести">'+ICON_PLAY+'</button><div class="waveCol"><canvas class="wave"></canvas><div class="audMeta"><span class="dur">'+(dur?fmt(dur):"")+'</span><span class="ctl"><button class="chip" data-k="spd" title="В два раза медленнее">½×</button><button class="chip" data-k="rep" title="Повторять голосовое по кругу" aria-label="Повтор">'+ICON_REPEAT+'</button></span></div></div></div>';
@@ -301,12 +310,12 @@ function start(C){
    audio.onpause=function(){stopRaf();setPlayingUi(false)};audio.onplay=function(){setPlayingUi(true);if(!raf)raf=requestAnimationFrame(tick)};
    audio.onwaiting=function(){btn.innerHTML=ICON_RING};audio.onplaying=function(){setPlayingUi(true)};
    audio.onerror=function(){b.closest(".row").remove()};return audio}
-  btn.onclick=function(){var a=ensure();if(!a.paused){a.pause();return}TS.track("voice_play",{props:{n:slow?2:1}});stopRaf();if(a.ended)a.currentTime=0;a.loop=loop;a.playbackRate=half?.5:1;try{a.preservesPitch=true;a.webkitPreservesPitch=true}catch(e){}
+  btn.onclick=function(){var a=ensure();if(!a.paused){a.pause();return}TS.track("voice_play",{props:{n:slow?2:1}});played=true;stopRaf();if(a.ended)a.currentTime=0;a.loop=loop;a.playbackRate=half?.5:1;try{a.preservesPitch=true;a.webkitPreservesPitch=true}catch(e){}
    var p=a.play();if(p&&p.catch)p.catch(function(){setPlayingUi(false)})};
   if(spd.parentNode)spd.parentNode.removeChild(spd);
   spd.onclick=function(){half=!half;spd.classList.toggle("on",half);if(audio)audio.playbackRate=half?.5:1};
   rep.onclick=function(){loop=!loop;rep.classList.toggle("on",loop);if(audio)audio.loop=loop};
-  return{ended:ended,isPlaying:function(){return!!audio&&!audio.paused&&!audio.ended}}
+  return{ended:ended,played:function(){return played},isPlaying:function(){return!!audio&&!audio.paused&&!audio.ended}}
  }
 
  // ── панель ответа
@@ -370,13 +379,14 @@ function start(C){
  // мотивация: личные итоги из браузера человека и (если людей набралось достаточно) общий процент по этому заданию
  function userWord(n){var a=n%10,b=n%100;return b>=11&&b<=14?"пользователей":a===1?"пользователь":a>=2&&a<=4?"пользователя":"пользователей"}
  // общие числа по заданию одной строкой для системного сообщения (показываем, когда набралось хотя бы 3 пользователя)
- function globalLine(att,g){if(!g||!(g.people>=3))return"";var t=g.people,f=g.first;if(att===1&&f<1)f=1;return"Эту фразу "+(t%10===1&&t%100!==11?"уже пробовал ":"уже пробовали ")+t+" "+userWord(t)+", с первого раза её "+(f%10===1&&f%100!==11?"собрал ":"собрали ")+f+"."}
+ function globalLine(att,g){if(!g||!(g.people>=1))return"";var t=g.people,f=g.first;if(att===1&&f<1)f=1;var x="Эту фразу "+(t%10===1&&t%100!==11?"уже пробовал ":"уже пробовали ")+t+" "+userWord(t);if(f>0)x+=", с первого раза её "+(f%10===1&&f%100!==11?"собрал ":"собрали ")+f;return x+"."}
  function statLine(att){TS.pub().then(function(g){var l=globalLine(att,g);if(l)later(function(){sys(l)},900)})}
  function dayWord(n){var a=n%10,b=n%100;return b>=11&&b<=14?"дней":a===1?"день":a>=2&&a<=4?"дня":"дней"}
- function motivation(att,ps){var L=[];
-  if(att===1)L.push("С первой попытки! Отличный слух.");else if(att===2)L.push("Со второй попытки, главное, что получилось.");else if(att>=3)L.push("Получилось с последней попытки. Так и учатся.");
-  if(ps.n<=1)L.push("Это твоя первая собранная фраза.");else L.push("Собрано фраз: "+ps.n+", с первой попытки: "+ps.first+".");
-  if(ps.streak>=2)L.push("Занимаешься "+ps.streak+" "+dayWord(ps.streak)+" подряд.");
+ // мотивация общими словами: личные итоги не пишем (человека можно опознать неверно)
+ var GEN=["Каждая собранная фраза тренирует слух.","Слух растёт шаг за шагом.","С каждым разом получается легче."];
+ function motivation(att){var L=[];
+  if(att===1)L.push("С первой попытки! Отличный слух.");else if(att===2)L.push("Со второй попытки, главное, что получилось.");else if(att>=3)L.push("С "+att+"-й попытки, так и учатся.");
+  L.push(GEN[Math.random()*GEN.length|0]);
   return L}
  // ответ → пауза → смайлик-салют → точки → бокс с переводом → точки → мотивация → точки 2 с → «Скоро выйдет полный разбор» → точки 1 с → «Выйти»
  function finale(fire){
@@ -385,20 +395,21 @@ function start(C){
   if(fire){snd("xp-gain")}
   later(function(){emo("🎉");
    later(function(){typing(TYPE_NEXT,function(){spoilerBubble(C.r||"");
-    later(function(){typing(TYPE_NEXT,function(){pubP.then(function(g){var ps=TS.record(att||1);msg("",motivation(att,ps).map(esc).join("<br>"));var gl=globalLine(att,g);if(gl)later(function(){sys(gl)},REACT+200);
+    later(function(){typing(TYPE_NEXT,function(){pubP.then(function(g){msg("",motivation(att).map(esc).join("<br>"));var gl=globalLine(att,g);if(gl)later(function(){sys(gl)},REACT+200);
      later(function(){typing(2000,function(){msg("","Скоро выйдет полный разбор этой фразы");
       later(function(){typing(1000,exitBtn)},REACT)})},REACT)})},pubP)},900)})},REACT)},fire?2600:300)}
 
  chk.onclick=function(){
   if(busy||locked()||!placed.length)return;
+  S.press=(S.press||0)+1;save();var PR=S.press;
   var marks=placed.map(function(p,k){return norm(p.w)===norm(toks[k]||"")}),right=placed.length===toks.length&&marks.every(Boolean);
-  if(right){busy=true;S.solved=true;S.att=wrongN+1;save();TS.solved();TS.track("check",{attempt:wrongN+1,props:{r:"ok"}});TS.track("solved",{attempt:wrongN+1,props:{pms:Date.now()-PANEL_AT}});snd("answer-correct");chk.disabled=true;
+  if(right){busy=true;S.solved=true;S.att=PR;save();TS.solved();TS.track("check",{attempt:PR,props:{r:"ok"}});TS.track("solved",{attempt:PR,props:{pms:Date.now()-PANEL_AT}});snd("answer-correct");chk.disabled=true;
    later(function(){fireBurst(30,4);later(function(){fireBurst(18,4)},260);closePanel();later(function(){finale(true)},420)},700);return}
-  if(placed.length<toks.length&&marks.every(Boolean)){TS.track("check",{attempt:wrongN+1,props:{r:"inc",words:placed.length}});msg("hint","Ты на верном пути, фраза не полная");later(function(){emo("👍")},REACT);return}
+  if(placed.length<toks.length&&marks.every(Boolean)){TS.track("check",{attempt:PR,props:{r:"inc",words:placed.length}});msg("hint","Ты на верном пути, фраза не полная");later(function(){emo("👍")},REACT);return}
   // неверно: ответ в чат, смайлик, подсказка учителя и системное сообщение с числом оставшихся попыток
-  busy=true;S.left--;wrongN++;save();TS.track("check",{attempt:wrongN,props:{r:"wrong",words:placed.length}});snd("answer-wrong");red=placed.map(function(p){return p.i});drawRow(false);rowA.classList.add("err");drawTries();
+  busy=true;S.left--;wrongN++;save();TS.track("check",{attempt:PR,props:{r:"wrong",words:placed.length}});snd("answer-wrong");red=placed.map(function(p){return p.i});drawRow(false);rowA.classList.add("err");drawTries();
   msg("me err",esc(placed.map(function(p){return p.w}).join(" ")),true);
-  if(S.left<=0){S.until=Date.now()+LOCK_H*3600000;save();TS.track("locked",{attempt:wrongN});
+  if(S.left<=0){S.until=Date.now()+LOCK_H*3600000;save();TS.track("locked",{attempt:PR});
    later(function(){closePanel();later(function(){msg("hint bad","Попытки закончились. Следующая попытка откроется "+atTxt(S.until)+".");panel.classList.add("locked");lockUi();statLine(0)},350)},700);return}
   later(function(){emo("🤔");later(function(){typing(600,function(){
    if(wrongN===1)msg("hint bad","Не совсем. Послушай ещё раз и попробуй снова.");
@@ -410,26 +421,30 @@ function start(C){
   if(S.solved){later(function(){finale(false)},500);return}
   if(locked()){later(function(){msg("hint bad","Попытки закончились. Следующая попытка откроется "+atTxt(S.until)+".");lockUi();statLine(0)},500);setInterval(function(){if(S.until&&Date.now()>=S.until)location.reload();else $("#lc").textContent=leftTxt(S.until-Date.now())},30000);return}
   draw();later(openPanel,600)}
- var AU,SU;AP.then(function(v){AU=v});SP.then(function(v){SU=v});
- // слушание: следующее сообщение выходит, когда голосовое дослушано, а если его не включали, то через 3 с после появления
- function listened(vc){return new Promise(function(res){var d=false;function fin(){if(!d){d=true;res()}}vc.ended.then(fin);later(function(){if(!vc.isPlaying())fin();else later(fin,15000)},3000)})}
- // сценарий: точки → голосовое (обычное) → точки → «Вот в два раза медленнее» → точки → голосовое (замедленное) → точки → панель сборки выезжает
+ var AU,SU;AP.then(function(v){AU=v;TS.track("audio_ready",{props:{ok:!!v}})});SP.then(function(v){SU=v});
+ // слушание. Первое голосовое: следующее сообщение выходит только после того, как человек дослушал его до конца; если он не нажимал играть, через 12 с мягкая подсказка.
+ function heard(vc){return new Promise(function(res){vc.ended.then(function(){res()});later(function(){if(!vc.played())sys("Нажми кнопку воспроизведения, чтобы послушать")},12000)})}
+ // Второе голосовое: дослушано, либо через ms мс, если его не включали (если уже играет, ждём конец, но не дольше 15 с)
+ function heardOr(vc,ms){return new Promise(function(res){var d=false;function fin(){if(!d){d=true;res()}}vc.ended.then(fin);later(function(){if(!vc.isPlaying())fin();else later(fin,15000)},ms)})}
  function toPanel(){typing(TYPE_NEXT,function(){afterVoice()})}
- // чат стартует только когда готовы оба звука и снято затемнение загрузки: точки и их звук видны и слышны с самого начала
- var ready=Promise.all([AP,SP]).then(function(){return new Promise(function(r){later(function(){veilOff();later(r,450)},200)})},function(){veilOff()});
- ready.then(function(){
-  TS.track("ready",{props:{audio:!!AU,slow:!!SU}});
+ // страница стартует сразу (затемнение снимается без ожидания звука), звук догружается в фоне: пока идут первые точки и текст, файл уже грузится;
+ // голосовое выходит, когда файл готов, и не раньше, чем пройдут точки TYPE_VOICE
+ var TYPE_VOICE=1900;
+ later(function(){veilOff()},150);
+ later(function(){
+  TS.track("ready",{props:{}});
   typing(TYPE_FIRST,function(){
-   if(!AU){msg("hint","Звука для этой фразы нет: прислушайтесь к видео.");toPanel();return}
    TS.step("q_text");msg("","Послушай ещё раз");
-   later(function(){typing(TYPE_NEXT,function(){
+   later(function(){typing(TYPE_VOICE,function(){
+    if(!AU){msg("hint","Звука для этой фразы нет: прислушайтесь к видео.");toPanel();return}
     TS.step("voice1");var v1=audioBubble(AU.w,AK,false);
-    if(!SU){listened(v1).then(toPanel);return}
-    listened(v1).then(function(){typing(TYPE_NEXT,function(){TS.step("text2");msg("","Давай послушаем замедленно");
-     later(function(){typing(TYPE_NEXT,function(){TS.step("voice2");audioBubble(SU.w,SK,true);later(toPanel,REACT)})},REACT)})})})},REACT)})})}
+    if(!SU){heard(v1).then(toPanel);return}
+    heard(v1).then(function(){typing(TYPE_NEXT,function(){TS.step("text2");msg("","Давай послушаем замедленно");
+     later(function(){typing(TYPE_VOICE,function(){TS.step("voice2");var v2=audioBubble(SU.w,SK,true);heardOr(v2,4000).then(toPanel)},SP)},REACT)})})},AP)},REACT)})
+ },650)}
 
 // звуки интерфейса грузятся заранее, чтобы первое сообщение не ждало файлов
-function preloadSounds(){["message-in","typing-1","answer-correct","answer-wrong","xp-gain"].forEach(function(n){try{var a=new Audio("s/"+n+".mp3");a.preload="auto";snds[n]=a}catch(e){}})}
+function preloadSounds(){["message-in","typing-1","answer-correct","answer-wrong","xp-gain"].forEach(function(n){try{var a=new Audio("s/"+n+".mp3");a.preload="auto";snds[n]=a}catch(e){}if(SGAIN[n]>1)try{sbuf(n).catch(function(){})}catch(e){}})}
 function cleanTxt(t){return String(t||"").replace(/\s*\[пост\]/gi,"").replace(/\s+/g," ").trim()}
 function veilOff(){var v=document.getElementById("veil");if(v)v.classList.add("off")}
 function boot(){
