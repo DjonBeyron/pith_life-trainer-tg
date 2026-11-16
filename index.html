@@ -32,7 +32,7 @@ body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',syste
 .bubble.me.err::after{content:'✕';color:#f87171;animation:markIn .32s cubic-bezier(.22,1,.36,1) both}
 .bubble.me.err{color:#f2c9c9}
 /* жирным в чате только верный ответ и перевод */
-.bubble{font-weight:400;text-wrap:balance}.bubble .ln{display:block}.bubble.me.ok{font-weight:700}
+.bubble{font-weight:400;text-wrap:pretty}.bubble .ln{display:block}.bubble.me.ok{font-weight:700}
 @keyframes markIn{from{opacity:0;transform:scale(.4)}60%{opacity:1;transform:scale(1.2)}to{opacity:1;transform:scale(1)}}
 @keyframes markFlash{0%{color:#b6fe3b;transform:scale(1)}40%{color:#fff;transform:scale(1.45)}100%{color:#b6fe3b;transform:scale(1)}}
 .sheen{position:absolute;inset:0;border-radius:inherit;overflow:hidden;pointer-events:none}
@@ -147,7 +147,7 @@ function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.len
 window.__L=L;
 function tg(){var w=window.Telegram&&Telegram.WebApp;return w?("tg "+w.platform+" v"+w.version+" vh="+w.viewportHeight+" stable="+w.viewportStableHeight+" exp="+w.isExpanded):"без Telegram"}
 function snap(why){var f=document.getElementById("feed"),o=document.getElementById("outer"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollTop="+Math.round(o?o.scrollTop:0)+" scrollH="+(o?o.scrollHeight:0)+"/"+(o?o.clientHeight:0)+" docScroll="+Math.round(scrollY)+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
-var PAGE_V="2026-11-16.19";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
+var PAGE_V="2026-11-16.21";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
 window.addEventListener("error",function(e){L("ОШИБКА: "+e.message+" @"+(e.filename||"").split("/").pop()+":"+e.lineno)});
 window.addEventListener("unhandledrejection",function(e){L("ОШИБКА промиса: "+(e.reason&&e.reason.message||e.reason))});
 // самообновление: Safari и GitHub Pages держат старый HTML в кэше. Раз за сессию страница запрашивает свежую копию и, если версия другая, перезагружается
@@ -311,7 +311,13 @@ function start(C){
   try{r.animate(rowFrames(push),{duration:SLIDE,fill:"backwards"});if(push>0)inner.animate(histFrames(push),{duration:SLIDE,fill:"backwards"})}catch(e){}
   watch(((r.textContent||"").trim().replace(/\s+/g," ").slice(0,26)||(r.className||"строка")),SLIDE+260,!panelMoving);
   if(sound)later(function(){snd("message-in")},SLIDE-60)}
- function msg(cls,html,nosnd){var r=document.createElement("div");r.className="row"+(cls.indexOf("me")>=0?" right":"")+(cls.indexOf("sys")>=0?" mid":"");var b=document.createElement("div");b.className="bubble "+cls;if(typeof html==="string")b.innerHTML=html;else b.appendChild(html);r.appendChild(b);var pr=feed.lastElementChild,pb=pr?pr.getBoundingClientRect().bottom:0;preTops=[].slice.call(feed.children).filter(function(x){return x.firstElementChild}).slice(-3).map(function(x){return x.getBoundingClientRect().top});feed.appendChild(r);scrollNow();var hist=pr?Math.max(0,pb-pr.getBoundingClientRect().bottom):null;slideIn(r,cls.indexOf("me")<0&&!nosnd,hist);return b}
+ // пузырь по ширине самой длинной строки текста: без пустоты справа у сообщений в несколько строк (как в приложении)
+ function fit(b){try{if(!b||b.querySelector(".playerAudio"))return;b.style.width="";var cs=getComputedStyle(b),pr=parseFloat(cs.paddingRight)||0,br=b.getBoundingClientRect(),mx=0,w=document.createTreeWalker(b,NodeFilter.SHOW_TEXT),n,rg=document.createRange();
+  while((n=w.nextNode())){if(!n.nodeValue.trim())continue;rg.selectNodeContents(n);[].forEach.call(rg.getClientRects(),function(q){if(q.width>0&&q.right>mx)mx=q.right})}
+  var ex=b.querySelector("svg");if(ex){var er=ex.getBoundingClientRect();if(er.right>mx)mx=er.right}
+  var af=getComputedStyle(b,"::after"),ax=af&&af.content&&af.content!=="none"&&af.content!=="normal"?(parseFloat(af.width)||0)+(parseFloat(af.marginLeft)||0):0;
+  if(mx>0){var wd=Math.ceil(mx-br.left+pr+ax)+1;if(wd<br.width-1)b.style.width=wd+"px"}}catch(e){}}
+ function msg(cls,html,nosnd){var r=document.createElement("div");r.className="row"+(cls.indexOf("me")>=0?" right":"")+(cls.indexOf("sys")>=0?" mid":"");var b=document.createElement("div");b.className="bubble "+cls;if(typeof html==="string")b.innerHTML=html;else b.appendChild(html);r.appendChild(b);var pr=feed.lastElementChild,pb=pr?pr.getBoundingClientRect().bottom:0;preTops=[].slice.call(feed.children).filter(function(x){return x.firstElementChild}).slice(-3).map(function(x){return x.getBoundingClientRect().top});feed.appendChild(r);if(typeof html==="string")fit(b);scrollNow();var hist=pr?Math.max(0,pb-pr.getBoundingClientRect().bottom):null;slideIn(r,cls.indexOf("me")<0&&!nosnd,hist);return b}
  function esc(s){return String(s).replace(/[&<>]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;"}[c]})}
  function later(f,t){return setTimeout(f,t)}
  function wordForm(n){var a=n%10,b=n%100;return b>=11&&b<=14?"слов":a===1?"слово":a>=2&&a<=4?"слова":"слов"}
@@ -424,7 +430,7 @@ function start(C){
  function dayWord(n){var a=n%10,b=n%100;return b>=11&&b<=14?"дней":a===1?"день":a>=2&&a<=4?"дня":"дней"}
  // мотивация общими словами: личные итоги не пишем (человека можно опознать неверно)
  var GEN=["Каждая собранная фраза тренирует слух.","Слух растёт шаг за шагом.","С каждым разом получается легче."];
- function ordF(n){return n===1?"с первой":n===2?"со второй":"с "+n+"-й"}
+ function ordF(n){return n===1?"с\u00a0первой":n===2?"со\u00a0второй":"с\u00a0"+n+"-й"}
  function motivation(att,ru){var L=[];
   if(ru>0&&att===1&&ru===1)L.push("И фраза, и перевод с первой попытки! Отличный слух.");
   else if(ru>0)L.push("На слух "+ordF(att)+" попытки, перевод "+ordF(ru)+". Так и учатся.");
