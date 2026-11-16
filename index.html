@@ -51,11 +51,11 @@ body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',syste
 .veil{position:fixed;inset:0;z-index:150;display:flex;align-items:center;justify-content:center;background:rgba(14,16,19,.86);transition:opacity .4s ease}.veil.off{opacity:0;pointer-events:none}
 .spin{width:26px;height:26px;border-radius:50%;border:3px solid rgba(255,255,255,.15);border-top-color:#b6fe3b;animation:spinr .78s linear infinite}@keyframes spinr{to{transform:rotate(360deg)}}
 /* перевод под плавающими точками: нажатие раскрывает */
-.bubble.tr2{padding:10px 14px}
+.bubble.tr2{padding:10px 14px;overflow:hidden}
 .spoil{position:relative;display:block;min-width:140px;min-height:20px}
 .spt{display:block;color:#b6fe3b;font-weight:700;opacity:0;transition:opacity .5s ease}
-.spc{position:absolute;inset:-6px;width:calc(100% + 12px);height:calc(100% + 12px);cursor:pointer;transition:opacity .45s ease}
-.spl{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;font-size:13px;color:rgba(255,255,255,.38);pointer-events:none;transition:opacity .4s ease}
+.spc{position:absolute;inset:-10px -14px;width:calc(100% + 28px);height:calc(100% + 20px);cursor:pointer;z-index:1;transition:opacity .45s ease}
+.spl{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;font-size:13px;font-weight:600;color:rgba(255,255,255,.7);text-shadow:0 0 6px rgba(14,16,19,.95),0 0 3px rgba(14,16,19,.95),0 1px 2px rgba(14,16,19,.9);pointer-events:none;z-index:3;transition:opacity .4s ease}
 .spoil.open .spt{opacity:1}.spoil.open .spc{opacity:0;pointer-events:none}.spoil.open .spl{opacity:0}
 .exitRow{justify-content:center;padding:14px 0 calc(40px + env(safe-area-inset-bottom,0px))}
 .exitBtn{display:flex;align-items:center;justify-content:center;min-width:180px;height:46px;padding:0 24px;background:#12141d;border:2px solid #b6fe3b;border-radius:12px;font:inherit;font-size:15px;font-weight:700;color:#b6fe3b;cursor:pointer;touch-action:manipulation;transition:background .15s,color .15s}
@@ -140,7 +140,7 @@ function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.len
 window.__L=L;
 function tg(){var w=window.Telegram&&Telegram.WebApp;return w?("tg "+w.platform+" v"+w.version+" vh="+w.viewportHeight+" stable="+w.viewportStableHeight+" exp="+w.isExpanded):"без Telegram"}
 function snap(why){var f=document.getElementById("feed"),o=document.getElementById("outer"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollTop="+Math.round(o?o.scrollTop:0)+" scrollH="+(o?o.scrollHeight:0)+"/"+(o?o.clientHeight:0)+" docScroll="+Math.round(scrollY)+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
-var PAGE_V="2026-11-16.5";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
+var PAGE_V="2026-11-16.6";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
 window.addEventListener("error",function(e){L("ОШИБКА: "+e.message+" @"+(e.filename||"").split("/").pop()+":"+e.lineno)});
 window.addEventListener("unhandledrejection",function(e){L("ОШИБКА промиса: "+(e.reason&&e.reason.message||e.reason))});
 // самообновление: Safari и GitHub Pages держат старый HTML в кэше. Раз за сессию страница запрашивает свежую копию и, если версия другая, перезагружается
@@ -266,8 +266,8 @@ function start(C){
  var toks=C.e.split(/\s+/),dec=[];[P,G,E].forEach(function(l){dec.push(pick1(l,toks.map(norm).concat(dec)))});
  var bank=shuf(toks.concat(dec)),placed=[],used={},red=[],busy=false,wrongN=TRIES-S.left;
  var PANEL_AT=0;
- // «фраза не полная»: при повторах текст и смайлик меняются (по кругу)
- var INC_TXT=["Ты на верном пути, фраза не полная","Уже ближе, но фраза ещё не полная","Почти получилось, не хватает слов","Хорошо идёшь, добавь недостающие слова","Правильное начало, продолжай собирать"],INC_EMO=["👍","💪","🙂","👌","🔥"],incN=0;
+ // «фраза не полная»: текст меняется при повторах; смайлик за всё время только один раз, на случайной из неполных попыток (не позже третьей)
+ var INC_TXT=["Ты на верном пути, фраза не полная","Уже ближе, но фраза ещё не полная","Почти получилось, не хватает слов","Хорошо идёшь, добавь недостающие слова","Правильное начало, продолжай собирать"],INC_EMO=["👍","💪","🙂","👌","🔥"],incN=0,incEmo=false;
  var outer=$("#outer"),inner=$("#inner"),app=$("#app"),feed=$("#feed"),panel=$("#panel"),pool=$("#pool"),rowA=$("#rowA"),chk=$("#chk"),spacer=$("#spacer");
  function locked(){return S.until&&Date.now()<S.until}
  function scrollNow(){outer.scrollTop=0}
@@ -382,9 +382,9 @@ function start(C){
  // мотивация: личные итоги из браузера человека и (если людей набралось достаточно) общий процент по этому заданию
  function userWord(n){var a=n%10,b=n%100;return b>=11&&b<=14?"пользователей":a===1?"пользователь":a>=2&&a<=4?"пользователя":"пользователей"}
  // общие числа по заданию одной строкой для системного сообщения (показываем, когда набралось хотя бы 3 пользователя)
- // компактная фраза: «Из 40 пользователей с первого раза фразу расслышали 12.»; при одном пользователе (скорее всего, это он сам) ничего не пишем
+ // компактная фраза: «Из 40 пользователей с первого раза фразу расслышали 12.»; пишем, как только есть хотя бы один пользователь
  function usersOf(n){var a=n%10,b=n%100;return a===1&&b!==11?"пользователя":"пользователей"}
- function globalLine(att,g){if(!g||!(g.people>=2))return"";var t=g.people,f=g.first;if(att===1&&f<1)f=1;var x="Из "+t+" "+usersOf(t)+" с первого раза фразу ";x+=f>0?((f%10===1&&f%100!==11?"расслышал ":"расслышали ")+f):"пока никто не расслышал";return x+"."}
+ function globalLine(att,g){if(!g||!(g.people>=1))return"";var t=g.people,f=g.first;if(att===1&&f<1)f=1;var x="Из "+t+" "+usersOf(t)+" с первого раза фразу ";x+=f>0?((f%10===1&&f%100!==11?"расслышал ":"расслышали ")+f):"пока никто не расслышал";return x+"."}
  function statLine(att){TS.pub().then(function(g){var l=globalLine(att,g);if(l)later(function(){sys(l)},900)})}
  function dayWord(n){var a=n%10,b=n%100;return b>=11&&b<=14?"дней":a===1?"день":a>=2&&a<=4?"дня":"дней"}
  // мотивация общими словами: личные итоги не пишем (человека можно опознать неверно)
@@ -410,7 +410,7 @@ function start(C){
   var marks=placed.map(function(p,k){return norm(p.w)===norm(toks[k]||"")}),right=placed.length===toks.length&&marks.every(Boolean);
   if(right){busy=true;S.solved=true;S.att=PR;save();TS.solved();TS.track("check",{attempt:PR,props:{r:"ok"}});TS.track("solved",{attempt:PR,props:{pms:Date.now()-PANEL_AT}});snd("answer-correct");chk.disabled=true;
    later(function(){fireBurst(30,4);later(function(){fireBurst(18,4)},260);closePanel();later(function(){finale(true)},420)},700);return}
-  if(placed.length<toks.length&&marks.every(Boolean)){TS.track("check",{attempt:PR,props:{r:"inc",words:placed.length}});var ix=incN++%INC_TXT.length;msg("hint",INC_TXT[ix]);later(function(){emo(INC_EMO[ix])},REACT);return}
+  if(placed.length<toks.length&&marks.every(Boolean)){TS.track("check",{attempt:PR,props:{r:"inc",words:placed.length}});var ix=incN++%INC_TXT.length;msg("hint",INC_TXT[ix]);if(!incEmo&&(R()<.5||incN>=3)){incEmo=true;var em=INC_EMO[R()*INC_EMO.length|0];later(function(){emo(em)},REACT)}return}
   // неверно: ответ в чат, смайлик, подсказка учителя и системное сообщение с числом оставшихся попыток
   busy=true;S.left--;wrongN++;save();TS.track("check",{attempt:PR,props:{r:"wrong",words:placed.length}});snd("answer-wrong");red=placed.map(function(p){return p.i});drawRow(false);rowA.classList.add("err");drawTries();
   msg("me err",esc(placed.map(function(p){return p.w}).join(" ")),true);
