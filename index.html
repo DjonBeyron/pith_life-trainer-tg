@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Собери фразу</title>
 <meta name="robots" content="noindex"><meta name="theme-color" content="#0e1013">
 <script src="https://telegram.org/js/telegram-web-app.js" async></script>
@@ -7,7 +7,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600;700&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 /* Вид и поведение повторяют модуль «Собери фразу» приложения Pith (панель ответа, чипы, пузыри, блик, тряска, салют) */
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+html,body{touch-action:manipulation;-webkit-text-size-adjust:100%}
+#dbgTa{-webkit-user-select:text;user-select:text}
 html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none}
 body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',system-ui,sans-serif;font-size:14px;line-height:1.45;overflow-x:hidden}
 /* Система чата приложения (PlayerFeed + feed.css): корень fixed, лента - отдельный прокручиваемый контейнер, перевёрнутый дважды (scaleY(-1)),
@@ -145,7 +147,7 @@ function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.len
 window.__L=L;
 function tg(){var w=window.Telegram&&Telegram.WebApp;return w?("tg "+w.platform+" v"+w.version+" vh="+w.viewportHeight+" stable="+w.viewportStableHeight+" exp="+w.isExpanded):"без Telegram"}
 function snap(why){var f=document.getElementById("feed"),o=document.getElementById("outer"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollTop="+Math.round(o?o.scrollTop:0)+" scrollH="+(o?o.scrollHeight:0)+"/"+(o?o.clientHeight:0)+" docScroll="+Math.round(scrollY)+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
-var PAGE_V="2026-11-16.16";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
+var PAGE_V="2026-11-16.18";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
 window.addEventListener("error",function(e){L("ОШИБКА: "+e.message+" @"+(e.filename||"").split("/").pop()+":"+e.lineno)});
 window.addEventListener("unhandledrejection",function(e){L("ОШИБКА промиса: "+(e.reason&&e.reason.message||e.reason))});
 // самообновление: Safari и GitHub Pages держат старый HTML в кэше. Раз за сессию страница запрашивает свежую копию и, если версия другая, перезагружается
@@ -276,6 +278,12 @@ function start(C){
  // «фраза не полная»: текст меняется при повторах; смайликов у неполной и неверной попытки нет
  var INC_TXT=["Ты на верном пути, фраза не полная","Уже ближе, но фраза ещё не полная","Почти получилось, не хватает слов","Хорошо идёшь, добавь недостающие слова","Правильное начало, продолжай собирать"],incN=0;
  var outer=$("#outer"),inner=$("#inner"),app=$("#app"),feed=$("#feed"),panel=$("#panel"),cwp=$("#cwPanel"),pool=$("#pool"),rowA=$("#rowA"),chk=$("#chk"),spacer=$("#spacer");
+ // как приложение: без жестов масштабирования, выделения текста, контекстного меню и двойного касания
+ ["gesturestart","gesturechange","gestureend"].forEach(function(n){document.addEventListener(n,function(e){e.preventDefault()},{passive:false})});
+ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length>1)e.preventDefault()},{passive:false});
+ document.addEventListener("selectstart",function(e){if(!(e.target&&e.target.id==="dbgTa"))e.preventDefault()});
+ document.addEventListener("contextmenu",function(e){e.preventDefault()});
+ document.addEventListener("dblclick",function(e){e.preventDefault()},{passive:false});
  function locked(){return S.until&&Date.now()<S.until}
  function scrollNow(){outer.scrollTop=0}
  // появление сообщения как в PlayerFeed: влетает снизу (путь 200px, 240 мс), звук «новое сообщение» за 60 мс до конца; у реплик ученика звука нет
@@ -284,9 +292,10 @@ function start(C){
  function histFrames(push){var c=Math.max(0,TRAVEL-push)/TRAVEL;if(c<=0)return[{transform:"scaleY(-1) translateY("+push+"px)",easing:EASE_PUSH},{transform:"scaleY(-1) translateY(0)"}];return[{transform:"scaleY(-1) translateY("+push+"px)",easing:"linear"},{transform:"scaleY(-1) translateY("+push+"px)",offset:c,easing:EASE_PUSH},{transform:"scaleY(-1) translateY(0)"}]}
  // появление сообщения как в PlayerFeed: новая строка летит снизу (200px, 240 мс); история, которую вставка мгновенно сдвинула, отбрасывается назад и до касания стоит, потом едет вместе со строкой; звук за 60 мс до конца
  // замер дёрганья: на каждом кадре положение старых строк чата; движение вниз при приходе сообщения и разворот движения пишутся в лог («лог» вверху справа)
- var panelMoving=false;
- function watch(tag,ms,expectUp){var t0=performance.now(),prev=null,last=[],down=0,rev=0,first="",frames=0,sc=0,vv0=window.visualViewport?Math.round(window.visualViewport.height):0,vvMoved=0;
+ var panelMoving=false,preTops=null;
+ function watch(tag,ms,expectUp){var pre=expectUp?preTops:null,jump=0,t0=performance.now(),prev=null,last=[],down=0,rev=0,first="",frames=0,sc=0,vv0=window.visualViewport?Math.round(window.visualViewport.height):0,vvMoved=0;
   (function f(now){var rows=[].slice.call(feed.children).filter(function(x){return x.firstElementChild}).slice(-4),tops=rows.map(function(x){return x.getBoundingClientRect().top});frames++;
+   if(pre&&frames===1){var k=pre.length;for(var q=0;q<k;q++){var dj=Math.abs(tops[tops.length-1-q-1]-pre[k-1-q]);if(!isNaN(dj))jump=Math.max(jump,dj)}}
    if(outer.scrollTop!==0)sc=Math.max(sc,outer.scrollTop);
    if(window.visualViewport&&Math.abs(Math.round(window.visualViewport.height)-vv0)>2)vvMoved=Math.round(window.visualViewport.height)-vv0;
    if(prev&&prev.length===tops.length){for(var i=0;i<tops.length-(expectUp?1:0);i++){var d=tops[i]-prev[i];if(Math.abs(d)<1.2)continue;
@@ -295,13 +304,14 @@ function start(C){
      last[i]=d}}
    prev=tops;
    if(now-t0<ms)requestAnimationFrame(f);
-   else{var bad=down>1.5||rev>0||sc>0||vvMoved;if(window.__L)window.__L((bad?"ДЁРГАНЬЕ ":"движение ок ")+"["+tag+"] кадров "+frames+(down>0?", вниз max "+down.toFixed(1)+" px":"")+(rev?", разворотов "+rev:"")+(sc?", scrollTop="+sc:"")+(vvMoved?", высота окна изменилась на "+vvMoved:"")+(first?" · первое: "+first:"")+(panelMoving?" · идёт панель":""))}
+   else{var bad=down>1.5||rev>0||sc>0||vvMoved||jump>1.5;if(window.__L)window.__L((bad?"ДЁРГАНЬЕ ":"движение ок ")+"["+tag+"] кадров "+frames+(jump>1.5?", прыжок истории при вставке "+jump.toFixed(1)+" px":"")+(down>0?", вниз max "+down.toFixed(1)+" px":"")+(rev?", разворотов "+rev:"")+(sc?", scrollTop="+sc:"")+(vvMoved?", высота окна изменилась на "+vvMoved:"")+(first?" · первое: "+first:"")+(panelMoving?" · идёт панель":""))}
   })(t0)}
- function slideIn(r,sound){var prev=r.previousElementSibling,rb=r.getBoundingClientRect(),push=prev?Math.max(0,rb.bottom-prev.getBoundingClientRect().bottom):rb.height;
+ function slideIn(r,sound,hist){var prev=r.previousElementSibling,rb=r.getBoundingClientRect(),naive=prev?Math.max(0,rb.bottom-prev.getBoundingClientRect().bottom):rb.height,push=hist!=null?hist:naive;
+  if(prev&&Math.abs(push-naive)>1.5&&window.__L)window.__L("поправка отступов: сдвиг истории "+Math.round(push)+" px, по краям строк было бы "+Math.round(naive)+" px");
   try{r.animate(rowFrames(push),{duration:SLIDE,fill:"backwards"});if(push>0)inner.animate(histFrames(push),{duration:SLIDE,fill:"backwards"})}catch(e){}
   watch(((r.textContent||"").trim().replace(/\s+/g," ").slice(0,26)||(r.className||"строка")),SLIDE+260,!panelMoving);
   if(sound)later(function(){snd("message-in")},SLIDE-60)}
- function msg(cls,html,nosnd){var r=document.createElement("div");r.className="row"+(cls.indexOf("me")>=0?" right":"")+(cls.indexOf("sys")>=0?" mid":"");var b=document.createElement("div");b.className="bubble "+cls;if(typeof html==="string")b.innerHTML=html;else b.appendChild(html);r.appendChild(b);feed.appendChild(r);scrollNow();slideIn(r,cls.indexOf("me")<0&&!nosnd);return b}
+ function msg(cls,html,nosnd){var r=document.createElement("div");r.className="row"+(cls.indexOf("me")>=0?" right":"")+(cls.indexOf("sys")>=0?" mid":"");var b=document.createElement("div");b.className="bubble "+cls;if(typeof html==="string")b.innerHTML=html;else b.appendChild(html);r.appendChild(b);var pr=feed.lastElementChild,pb=pr?pr.getBoundingClientRect().bottom:0;preTops=[].slice.call(feed.children).filter(function(x){return x.firstElementChild}).slice(-3).map(function(x){return x.getBoundingClientRect().top});feed.appendChild(r);scrollNow();var hist=pr?Math.max(0,pb-pr.getBoundingClientRect().bottom):null;slideIn(r,cls.indexOf("me")<0&&!nosnd,hist);return b}
  function esc(s){return String(s).replace(/[&<>]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;"}[c]})}
  function later(f,t){return setTimeout(f,t)}
  function wordForm(n){var a=n%10,b=n%100;return b>=11&&b<=14?"слов":a===1?"слово":a>=2&&a<=4?"слова":"слов"}
@@ -325,7 +335,7 @@ function start(C){
   var b=msg("audio",h);b.style.setProperty("--audio-dur",Math.min(dur||4,20));
   var btn=h.querySelector(".audioBtn"),cv=h.querySelector(".wave"),durEl=h.querySelector(".dur"),spd=h.querySelector('[data-k="spd"]'),rep=h.querySelector('[data-k="rep"]'),raf=0,bounds=speechBounds(wd,30),prog=0;
   function paint(p,a){prog=p;drawWave(cv,wd,p,a==null?1:a)}
-  later(function(){paint(0)},30);if(window.ResizeObserver)new ResizeObserver(function(){paint(prog)}).observe(cv);
+  later(function(){paint(0)},30);if(window.ResizeObserver){var roT=0;new ResizeObserver(function(){if(roT)return;roT=requestAnimationFrame(function(){roT=0;paint(prog)})}).observe(cv)}
   function stopRaf(){if(raf){cancelAnimationFrame(raf);raf=0}}
   function setPlayingUi(on){btn.innerHTML=on?ICON_PAUSE:ICON_PLAY;btn.setAttribute("aria-label",on?"Пауза":"Воспроизвести")}
   function tick(){if(!audio)return;var ct=audio.currentTime,total=isFinite(audio.duration)&&audio.duration>0?audio.duration:(dur||1),from=bounds?bounds.lead:0,len=bounds?Math.max(.1,total-bounds.lead-bounds.tail):total;paint(Math.min(1,Math.max(0,(ct-from)/len)));var left=fmt(Math.max(0,(dur||total)-ct));if(durEl.textContent!==left)durEl.textContent=left;raf=requestAnimationFrame(tick)}
