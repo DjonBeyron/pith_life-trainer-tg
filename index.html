@@ -157,7 +157,7 @@ function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.len
 window.__L=L;
 function tg(){var w=window.Telegram&&Telegram.WebApp;return w?("tg "+w.platform+" v"+w.version+" vh="+w.viewportHeight+" stable="+w.viewportStableHeight+" exp="+w.isExpanded):"без Telegram"}
 function snap(why){var f=document.getElementById("feed"),o=document.getElementById("outer"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollTop="+Math.round(o?o.scrollTop:0)+" scrollH="+(o?o.scrollHeight:0)+"/"+(o?o.clientHeight:0)+" docScroll="+Math.round(scrollY)+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
-var PAGE_V="2026-11-17.4";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
+var PAGE_V="2026-11-17.5";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
 window.addEventListener("error",function(e){L("ОШИБКА: "+e.message+" @"+(e.filename||"").split("/").pop()+":"+e.lineno)});
 window.addEventListener("unhandledrejection",function(e){L("ОШИБКА промиса: "+(e.reason&&e.reason.message||e.reason))});
 // самообновление: Safari и GitHub Pages держат старый HTML в кэше. Раз за сессию страница запрашивает свежую копию и, если версия другая, перезагружается
@@ -453,12 +453,13 @@ function start(C){
  function usersOf(n){var a=n%10,b=n%100;return a===1&&b!==11?"пользователя":"пользователей"}
  function pickOf(a){return a[Math.random()*a.length|0]}
  function globalLine(att,g){if(!g||!(g.people>=1))return"";var t=g.people,f=g.first;if(att===1&&f<1)f=1;if(f>t)f=t;
-  if(t===1)return"Ты первый, кто попробовал эту фразу.";
-  var of=f+" из "+t+" "+usersOf(t),r=f/t,vb=(f%10===1&&f%100!==11)?"расслышал":"расслышали";
-  if(f===0)return"С первого раза эту фразу пока никто не расслышал, так что ты в хорошей компании.";
-  if(r<.3)return pickOf(["Фраза непростая: с первого раза её "+vb+" только "+of+".","Эту фразу непросто поймать на слух: с первого раза "+vb+" всего "+of+"."]);
-  if(r<=.7)return pickOf(["С первого раза эту фразу "+vb+" "+of+".","Эту фразу с первого раза "+vb+" "+of+"."]);
-  return pickOf(["Фраза лёгкая: с первого раза её "+vb+" "+of+".","Многим она даётся сразу: "+of+" "+vb+" её с первого раза."])}
+  // формулировки без рода («расслышал/расслышала» не нужны): «удаётся расслышать», «пока никто не…»
+  if(t===1)return"Эту фразу ещё никто не пробовал до тебя.";
+  var of=f+" из "+t+" "+usersOf(t),r=f/t;
+  if(f===0)return"С первого раза эту фразу пока не удавалось расслышать никому, так что ты в хорошей компании.";
+  if(r<.3)return pickOf(["Фраза непростая: с первого раза её удаётся расслышать только "+of+".","Эту фразу непросто поймать на слух: с первого раза это удаётся всего "+of+"."]);
+  if(r<=.7)return pickOf(["С первого раза эту фразу удаётся расслышать "+of+".","Эту фразу с первого раза удаётся расслышать "+of+"."]);
+  return pickOf(["Фраза лёгкая: с первого раза её удаётся расслышать "+of+".","Многим она даётся сразу: расслышать её с первого раза удаётся "+of+"."])}
  function statLine(att){TS.pub().then(function(g){var l=globalLine(att,g);if(l)later(function(){sys(l)},900)})}
  function dayWord(n){var a=n%10,b=n%100;return b>=11&&b<=14?"дней":a===1?"день":a>=2&&a<=4?"дня":"дней"}
  // мотивация общими словами: личные итоги не пишем (человека можно опознать неверно)
