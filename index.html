@@ -144,7 +144,7 @@ function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.len
 window.__L=L;
 function tg(){var w=window.Telegram&&Telegram.WebApp;return w?("tg "+w.platform+" v"+w.version+" vh="+w.viewportHeight+" stable="+w.viewportStableHeight+" exp="+w.isExpanded):"без Telegram"}
 function snap(why){var f=document.getElementById("feed"),o=document.getElementById("outer"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollTop="+Math.round(o?o.scrollTop:0)+" scrollH="+(o?o.scrollHeight:0)+"/"+(o?o.clientHeight:0)+" docScroll="+Math.round(scrollY)+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
-var PAGE_V="2026-11-16.8";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
+var PAGE_V="2026-11-16.9";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
 window.addEventListener("error",function(e){L("ОШИБКА: "+e.message+" @"+(e.filename||"").split("/").pop()+":"+e.lineno)});
 window.addEventListener("unhandledrejection",function(e){L("ОШИБКА промиса: "+(e.reason&&e.reason.message||e.reason))});
 // самообновление: Safari и GitHub Pages держат старый HTML в кэше. Раз за сессию страница запрашивает свежую копию и, если версия другая, перезагружается
@@ -313,7 +313,7 @@ function start(C){
   function stopRaf(){if(raf){cancelAnimationFrame(raf);raf=0}}
   function setPlayingUi(on){btn.innerHTML=on?ICON_PAUSE:ICON_PLAY;btn.setAttribute("aria-label",on?"Пауза":"Воспроизвести")}
   function tick(){if(!audio)return;var ct=audio.currentTime,total=isFinite(audio.duration)&&audio.duration>0?audio.duration:(dur||1),from=bounds?bounds.lead:0,len=bounds?Math.max(.1,total-bounds.lead-bounds.tail):total;paint(Math.min(1,Math.max(0,(ct-from)/len)));var left=fmt(Math.max(0,(dur||total)-ct));if(durEl.textContent!==left)durEl.textContent=left;raf=requestAnimationFrame(tick)}
-  function fadeEnd(){var t0=performance.now(),dn=false;function done(){if(dn)return;dn=true;stopRaf();paint(0)}(function f(now){var a=1-Math.min(1,(now-t0)/280);paint(1,a);if(a>0)raf=requestAnimationFrame(f);else done()})(t0);later(done,420)}
+  function fadeEnd(){var t0=performance.now(),dn=false;function done(){if(dn)return;dn=true;stopRaf();paint(0)}var p0=prog;(function f(now){var a=1-Math.min(1,(now-t0)/280);paint(p0,a);if(a>0)raf=requestAnimationFrame(f);else done()})(t0);later(done,420)}
   function ensure(){if(audio)return audio;audio=new Audio("a/"+key+".mp3");audio.preload="auto";
    audio.onended=function(){TS.track("voice_end",{props:{n:slow?2:1}});if(endRes)endRes();stopRaf();setPlayingUi(false);durEl.textContent=fmt(dur||audio.duration);fadeEnd()};
    audio.onpause=function(){stopRaf();setPlayingUi(false)};audio.onplay=function(){setPlayingUi(true);if(!raf)raf=requestAnimationFrame(tick)};
@@ -397,9 +397,12 @@ function start(C){
  function dayWord(n){var a=n%10,b=n%100;return b>=11&&b<=14?"дней":a===1?"день":a>=2&&a<=4?"дня":"дней"}
  // мотивация общими словами: личные итоги не пишем (человека можно опознать неверно)
  var GEN=["Каждая собранная фраза тренирует слух.","Слух растёт шаг за шагом.","С каждым разом получается легче."];
- function motivation(att){var L=[];
-  if(att===1)L.push("С первой попытки! Отличный слух.");else if(att===2)L.push("Со второй попытки, главное, что получилось.");else if(att>=3)L.push("С "+att+"-й попытки, так и учатся.");
-  L.push(GEN[Math.random()*GEN.length|0]);
+ function ordF(n){return n===1?"с первой":n===2?"со второй":"с "+n+"-й"}
+ function motivation(att,ru){var L=[];
+  if(ru>0&&att===1&&ru===1)L.push("И фраза, и перевод с первой попытки! Отличный слух.");
+  else if(ru>0)L.push("На слух "+ordF(att)+" попытки, перевод "+ordF(ru)+". Так и учатся.");
+  else if(att===1)L.push("С первой попытки! Отличный слух.");else if(att===2)L.push("Со второй попытки, главное, что получилось.");else if(att>=3)L.push("С "+att+"-й попытки, так и учатся.");
+ L.push(GEN[Math.random()*GEN.length|0]);
   return L}
  // ── после верного ответа: «Как думаешь, как переводится эта фраза?» → панель «Выбери слово»: «Раскрыть перевод» / «Попробовать перевести»;
  // «Попробовать перевести» открывает сборщик русской фразы со словами-путаниками (три попытки, потом перевод открывается сам)
@@ -413,7 +416,7 @@ function start(C){
   toks=rt;bank=shuf(rt.concat(dec));placed=[];used={};red=[];busy=false;wrongN=0;checkedSig="";phText="Собери перевод...";
   var left=3,press=0,incR=0;
   function finishWin(){busy=true;snd("answer-correct");chk.disabled=true;
-   later(function(){fireBurst(24,4);closePanel(function(){var me=msg("me ok",esc(C.r),true);var sh=document.createElement("span");sh.className="sheen";me.appendChild(sh);later(done,1400)})},700)}
+   later(function(){fireBurst(24,4);closePanel(function(){var me=msg("me ok",esc(C.r),true);var sh=document.createElement("span");sh.className="sheen";me.appendChild(sh);later(function(){done(press)},1400)})},700)}
   chk.onclick=function(){
    if(busy||!placed.length)return;press++;
    var marks=placed.map(function(p,k){return normRu(p.w)===normRu(toks[k]||"")}),right=placed.length===toks.length&&marks.every(Boolean);
@@ -442,8 +445,8 @@ function start(C){
   var me=msg("me ok",esc(C.e),true);var sh=document.createElement("span");sh.className="sheen";me.appendChild(sh);
   if(fire){snd("xp-gain")}
   later(function(){emo("🎉");
-   later(function(){translateStep(function(){
-    later(function(){typing(2200,function(){pubP.then(function(g){msg("",motivation(att).map(esc).join("<br>"));var gl=globalLine(att,g);if(gl)later(function(){sys(gl)},1000);
+   later(function(){translateStep(function(ru){
+    later(function(){typing(2200,function(){pubP.then(function(g){msg("",motivation(att,ru).map(esc).join("<br>"));var gl=globalLine(att,g);if(gl)later(function(){sys(gl)},1000);
      later(function(){typing(2800,function(){msg("","Скоро выйдет полный разбор этой фразы");
       later(function(){typing(1800,exitBtn)},900)})},1900)})},pubP)},1300)})},1200)},fire?3300:300)}
 
