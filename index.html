@@ -128,7 +128,6 @@ body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',syste
   <div class="phraseAnswerRow" id="rowA"></div>
   <div class="phrasePool" id="pool"></div>
   <button class="phraseCheckBtn" id="chk" disabled>Проверить</button>
-  <div class="tries" id="tries"></div>
  </div>
  <div class="lockbar"><span class="lk">🔒</span><b>Следующая попытка через <span id="lc"></span></b><small id="lt"></small></div>
 </div>
@@ -140,7 +139,7 @@ function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.len
 window.__L=L;
 function tg(){var w=window.Telegram&&Telegram.WebApp;return w?("tg "+w.platform+" v"+w.version+" vh="+w.viewportHeight+" stable="+w.viewportStableHeight+" exp="+w.isExpanded):"без Telegram"}
 function snap(why){var f=document.getElementById("feed"),o=document.getElementById("outer"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollTop="+Math.round(o?o.scrollTop:0)+" scrollH="+(o?o.scrollHeight:0)+"/"+(o?o.clientHeight:0)+" docScroll="+Math.round(scrollY)+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
-var PAGE_V="2026-11-16.1";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
+var PAGE_V="2026-11-16.2";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
 window.addEventListener("error",function(e){L("ОШИБКА: "+e.message+" @"+(e.filename||"").split("/").pop()+":"+e.lineno)});
 window.addEventListener("unhandledrejection",function(e){L("ОШИБКА промиса: "+(e.reason&&e.reason.message||e.reason))});
 // самообновление: Safari и GitHub Pages держат старый HTML в кэше. Раз за сессию страница запрашивает свежую копию и, если версия другая, перезагружается
@@ -331,7 +330,7 @@ function start(C){
  function drawBank(){pool.className="phrasePool"+(bank.length>=4?" two":"");pool.innerHTML="";bank.forEach(function(w,i){var b=document.createElement("button");b.className="phraseChip"+(used[i]?" used":"");b.textContent=w;b.disabled=!!used[i]||busy||locked();b.onclick=function(){if(used[i]||busy||locked())return;placed.push({w:w,i:i});used[i]=1;red=[];draw()};pool.appendChild(b);var br=document.createElement("span");br.className="br";pool.appendChild(br)});layoutBank();if(document.fonts&&document.fonts.ready)document.fonts.ready.then(layoutBank)}
  function drawRow(animateLast){rowA.innerHTML="";rowA.className="phraseAnswerRow"+(placed.length?" filled":"");if(!placed.length){rowA.innerHTML='<span class="phraseAnswerPlaceholder">Собери фразу...</span>';return}
   placed.forEach(function(p,k){var b=document.createElement("button");b.className="phraseAnswerChip"+(red.indexOf(p.i)>=0?" red":"");b.textContent=p.w;if(!(animateLast&&k===placed.length-1))b.style.animation="none";b.onclick=function(){if(busy||locked())return;used[p.i]=0;placed.splice(k,1);red=[];draw()};rowA.appendChild(b)})}
- function drawTries(){var u=TRIES-S.left;$("#tries").innerHTML=[0,1,2].map(function(i){return'<i class="'+(i<u?"x":"")+'"></i>'}).join("")}
+ function drawTries(){}
  function draw(){var n=placed.length;drawBank();drawRow(true);chk.disabled=!n||busy||locked();drawTries();var c=$("#cnt");c.textContent="выбрано "+n+" "+wordForm(n)+" из "+toks.length;c.classList.toggle("on",wrongN>=2)}
  function openPanel(){TS.step("panel");PANEL_AT=Date.now();runPanel(true)}
  function closePanel(){runPanel(false)}
@@ -368,13 +367,14 @@ function start(C){
  // ── финал: фраза ответом, смайлик отдельным сообщением, перевод под точками, «скоро выйдет разбор», «Выйти»
  // мотивация: личные итоги из браузера человека и (если людей набралось достаточно) общий процент по этому заданию
  function userWord(n){var a=n%10,b=n%100;return b>=11&&b<=14?"пользователей":a===1?"пользователь":a>=2&&a<=4?"пользователя":"пользователей"}
+ // общие числа по заданию одной строкой для системного сообщения (показываем, когда набралось хотя бы 3 пользователя)
+ function globalLine(att,g){if(!g||!(g.people>=3))return"";var t=g.people,f=g.first;if(att===1&&f<1)f=1;return"Эту фразу "+(t%10===1&&t%100!==11?"уже пробовал ":"уже пробовали ")+t+" "+userWord(t)+", с первого раза её "+(f%10===1&&f%100!==11?"собрал ":"собрали ")+f+"."}
+ function statLine(att){TS.pub().then(function(g){var l=globalLine(att,g);if(l)later(function(){sys(l)},900)})}
  function dayWord(n){var a=n%10,b=n%100;return b>=11&&b<=14?"дней":a===1?"день":a>=2&&a<=4?"дня":"дней"}
- function motivation(att,ps,g){var L=[];
+ function motivation(att,ps){var L=[];
   if(att===1)L.push("С первой попытки! Отличный слух.");else if(att===2)L.push("Со второй попытки, главное, что получилось.");else if(att>=3)L.push("Получилось с последней попытки. Так и учатся.");
   if(ps.n<=1)L.push("Это твоя первая собранная фраза.");else L.push("Собрано фраз: "+ps.n+", с первой попытки: "+ps.first+".");
   if(ps.streak>=2)L.push("Занимаешься "+ps.streak+" "+dayWord(ps.streak)+" подряд.");
-  // общие числа по заданию: сколько пользователей пробовали и сколько собрали с первой попытки (показываем, когда набралось хотя бы 3 человека)
-  if(g&&g.people>=3){var t=g.people,f=g.first;if(att===1&&f<1)f=1;L.push("Эту фразу "+(t%10===1&&t%100!==11?"уже пробовал ":"уже пробовали ")+t+" "+userWord(t)+", с первого раза её "+(f%10===1&&f%100!==11?"собрал ":"собрали ")+f+".")}
   return L}
  // ответ → пауза → смайлик-салют → точки → бокс с переводом → точки → мотивация → точки 2 с → «Скоро выйдет полный разбор» → точки 1 с → «Выйти»
  function finale(fire){
@@ -383,7 +383,7 @@ function start(C){
   if(fire){snd("xp-gain")}
   later(function(){emo("🎉");
    later(function(){typing(TYPE_NEXT,function(){spoilerBubble(C.r||"");
-    later(function(){typing(TYPE_NEXT,function(){pubP.then(function(g){var ps=TS.record(att||1);msg("",motivation(att,ps,g).map(esc).join("<br>"));
+    later(function(){typing(TYPE_NEXT,function(){pubP.then(function(g){var ps=TS.record(att||1);msg("",motivation(att,ps).map(esc).join("<br>"));var gl=globalLine(att,g);if(gl)later(function(){sys(gl)},REACT+200);
      later(function(){typing(2000,function(){msg("","Скоро выйдет полный разбор этой фразы");
       later(function(){typing(1000,exitBtn)},REACT)})},REACT)})},pubP)},900)})},REACT)},fire?2600:300)}
 
@@ -397,7 +397,7 @@ function start(C){
   busy=true;S.left--;wrongN++;save();TS.track("check",{attempt:wrongN,props:{r:"wrong",words:placed.length}});snd("answer-wrong");red=placed.map(function(p){return p.i});drawRow(false);rowA.classList.add("err");drawTries();
   msg("me err",esc(placed.map(function(p){return p.w}).join(" ")),true);
   if(S.left<=0){S.until=Date.now()+LOCK_H*3600000;save();TS.track("locked",{attempt:wrongN});
-   later(function(){closePanel();later(function(){msg("hint bad","Попытки закончились. Следующая попытка откроется "+atTxt(S.until)+".");panel.classList.add("locked");lockUi()},350)},700);return}
+   later(function(){closePanel();later(function(){msg("hint bad","Попытки закончились. Следующая попытка откроется "+atTxt(S.until)+".");panel.classList.add("locked");lockUi();statLine(0)},350)},700);return}
   later(function(){emo("🤔");later(function(){typing(600,function(){
    if(wrongN===1)msg("hint bad","Не совсем. Послушай ещё раз и попробуй снова.");
    else msg("hint bad","Собери фразу из "+toks.length+" "+(toks.length%10===1&&toks.length!==11?"слова":"слов")+".");
@@ -406,7 +406,7 @@ function start(C){
  // ── запуск: точки «печатает», реплика, точки, голосовое с дорожкой звука (его можно слушать и ставить на повтор), затем панель выезжает снизу
  function afterVoice(){
   if(S.solved){later(function(){finale(false)},500);return}
-  if(locked()){later(function(){msg("hint bad","Попытки закончились. Следующая попытка откроется "+atTxt(S.until)+".");lockUi()},500);setInterval(function(){if(S.until&&Date.now()>=S.until)location.reload();else $("#lc").textContent=leftTxt(S.until-Date.now())},30000);return}
+  if(locked()){later(function(){msg("hint bad","Попытки закончились. Следующая попытка откроется "+atTxt(S.until)+".");lockUi();statLine(0)},500);setInterval(function(){if(S.until&&Date.now()>=S.until)location.reload();else $("#lc").textContent=leftTxt(S.until-Date.now())},30000);return}
   draw();later(openPanel,600)}
  var AU,SU;AP.then(function(v){AU=v});SP.then(function(v){SU=v});
  // слушание: следующее сообщение выходит, когда голосовое дослушано, а если его не включали, то через 3 с после появления
