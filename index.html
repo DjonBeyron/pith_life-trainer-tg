@@ -140,7 +140,7 @@ function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.len
 window.__L=L;
 function tg(){var w=window.Telegram&&Telegram.WebApp;return w?("tg "+w.platform+" v"+w.version+" vh="+w.viewportHeight+" stable="+w.viewportStableHeight+" exp="+w.isExpanded):"без Telegram"}
 function snap(why){var f=document.getElementById("feed"),o=document.getElementById("outer"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollTop="+Math.round(o?o.scrollTop:0)+" scrollH="+(o?o.scrollHeight:0)+"/"+(o?o.clientHeight:0)+" docScroll="+Math.round(scrollY)+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
-var PAGE_V="2026-11-15.11";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
+var PAGE_V="2026-11-16.1";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
 window.addEventListener("error",function(e){L("ОШИБКА: "+e.message+" @"+(e.filename||"").split("/").pop()+":"+e.lineno)});
 window.addEventListener("unhandledrejection",function(e){L("ОШИБКА промиса: "+(e.reason&&e.reason.message||e.reason))});
 // самообновление: Safari и GitHub Pages держат старый HTML в кэше. Раз за сессию страница запрашивает свежую копию и, если версия другая, перезагружается
@@ -367,12 +367,14 @@ function start(C){
 
  // ── финал: фраза ответом, смайлик отдельным сообщением, перевод под точками, «скоро выйдет разбор», «Выйти»
  // мотивация: личные итоги из браузера человека и (если людей набралось достаточно) общий процент по этому заданию
+ function userWord(n){var a=n%10,b=n%100;return b>=11&&b<=14?"пользователей":a===1?"пользователь":a>=2&&a<=4?"пользователя":"пользователей"}
  function dayWord(n){var a=n%10,b=n%100;return b>=11&&b<=14?"дней":a===1?"день":a>=2&&a<=4?"дня":"дней"}
  function motivation(att,ps,g){var L=[];
   if(att===1)L.push("С первой попытки! Отличный слух.");else if(att===2)L.push("Со второй попытки, главное, что получилось.");else if(att>=3)L.push("Получилось с последней попытки. Так и учатся.");
   if(ps.n<=1)L.push("Это твоя первая собранная фраза.");else L.push("Собрано фраз: "+ps.n+", с первой попытки: "+ps.first+".");
   if(ps.streak>=2)L.push("Занимаешься "+ps.streak+" "+dayWord(ps.streak)+" подряд.");
-  if(g&&g.solved>=10){var pct=Math.round(g.first/g.solved*100);L.push("С первого раза эту фразу собирают "+pct+"% людей.")}
+  // общие числа по заданию: сколько пользователей пробовали и сколько собрали с первой попытки (показываем, когда набралось хотя бы 3 человека)
+  if(g&&g.people>=3){var t=g.people,f=g.first;if(att===1&&f<1)f=1;L.push("Эту фразу "+(t%10===1&&t%100!==11?"уже пробовал ":"уже пробовали ")+t+" "+userWord(t)+", с первого раза её "+(f%10===1&&f%100!==11?"собрал ":"собрали ")+f+".")}
   return L}
  // ответ → пауза → смайлик-салют → точки → бокс с переводом → точки → мотивация → точки 2 с → «Скоро выйдет полный разбор» → точки 1 с → «Выйти»
  function finale(fire){
