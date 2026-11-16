@@ -145,7 +145,7 @@ function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.len
 window.__L=L;
 function tg(){var w=window.Telegram&&Telegram.WebApp;return w?("tg "+w.platform+" v"+w.version+" vh="+w.viewportHeight+" stable="+w.viewportStableHeight+" exp="+w.isExpanded):"без Telegram"}
 function snap(why){var f=document.getElementById("feed"),o=document.getElementById("outer"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollTop="+Math.round(o?o.scrollTop:0)+" scrollH="+(o?o.scrollHeight:0)+"/"+(o?o.clientHeight:0)+" docScroll="+Math.round(scrollY)+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
-var PAGE_V="2026-11-16.15";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
+var PAGE_V="2026-11-16.16";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
 window.addEventListener("error",function(e){L("ОШИБКА: "+e.message+" @"+(e.filename||"").split("/").pop()+":"+e.lineno)});
 window.addEventListener("unhandledrejection",function(e){L("ОШИБКА промиса: "+(e.reason&&e.reason.message||e.reason))});
 // самообновление: Safari и GitHub Pages держат старый HTML в кэше. Раз за сессию страница запрашивает свежую копию и, если версия другая, перезагружается
@@ -283,8 +283,23 @@ function start(C){
  function rowFrames(push){var c=Math.max(0,TRAVEL-push)/TRAVEL;if(c<=0)return[{transform:"translateY("+(TRAVEL-push)+"px)",easing:EASE_PUSH},{transform:"translateY(0)"}];return[{transform:"translateY("+(TRAVEL-push)+"px)",easing:EASE_FLY},{transform:"translateY(0)",offset:c,easing:EASE_PUSH},{transform:"translateY(0)"}]}
  function histFrames(push){var c=Math.max(0,TRAVEL-push)/TRAVEL;if(c<=0)return[{transform:"scaleY(-1) translateY("+push+"px)",easing:EASE_PUSH},{transform:"scaleY(-1) translateY(0)"}];return[{transform:"scaleY(-1) translateY("+push+"px)",easing:"linear"},{transform:"scaleY(-1) translateY("+push+"px)",offset:c,easing:EASE_PUSH},{transform:"scaleY(-1) translateY(0)"}]}
  // появление сообщения как в PlayerFeed: новая строка летит снизу (200px, 240 мс); история, которую вставка мгновенно сдвинула, отбрасывается назад и до касания стоит, потом едет вместе со строкой; звук за 60 мс до конца
+ // замер дёрганья: на каждом кадре положение старых строк чата; движение вниз при приходе сообщения и разворот движения пишутся в лог («лог» вверху справа)
+ var panelMoving=false;
+ function watch(tag,ms,expectUp){var t0=performance.now(),prev=null,last=[],down=0,rev=0,first="",frames=0,sc=0,vv0=window.visualViewport?Math.round(window.visualViewport.height):0,vvMoved=0;
+  (function f(now){var rows=[].slice.call(feed.children).filter(function(x){return x.firstElementChild}).slice(-4),tops=rows.map(function(x){return x.getBoundingClientRect().top});frames++;
+   if(outer.scrollTop!==0)sc=Math.max(sc,outer.scrollTop);
+   if(window.visualViewport&&Math.abs(Math.round(window.visualViewport.height)-vv0)>2)vvMoved=Math.round(window.visualViewport.height)-vv0;
+   if(prev&&prev.length===tops.length){for(var i=0;i<tops.length-(expectUp?1:0);i++){var d=tops[i]-prev[i];if(Math.abs(d)<1.2)continue;
+     if(expectUp&&d>0){down=Math.max(down,d);if(!first)first="кадр "+frames+" ("+Math.round(now-t0)+" мс): строка "+i+" из "+tops.length+" вниз на "+d.toFixed(1)+" px"}
+     if(last[i]&&last[i]*d<0){rev++;if(!first)first="кадр "+frames+" ("+Math.round(now-t0)+" мс): строка "+i+" развернулась ("+last[i].toFixed(1)+" → "+d.toFixed(1)+" px)"}
+     last[i]=d}}
+   prev=tops;
+   if(now-t0<ms)requestAnimationFrame(f);
+   else{var bad=down>1.5||rev>0||sc>0||vvMoved;if(window.__L)window.__L((bad?"ДЁРГАНЬЕ ":"движение ок ")+"["+tag+"] кадров "+frames+(down>0?", вниз max "+down.toFixed(1)+" px":"")+(rev?", разворотов "+rev:"")+(sc?", scrollTop="+sc:"")+(vvMoved?", высота окна изменилась на "+vvMoved:"")+(first?" · первое: "+first:"")+(panelMoving?" · идёт панель":""))}
+  })(t0)}
  function slideIn(r,sound){var prev=r.previousElementSibling,rb=r.getBoundingClientRect(),push=prev?Math.max(0,rb.bottom-prev.getBoundingClientRect().bottom):rb.height;
   try{r.animate(rowFrames(push),{duration:SLIDE,fill:"backwards"});if(push>0)inner.animate(histFrames(push),{duration:SLIDE,fill:"backwards"})}catch(e){}
+  watch(((r.textContent||"").trim().replace(/\s+/g," ").slice(0,26)||(r.className||"строка")),SLIDE+260,!panelMoving);
   if(sound)later(function(){snd("message-in")},SLIDE-60)}
  function msg(cls,html,nosnd){var r=document.createElement("div");r.className="row"+(cls.indexOf("me")>=0?" right":"")+(cls.indexOf("sys")>=0?" mid":"");var b=document.createElement("div");b.className="bubble "+cls;if(typeof html==="string")b.innerHTML=html;else b.appendChild(html);r.appendChild(b);feed.appendChild(r);scrollNow();slideIn(r,cls.indexOf("me")<0&&!nosnd);return b}
  function esc(s){return String(s).replace(/[&<>]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;"}[c]})}
@@ -337,13 +352,14 @@ function start(C){
  function cubic(x1,y1,x2,y2){function bx(t){return 3*(1-t)*(1-t)*t*x1+3*(1-t)*t*t*x2+t*t*t}function by(t){return 3*(1-t)*(1-t)*t*y1+3*(1-t)*t*t*y2+t*t*t}return function(x){if(x<=0)return 0;if(x>=1)return 1;var lo=0,hi=1;for(var i=0;i<30;i++){var m=(lo+hi)/2;if(bx(m)<x)lo=m;else hi=m}return by((lo+hi)/2)}}
  function lastBottom(){var r=feed.lastElementChild;return r?r.getBoundingClientRect().bottom:0}
  function runPanel(open,done){
-  var H=curPanel.offsetHeight,dur=open?380:280,ez=open?[.22,1,.36,1]:[.4,0,1,1],f=cubic(ez[0],ez[1],ez[2],ez[3]),css="cubic-bezier("+ez.join(",")+")",before=lastBottom();
+  panelMoving=true;var H=curPanel.offsetHeight,dur=open?380:280,ez=open?[.22,1,.36,1]:[.4,0,1,1],f=cubic(ez[0],ez[1],ez[2],ez[3]),css="cubic-bezier("+ez.join(",")+")",before=lastBottom();
   if(open)curPanel.classList.add("show");
   spacer.style.height=open?H+"px":"0";scrollNow();
   var moved=open?Math.max(0,before-lastBottom()):Math.max(0,lastBottom()-before),fr=[],N=48,i,t;
   for(i=0;i<=N;i++){t=i/N;var p=f(t);fr.push({offset:t,transform:"translateY("+(open?Math.min(moved,H*(1-p)):-(moved-Math.min(moved,H*p))).toFixed(2)+"px)",easing:"linear"})}
   var pa,ha;try{pa=curPanel.animate([{transform:open?"translateY(100%)":"translateY(0%)"},{transform:open?"translateY(0%)":"translateY(100%)"}],{duration:dur,easing:css,fill:"both"});if(moved>0)ha=feed.animate(fr,{duration:dur,fill:"both"})}catch(e){}
-  function fin(){if(!open)curPanel.classList.remove("show");try{pa&&pa.cancel();ha&&ha.cancel()}catch(e){}if(done)done()}
+  watch(open?"панель поднимается":"панель опускается",dur+120,false);
+  function fin(){panelMoving=false;if(!open)curPanel.classList.remove("show");try{pa&&pa.cancel();ha&&ha.cancel()}catch(e){}if(done)done()}
   if(pa&&pa.finished)pa.finished.then(fin).catch(fin);else fin()}
  function layoutBank(){var chips=pool.querySelectorAll(".phraseChip"),brs=pool.querySelectorAll(".br");if(chips.length<4)return;var gap=parseFloat(getComputedStyle(pool).columnGap)||8,w=[].map.call(chips,function(e){return e.getBoundingClientRect().width}),max=pool.clientWidth,n=w.length,pre=[0];w.forEach(function(x){pre.push(pre[pre.length-1]+x)});
   function rw(a,b){return pre[b]-pre[a]+gap*(b-a-1)}function fits(x){return x<=max+.5}
