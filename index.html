@@ -25,14 +25,14 @@ body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',syste
 #spacer{flex:none;height:0;margin-bottom:calc((var(--safe-b) + var(--wait-slot)) * -1);min-height:calc(var(--safe-b) + var(--wait-slot))}
 .row{display:flex;justify-content:flex-start;padding:2px 0}
 .row.right{justify-content:flex-end}
-.bubble{background:#1a1d22;border-radius:4px 18px 18px 18px;padding:10px 14px;max-width:80%;word-break:break-word;position:relative}
-.bubble.me{background:#16212e;border-radius:18px 18px 4px 18px;padding:6px 14px;max-width:80%}
+.bubble{background:#1a1d22;border-radius:4px 18px 18px 18px;padding:10px 14px;max-width:92%;word-break:break-word;position:relative}
+.bubble.me{background:#16212e;border-radius:18px 18px 4px 18px;padding:6px 14px;max-width:92%}
 .bubble.me::after{content:'';display:inline-block;width:12px;margin-left:7px;font-size:12px;font-weight:700;text-align:center}
 .bubble.me.ok::after{content:'✓';color:#b6fe3b;animation:markIn .32s cubic-bezier(.22,1,.36,1) both,markFlash .5s cubic-bezier(.22,1,.36,1) 1.45s both}
 .bubble.me.err::after{content:'✕';color:#f87171;animation:markIn .32s cubic-bezier(.22,1,.36,1) both}
 .bubble.me.err{color:#f2c9c9}
 /* жирным в чате только верный ответ и перевод */
-.bubble{font-weight:400;text-wrap:pretty}.bubble .ln{display:block}.bubble.me.ok{font-weight:700}
+.bubble{font-weight:400}.bubble .ln{display:block}.bubble.me.ok{font-weight:700}
 @keyframes markIn{from{opacity:0;transform:scale(.4)}60%{opacity:1;transform:scale(1.2)}to{opacity:1;transform:scale(1)}}
 @keyframes markFlash{0%{color:#b6fe3b;transform:scale(1)}40%{color:#fff;transform:scale(1.45)}100%{color:#b6fe3b;transform:scale(1)}}
 .sheen{position:absolute;inset:0;border-radius:inherit;overflow:hidden;pointer-events:none}
@@ -147,7 +147,7 @@ function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.len
 window.__L=L;
 function tg(){var w=window.Telegram&&Telegram.WebApp;return w?("tg "+w.platform+" v"+w.version+" vh="+w.viewportHeight+" stable="+w.viewportStableHeight+" exp="+w.isExpanded):"без Telegram"}
 function snap(why){var f=document.getElementById("feed"),o=document.getElementById("outer"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollTop="+Math.round(o?o.scrollTop:0)+" scrollH="+(o?o.scrollHeight:0)+"/"+(o?o.clientHeight:0)+" docScroll="+Math.round(scrollY)+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
-var PAGE_V="2026-11-16.21";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
+var PAGE_V="2026-11-16.22";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
 window.addEventListener("error",function(e){L("ОШИБКА: "+e.message+" @"+(e.filename||"").split("/").pop()+":"+e.lineno)});
 window.addEventListener("unhandledrejection",function(e){L("ОШИБКА промиса: "+(e.reason&&e.reason.message||e.reason))});
 // самообновление: Safari и GitHub Pages держат старый HTML в кэше. Раз за сессию страница запрашивает свежую копию и, если версия другая, перезагружается
@@ -345,7 +345,7 @@ function start(C){
   function stopRaf(){if(raf){cancelAnimationFrame(raf);raf=0}}
   function setPlayingUi(on){btn.innerHTML=on?ICON_PAUSE:ICON_PLAY;btn.setAttribute("aria-label",on?"Пауза":"Воспроизвести")}
   function tick(){if(!audio)return;var ct=audio.currentTime,total=isFinite(audio.duration)&&audio.duration>0?audio.duration:(dur||1),from=bounds?bounds.lead:0,len=bounds?Math.max(.1,total-bounds.lead-bounds.tail):total;var pg=Math.min(1,Math.max(0,(ct-from)/len));paint(pg);if(pg>=1&&!loop&&!faded&&bounds){faded=true;stopRaf();if(window.__L)window.__L("голосовое"+(slow?" (замедленное)":"")+": речь кончилась на "+ct.toFixed(2)+" с из "+(isFinite(audio.duration)?audio.duration.toFixed(2):"?")+" с, гашение полосок началось до конца файла");fadeEnd();return}var left=fmt(Math.max(0,(dur||total)-ct));if(durEl.textContent!==left)durEl.textContent=left;raf=requestAnimationFrame(tick)}
-  function fadeEnd(){var t0=performance.now(),dn=false;function done(){if(dn)return;dn=true;stopRaf();paint(0)}var p0=prog;(function f(now){var a=1-Math.min(1,(now-t0)/280);paint(p0,a);if(a>0)raf=requestAnimationFrame(f);else done()})(t0);later(done,420)}
+  function fadeEnd(){var t0=performance.now(),dn=false;function done(){if(dn)return;dn=true;stopRaf();paint(0)}var p0=prog;(function f(now){var k=Math.min(1,(now-t0)/900),a=1-k*k*(3-2*k);paint(p0,a);if(a>0)raf=requestAnimationFrame(f);else done()})(t0);later(done,1000)}
   function ensure(){if(audio)return audio;audio=new Audio("a/"+key+".mp3");audio.preload="auto";
    audio.onended=function(){TS.track("voice_end",{props:{n:slow?2:1}});if(endRes)endRes();stopRaf();setPlayingUi(false);durEl.textContent=fmt(dur||audio.duration);if(!faded){faded=true;fadeEnd()}};
    audio.onpause=function(){stopRaf();setPlayingUi(false)};audio.onplay=function(){setPlayingUi(true);if(!raf)raf=requestAnimationFrame(tick)};
@@ -459,7 +459,7 @@ function start(C){
    checkedSig=sigNow();busy=true;left--;TS.track("tr_check",{attempt:press,props:{r:"wrong"}});snd("answer-wrong");red=placed.map(function(p){return p.i});drawRow(false);rowA.classList.add("err");
    msg("me err",esc(placed.map(function(p){return p.w}).join(" ")),true);
    if(left<=0){TS.track("tr_giveup",{attempt:press,props:{}});later(function(){closePanel(function(){showTranslation("Вот как это переводится:",done)})},900);return}
-   later(function(){msg("hint bad","Не совсем. Попробуй ещё раз.");later(function(){sys(triesLeft(left));rowA.classList.remove("err");red=[];busy=false;draw()},REACT+200)},900)};
+   later(function(){msg("hint bad","Не совсем. Попробуй ещё раз.");later(function(){later(function(){sys(triesLeft(left))},700);rowA.classList.remove("err");red=[];busy=false;draw()},REACT+200)},900)};
   draw();TS.step("tr_panel");curPanel=panel;runPanel(true)}
  function translateStep(done){
   if(!C.r){done();return}
@@ -471,7 +471,7 @@ function start(C){
      [].forEach.call(btns,function(o){o.disabled=true;o.classList.add(o===b?"pick":"dim")});
      later(function(){curPanel=cwp;runPanel(false,function(){
       if(k==="reveal"){msg("trv",TR_ICON+esc(C.r),true);later(done,1000)}
-      else{msg("me pick",esc(b.textContent),true);later(function(){typing(1400,function(){msg("","Тогда собери перевод из слов.");later(function(){startRu(done)},600)})},500)}})},760)}})},2000)})}
+      else{msg("me pick",esc(b.textContent),true);later(function(){typing(1400,function(){msg("","Тогда собери перевод из слов.");later(function(){startRu(done)},1400)})},500)}})},760)}})},2000)})}
  // ответ → пауза → смайлик-салют → «Как думаешь, как переводится?» → выбор → перевод → мотивация → точки → «Скоро выйдет полный разбор» → точки → «Выйти»
  function finale(fire){
   var att=S.att||0,pubP=TS.pub();TS.step("finale");
@@ -498,7 +498,7 @@ function start(C){
   later(function(){
    if(wrongN===1)msg("hint bad","Не совсем. Послушай ещё раз и попробуй снова.");
    else msg("hint bad","Собери фразу из "+toks.length+" "+(toks.length%10===1&&toks.length!==11?"слова":"слов")+".");
-   later(function(){sys(triesLeft(S.left));rowA.classList.remove("err");red=[];busy=false;draw()},REACT+200)},900)};
+   later(function(){later(function(){sys(triesLeft(S.left))},700);rowA.classList.remove("err");red=[];busy=false;draw()},REACT+200)},900)};
 
  // ── запуск: точки «печатает», реплика, точки, голосовое с дорожкой звука (его можно слушать и ставить на повтор), затем панель выезжает снизу
  function afterVoice(){
