@@ -147,7 +147,7 @@ function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.len
 window.__L=L;
 function tg(){var w=window.Telegram&&Telegram.WebApp;return w?("tg "+w.platform+" v"+w.version+" vh="+w.viewportHeight+" stable="+w.viewportStableHeight+" exp="+w.isExpanded):"без Telegram"}
 function snap(why){var f=document.getElementById("feed"),o=document.getElementById("outer"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollTop="+Math.round(o?o.scrollTop:0)+" scrollH="+(o?o.scrollHeight:0)+"/"+(o?o.clientHeight:0)+" docScroll="+Math.round(scrollY)+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
-var PAGE_V="2026-11-16.23";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
+var PAGE_V="2026-11-17.1";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
 window.addEventListener("error",function(e){L("ОШИБКА: "+e.message+" @"+(e.filename||"").split("/").pop()+":"+e.lineno)});
 window.addEventListener("unhandledrejection",function(e){L("ОШИБКА промиса: "+(e.reason&&e.reason.message||e.reason))});
 // самообновление: Safari и GitHub Pages держат старый HTML в кэше. Раз за сессию страница запрашивает свежую копию и, если версия другая, перезагружается
@@ -236,7 +236,15 @@ function pick1(list,used){return shuf(list).filter(function(x){return used.index
 function dec64(s){s=s.replace(/-/g,"+").replace(/_/g,"/");while(s.length%4)s+="=";var b=atob(s),u=new Uint8Array(b.length);for(var i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return JSON.parse(new TextDecoder().decode(u))}
 function readC(){try{var m=/[#&]p=([^&]+)/.exec(location.hash);if(!m)return null;var c=dec64(m[1]);return c&&c.e?c:null}catch(e){return null}}
 function idOf(){var h=location.hash,m=/[#&]tgWebAppStartParam=([0-9a-zA-Z_-]+)/.exec(h)||/^#(x?[0-9a-f]{6,40})$/.exec(h);if(!m&&window.Telegram&&Telegram.WebApp&&Telegram.WebApp.initDataUnsafe&&Telegram.WebApp.initDataUnsafe.start_param)m=[0,Telegram.WebApp.initDataUnsafe.start_param];return m?m[1]:""}
-window.addEventListener("load",function(){if(window.Telegram&&Telegram.WebApp){try{var w=Telegram.WebApp;w.ready();w.expand();w.setHeaderColor("#0e1013");w.setBackgroundColor("#0e1013")}catch(e){}}});
+// Mini App: SDK подключается после загрузки; каждый вызов в своём try, потому что методы зависят от версии Telegram
+window.addEventListener("load",function(){var w=window.Telegram&&Telegram.WebApp;if(!w)return;
+ function t(f){try{f()}catch(e){}}
+ t(function(){w.ready()});t(function(){w.expand()});
+ t(function(){w.setHeaderColor("#0e1013")});t(function(){w.setBackgroundColor("#0e1013")});t(function(){w.setBottomBarColor("#0e1013")});
+ t(function(){if(w.disableVerticalSwipes)w.disableVerticalSwipes()});   // свайп вниз по чату не закрывает приложение
+ if(window.__L)window.__L("Mini App: "+w.platform+" v"+w.version+(w.initDataUnsafe&&w.initDataUnsafe.user?", пользователь Telegram есть":", без пользователя")+", свайпы "+(w.isVerticalSwipesEnabled===false?"выключены":"как есть"))});
+// вибрация Telegram: верный и неверный ответ, обычное нажатие
+function haptic(kind){try{var h=window.Telegram&&Telegram.WebApp&&Telegram.WebApp.HapticFeedback;if(!h)return;if(kind==="ok")h.notificationOccurred("success");else if(kind==="bad")h.notificationOccurred("error");else h.impactOccurred("light")}catch(e){}}
 
 // ── звуки интерфейса (те же файлы, что в приложении)
 // громкость как в приложении: часть звуков записана тихо, поэтому они усиливаются через Web Audio (GainNode, до ×3 как в sounds.js приложения); множители подобраны по пику файла, чтобы не было хруста
@@ -244,7 +252,7 @@ var SGAIN={"typing-1":3,"message-in":3,"xp-gain":2,"answer-correct":2,"answer-wr
 function acx(){if(!ACX){var AC=window.AudioContext||window.webkitAudioContext;if(AC){try{ACX=new AC();try{navigator.audioSession.type="playback"}catch(e){}}catch(e){}}}return ACX}
 function sbuf(n){var c=acx();if(!c)return Promise.reject(0);return SBUF[n]||(SBUF[n]=fetch("s/"+n+".mp3").then(function(r){return r.arrayBuffer()}).then(function(b){return new Promise(function(res,rej){c.decodeAudioData(b,res,rej)})}))}
 function playHtml(n){try{var a=snds[n]||(snds[n]=new Audio("s/"+n+".mp3"));a.currentTime=0;var p=a.play();if(p&&p.catch)p.catch(function(){})}catch(e){}}
-function snd(n){var tn=Date.now();if(lastSnd[n]&&tn-lastSnd[n]<300)return;lastSnd[n]=tn;var g=SGAIN[n]||1,c=g>1?acx():null;
+function snd(n){var tn=Date.now();if(lastSnd[n]&&tn-lastSnd[n]<300)return;lastSnd[n]=tn;if(n==="answer-correct")haptic("ok");else if(n==="answer-wrong")haptic("bad");var g=SGAIN[n]||1,c=g>1?acx():null;
  if(!c){playHtml(n);return}
  try{if(c.state==="suspended")c.resume()}catch(e){}
  sbuf(n).then(function(buf){if(c.state!=="running"){playHtml(n);return}var s=c.createBufferSource(),gn=c.createGain();s.buffer=buf;gn.gain.value=g;s.connect(gn);gn.connect(c.destination);s.start(0)}).catch(function(){playHtml(n)})}
