@@ -1,8 +1,10 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Собери фразу</title>
-<meta name="robots" content="noindex"><meta name="theme-color" content="#0e1013">
-<script src="https://telegram.org/js/telegram-web-app.js" async></script>
+<meta name="robots" content="noindex"><meta name="theme-color" content="#0e1013"><meta name="color-scheme" content="dark">
+<style>html,body{background:#0e1013;color-scheme:dark}</style>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script>(function(){try{var w=window.Telegram&&Telegram.WebApp;if(!w)return;["setHeaderColor","setBackgroundColor","setBottomBarColor"].forEach(function(f){try{w[f]("#0e1013")}catch(e){}});try{w.ready()}catch(e){}}catch(e){}})()</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600;700&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
@@ -63,7 +65,8 @@ body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',syste
 .cwBtn:hover:not(:disabled){border-color:#3b82f6;background:rgba(59,130,246,.08)}.cwBtn:disabled{cursor:default}
 @keyframes cwPick{0%{border-color:#b6fe3b;background:rgba(182,254,59,.24);color:#b6fe3b}55%{border-color:#b6fe3b;background:rgba(182,254,59,.15);color:#b6fe3b}100%{border-color:#2a2d35;background:#12141d;color:#e0e0e0;opacity:.2}}
 .cwBtn.pick{animation:cwPick .75s cubic-bezier(.4,0,.6,1) forwards}.cwBtn.dim{opacity:.2;transition:opacity .2s ease}
-.exitRow{justify-content:center;padding:22px 0 calc(40px + env(safe-area-inset-bottom,0px))}
+.exitRow{justify-content:center;flex-direction:column;align-items:center;gap:12px;padding:22px 0 calc(40px + env(safe-area-inset-bottom,0px))}
+.moreChatBtn{display:flex;align-items:center;justify-content:center;min-width:180px;height:46px;padding:0 24px;background:#12141d;border:2px solid #2a2d35;border-radius:12px;font:inherit;font-size:15px;font-weight:600;color:#e0e0e0;cursor:pointer;touch-action:manipulation}.moreChatBtn:active{border-color:#b6fe3b}
 .exitBtn{display:flex;align-items:center;justify-content:center;min-width:180px;height:46px;padding:0 24px;background:#12141d;border:2px solid #b6fe3b;border-radius:12px;font:inherit;font-size:15px;font-weight:700;color:#b6fe3b;cursor:pointer;touch-action:manipulation;transition:background .15s,color .15s}
 .exitBtn:hover,.exitBtn:active{background:#b6fe3b;color:#000}
 /* голосовое сообщение: как в приложении (AudioModule + audio.css): кнопка, волна на canvas с заливкой прогресса, таймер */
@@ -123,10 +126,17 @@ body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',syste
 @media (prefers-reduced-motion:reduce){.sheen::before{animation:sheenStill .7s ease-out .05s both}@keyframes sheenStill{0%,100%{opacity:0}45%{opacity:1}}}
 .dbgBtn{position:fixed;top:calc(6px + env(safe-area-inset-top,0px));right:8px;z-index:200;height:22px;padding:0 8px;border-radius:11px;border:1px solid #2a2d35;background:rgba(18,20,29,.78);color:#6f7885;font:600 10px/20px 'Montserrat',system-ui,sans-serif;letter-spacing:.03em;cursor:pointer}
 .dbgBtn:active{color:#b6fe3b;border-color:#b6fe3b}
+.moreBtn{position:fixed;top:calc(6px + env(safe-area-inset-top,0px));left:8px;z-index:200;height:22px;padding:0 9px;border-radius:11px;border:1px solid #2a2d35;background:rgba(18,20,29,.78);color:#9aa0b4;font:600 10px/20px 'Montserrat',system-ui,sans-serif;letter-spacing:.03em;cursor:pointer}.moreBtn:active{color:#b6fe3b;border-color:#b6fe3b}
+.morePanel{position:fixed;inset:0;z-index:300;display:none;flex-direction:column;background:#0e1013;padding-top:env(safe-area-inset-top,0px)}.morePanel.on{display:flex}
+.moreHead{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px;font-size:16px;color:#e0e0e0}.moreHead button{background:none;border:0;color:#9aa0b4;font:inherit;font-size:20px;padding:4px 8px;cursor:pointer}
+.moreList{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:4px 16px calc(24px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px}
+.moreItem{display:flex;align-items:center;justify-content:space-between;width:100%;background:#1a1d22;border:2px solid transparent;border-radius:14px;padding:13px 16px;font:inherit;font-size:15px;color:#e0e0e0;text-align:left;cursor:pointer}.moreItem:active{border-color:#b6fe3b}.moreItem .st{font-size:13px;color:#6f7885}.moreItem.ok .st{color:#b6fe3b;font-weight:700}
+.moreNote{color:#6f7885;font-size:14px;padding:8px 2px}
 .dbgBox{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.86);display:none;flex-direction:column;gap:8px;padding:12px}
 .dbgBox.on{display:flex}.dbgBox textarea{flex:1;background:#12141d;color:#cfd6e4;border:1px solid #2a2d35;border-radius:10px;padding:8px;font:11px/1.35 Consolas,monospace;resize:none}
 .dbgBox button{height:38px;border-radius:10px;border:2px solid #b6fe3b;background:#12141d;color:#b6fe3b;font:700 14px 'Montserrat',system-ui,sans-serif}
 </style></head><body>
+<button class="moreBtn" id="moreBtn" aria-label="Другие фразы">Фразы</button><div class="morePanel" id="morePanel"><div class="moreHead"><b>Другие фразы</b><button id="moreClose" aria-label="Закрыть">✕</button></div><div class="moreList" id="moreList"></div></div>
 <button class="dbgBtn" id="dbgBtn" aria-label="Лог">лог</button><div class="dbgBox" id="dbgBox"><textarea id="dbgTa" readonly></textarea><button id="dbgCopy">Скопировать</button><button id="dbgReset" style="border-color:#f87171;color:#f87171">Сбросить прогресс и начать заново</button><button id="dbgClose" style="border-color:#2a2d35;color:#9aa0b4">Закрыть</button></div>
 <div class="veil" id="veil"><span class="spin"></span></div>
 <div id="app"><div class="playerFeed" id="outer"><div class="inner" id="inner"><div id="feed"></div><div id="spacer"></div></div></div></div>
@@ -147,7 +157,7 @@ function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.len
 window.__L=L;
 function tg(){var w=window.Telegram&&Telegram.WebApp;return w?("tg "+w.platform+" v"+w.version+" vh="+w.viewportHeight+" stable="+w.viewportStableHeight+" exp="+w.isExpanded):"без Telegram"}
 function snap(why){var f=document.getElementById("feed"),o=document.getElementById("outer"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollTop="+Math.round(o?o.scrollTop:0)+" scrollH="+(o?o.scrollHeight:0)+"/"+(o?o.clientHeight:0)+" docScroll="+Math.round(scrollY)+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
-var PAGE_V="2026-11-17.1";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
+var PAGE_V="2026-11-17.2";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
 window.addEventListener("error",function(e){L("ОШИБКА: "+e.message+" @"+(e.filename||"").split("/").pop()+":"+e.lineno)});
 window.addEventListener("unhandledrejection",function(e){L("ОШИБКА промиса: "+(e.reason&&e.reason.message||e.reason))});
 // самообновление: Safari и GitHub Pages держат старый HTML в кэше. Раз за сессию страница запрашивает свежую копию и, если версия другая, перезагружается
@@ -209,6 +219,7 @@ window.TS={on:ON,
  track:function(kind,o){if(!ON)return;Q.push(ev(kind,o));if(Q.length>200)Q.shift();schedule()},
  step:function(s){STEP=s;this.track("step",{step:s})},
  solved:function(){SOLVED=true},
+ done:function(){try{return loadP().done||{}}catch(e){return{}}},
  flush:flush,
  // записать результат в личную статистику; повторное открытие уже решённого задания счётчики не увеличивает
  record:function(attempt){var p=loadP();p.done=p.done||{};var isNew=!p.done[TASK];
@@ -417,8 +428,22 @@ function start(C){
  function triesLeft(n){return n===1?"Осталась ещё одна попытка":"Осталось ещё "+n+" попытки"}
 
  // ── перевод под плавающими точками: нажатие на точки раскрывает перевод (брендовый зелёный)
- function exitBtn(){var r=document.createElement("div");r.className="row exitRow";r.innerHTML='<button class="exitBtn">Выйти</button>';feed.appendChild(r);scrollNow();slideIn(r,false);
-  r.querySelector("button").onclick=function(){TS.track("exit_click");TS.flush(true);try{if(window.Telegram&&Telegram.WebApp&&Telegram.WebApp.initData){Telegram.WebApp.close();return}}catch(e){}try{window.close()}catch(e){}later(function(){r.innerHTML='<div class="bubble sys">Можно закрыть эту страницу</div>'},300)}}
+ // список других заданий: загружается только по нажатию (tasks.json), поэтому на запуск страницы не влияет
+ var moreLoaded=null;
+ function openMore(){var P=$("#morePanel"),L=$("#moreList");P.classList.add("on");TS.track("more_open");
+  if(moreLoaded){drawMore(moreLoaded);return}
+  L.innerHTML='<div class="moreNote">Загружаю…</div>';
+  fetch("tasks.json?v="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(j){moreLoaded=(j&&j.items)||(Array.isArray(j)?j:[]);drawMore(moreLoaded)}).catch(function(){L.innerHTML='<div class="moreNote">Не удалось загрузить список. Попробуй ещё раз позже.</div>'})}
+ function drawMore(items){var L=$("#moreList"),cur=String(C.id||C.a||""),done=TS.done();
+  var list=items.filter(function(x){return x&&x.id&&String(x.id)!==cur&&!/^x/.test(String(x.id))});
+  if(!list.length){L.innerHTML='<div class="moreNote">Других фраз пока нет. Они появятся с новыми постами.</div>';return}
+  L.innerHTML="";list.forEach(function(x){var b=document.createElement("button"),ok=!!done[x.id],d=x.at?new Date(Number(x.at)).toLocaleDateString("ru-RU",{day:"numeric",month:"long"}):"";
+   b.className="moreItem"+(ok?" ok":"");b.innerHTML="<span>Фраза"+(d?" · "+d:"")+'</span><span class="st">'+(ok?"✓ собрана":"новая")+"</span>";
+   b.onclick=function(){TS.track("more_pick",{props:{to:String(x.id)}});TS.flush(true);location.hash=String(x.id);location.reload()};L.appendChild(b)})}
+ $("#moreBtn").onclick=function(){TS.track("more_corner");openMore()};
+ $("#moreClose").onclick=function(){$("#morePanel").classList.remove("on")};
+ function exitBtn(){var r=document.createElement("div");r.className="row exitRow";r.innerHTML='<button class="moreChatBtn">Другие фразы</button><button class="exitBtn">Выйти</button>';feed.appendChild(r);r.querySelector(".moreChatBtn").onclick=function(){TS.track("more_chat");openMore()};scrollNow();slideIn(r,false);
+  r.querySelector(".exitBtn").onclick=function(){TS.track("exit_click");TS.flush(true);try{if(window.Telegram&&Telegram.WebApp&&Telegram.WebApp.initData){Telegram.WebApp.close();return}}catch(e){}try{window.close()}catch(e){}later(function(){r.innerHTML='<div class="bubble sys">Можно закрыть эту страницу</div>'},300)}}
 
  // ── финал: фраза ответом, смайлик отдельным сообщением, перевод под точками, «скоро выйдет разбор», «Выйти»
  // мотивация: личные итоги из браузера человека и (если людей набралось достаточно) общий процент по этому заданию
