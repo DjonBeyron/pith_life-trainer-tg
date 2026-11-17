@@ -4,7 +4,7 @@
 <meta name="robots" content="noindex"><meta name="theme-color" content="#0e1013"><meta name="color-scheme" content="dark">
 <style>html,body{background:#0e1013;color-scheme:dark}body{opacity:0}body.on{opacity:1;transition:opacity .22s ease-out}@keyframes showAnyway{to{opacity:1}}body{animation:showAnyway 0s 3s forwards}</style>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script>(function(){try{var w=window.Telegram&&Telegram.WebApp;if(!w)return;["setHeaderColor","setBackgroundColor","setBottomBarColor"].forEach(function(f){try{w[f]("#0e1013")}catch(e){}});try{w.ready()}catch(e){}}catch(e){}})()</script>
+<script>(function(){try{var w=window.Telegram&&Telegram.WebApp;if(!w)return;["setHeaderColor","setBackgroundColor","setBottomBarColor"].forEach(function(f){try{w[f]("#0e1013")}catch(e){}});try{if(w.initData)document.documentElement.style.setProperty("--lift","36px")}catch(e){}try{w.ready()}catch(e){}}catch(e){}})()</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600;700&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'"><noscript><link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600;700&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet"></noscript>
 <style>
@@ -17,7 +17,7 @@ body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',syste
 /* Система чата приложения (PlayerFeed + feed.css): корень fixed, лента - отдельный прокручиваемый контейнер, перевёрнутый дважды (scaleY(-1)),
    поэтому scrollTop=0 = нижний край чата и новое сообщение видно без единой прокрутки; страница сама не прокручивается и дёргаться ей нечему.
    Индикатор «печатает» лежит вне потока в постоянно зарезервированном месте (--wait-slot), его появление ничего не двигает. */
-:root{--wait-slot:28px;--safe-b:env(safe-area-inset-bottom,0px)}
+:root{--wait-slot:28px;--lift:0px;--safe-b:calc(env(safe-area-inset-bottom,0px) + var(--lift))}   /* --lift: подъём всего нижнего интерфейса (в Mini App Telegram он задаётся скриптом), панели при этом тянутся фоном до низа экрана */
 #app{position:fixed;inset:0;display:flex;flex-direction:column;background:#0e1013}
 #app::after{content:'';position:absolute;left:0;right:0;bottom:0;height:calc(12px + var(--safe-b) + var(--wait-slot));pointer-events:none;z-index:90;background:linear-gradient(to top,rgba(14,16,19,1) 0%,rgba(14,16,19,.78) 28%,rgba(14,16,19,.42) 56%,rgba(14,16,19,.16) 80%,transparent 100%)}
 .playerFeed{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;transform:scaleY(-1);overflow-anchor:none;overscroll-behavior:none;padding:calc(12px + var(--safe-b) + var(--wait-slot)) 0 12px;scrollbar-width:none}
@@ -65,7 +65,7 @@ body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',syste
 .cwBtn:hover:not(:disabled){border-color:#3b82f6;background:rgba(59,130,246,.08)}.cwBtn:disabled{cursor:default}
 @keyframes cwPick{0%{border-color:#b6fe3b;background:rgba(182,254,59,.24);color:#b6fe3b}55%{border-color:#b6fe3b;background:rgba(182,254,59,.15);color:#b6fe3b}100%{border-color:#2a2d35;background:#12141d;color:#e0e0e0;opacity:.2}}
 .cwBtn.pick{animation:cwPick .75s cubic-bezier(.4,0,.6,1) forwards}.cwBtn.dim{opacity:.2;transition:opacity .2s ease}
-.exitRow{justify-content:center;flex-direction:column;align-items:center;gap:12px;padding:22px 0 calc(40px + env(safe-area-inset-bottom,0px))}
+.exitRow{justify-content:center;flex-direction:column;align-items:center;gap:12px;padding:22px 0 calc(40px + var(--safe-b))}
 .moreChatBtn{display:flex;align-items:center;justify-content:center;min-width:180px;height:46px;padding:0 24px;background:#12141d;border:2px solid #2a2d35;border-radius:12px;font:inherit;font-size:15px;font-weight:600;color:#e0e0e0;cursor:pointer;touch-action:manipulation}.moreChatBtn:active{border-color:#b6fe3b}
 .exitBtn{display:flex;align-items:center;justify-content:center;min-width:180px;height:46px;padding:0 24px;background:#12141d;border:2px solid #b6fe3b;border-radius:12px;font:inherit;font-size:15px;font-weight:700;color:#b6fe3b;cursor:pointer;touch-action:manipulation;transition:background .15s,color .15s}
 .exitBtn:hover,.exitBtn:active{background:#b6fe3b;color:#000}
@@ -94,7 +94,7 @@ body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',syste
 .tr{display:grid;place-items:start}.tr>*{grid-area:1/1;transition:opacity .4s ease,transform .4s ease}
 .tr .txt{opacity:0;transform:translateY(8px);pointer-events:none}.tr.on .rv{opacity:0;transform:scale(.94);pointer-events:none}.tr.on .txt{opacity:1;transform:none}
 /* панель ответа */
-.phrasePanel{position:fixed;left:0;right:0;bottom:0;background:#1a1d22;border-top:1px solid #2a2d35;transform:translateY(100%);z-index:80;padding-bottom:env(safe-area-inset-bottom,0)}
+.phrasePanel{position:fixed;left:0;right:0;bottom:0;background:#1a1d22;border-top:1px solid #2a2d35;transform:translateY(100%);z-index:80;padding-bottom:var(--safe-b)}
 .phrasePanel.show{transform:translateY(0)}
 .phraseInner{max-width:600px;margin:0 auto;display:flex;flex-direction:column;gap:10px;padding:12px 16px 14px}
 .phraseCounter{font-size:11px;color:#555d72;text-align:right;letter-spacing:.02em;opacity:0;transition:opacity .3s;min-height:16px}.phraseCounter.on{opacity:1}
@@ -129,7 +129,7 @@ body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',syste
 .moreBtn{position:fixed;top:calc(6px + env(safe-area-inset-top,0px));left:8px;z-index:200;height:22px;padding:0 9px;border-radius:11px;border:1px solid #2a2d35;background:rgba(18,20,29,.78);color:#9aa0b4;font:600 10px/20px 'Montserrat',system-ui,sans-serif;letter-spacing:.03em;cursor:pointer}.moreBtn:active{color:#b6fe3b;border-color:#b6fe3b}
 .morePanel{position:fixed;inset:0;z-index:300;display:none;flex-direction:column;background:#0e1013;padding-top:env(safe-area-inset-top,0px)}.morePanel.on{display:flex}
 .moreHead{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px;font-size:16px;color:#e0e0e0}.moreHead button{background:none;border:0;color:#9aa0b4;font:inherit;font-size:20px;padding:4px 8px;cursor:pointer}
-.moreList{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:4px 16px calc(24px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px}
+.moreList{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:4px 16px calc(24px + var(--safe-b));display:flex;flex-direction:column;gap:8px}
 .moreItem{display:flex;align-items:center;justify-content:space-between;width:100%;background:#1a1d22;border:2px solid transparent;border-radius:14px;padding:13px 16px;font:inherit;font-size:15px;color:#e0e0e0;text-align:left;cursor:pointer}.moreItem:active{border-color:#b6fe3b}.moreItem .st{font-size:13px;color:#6f7885}.moreItem.ok .st{color:#b6fe3b;font-weight:700}
 .moreNote{color:#6f7885;font-size:14px;padding:8px 2px}
 .dbgBox{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.86);display:none;flex-direction:column;gap:8px;padding:12px}
@@ -157,7 +157,7 @@ function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.len
 window.__L=L;
 function tg(){var w=window.Telegram&&Telegram.WebApp;return w?("tg "+w.platform+" v"+w.version+" vh="+w.viewportHeight+" stable="+w.viewportStableHeight+" exp="+w.isExpanded):"без Telegram"}
 function snap(why){var f=document.getElementById("feed"),o=document.getElementById("outer"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollTop="+Math.round(o?o.scrollTop:0)+" scrollH="+(o?o.scrollHeight:0)+"/"+(o?o.clientHeight:0)+" docScroll="+Math.round(scrollY)+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
-var PAGE_V="2026-11-17.5";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
+var PAGE_V="2026-11-17.6";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
 window.addEventListener("error",function(e){L("ОШИБКА: "+e.message+" @"+(e.filename||"").split("/").pop()+":"+e.lineno)});
 window.addEventListener("unhandledrejection",function(e){L("ОШИБКА промиса: "+(e.reason&&e.reason.message||e.reason))});
 // самообновление: Safari и GitHub Pages держат старый HTML в кэше. Раз за сессию страница запрашивает свежую копию и, если версия другая, перезагружается
