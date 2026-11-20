@@ -135,6 +135,25 @@ body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',syste
 .dbgBox{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.86);display:none;flex-direction:column;gap:8px;padding:12px}
 .dbgBox.on{display:flex}.dbgBox textarea{flex:1;background:#12141d;color:#cfd6e4;border:1px solid #2a2d35;border-radius:10px;padding:8px;font:11px/1.35 Consolas,monospace;resize:none}
 .dbgBox button{height:38px;border-radius:10px;border:2px solid #b6fe3b;background:#12141d;color:#b6fe3b;font:700 14px 'Montserrat',system-ui,sans-serif}
+/* модуль «лесенка» вместо замедленного голосового: плитки со спектром слов; нажатие играет слово по кругу, кружок между плитками связывает соседние */
+.bubble.lad{background:#14101f;border:1px solid #2c2147;padding:12px 13px;max-width:96%;overflow:visible;margin-top:12px;width:fit-content}
+.ladRow{display:flex;align-items:stretch;position:relative}
+.ladT{flex:none;height:40px;border-radius:12px;background:#1a1230;border:1px solid #34254f;position:relative;overflow:hidden;cursor:pointer;transition:border-color .15s,background .15s,box-shadow .15s,border-radius .5s cubic-bezier(.4,0,.2,1)}
+.ladT canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block;pointer-events:none}
+.ladT.on{border-color:#b57cff;background:linear-gradient(180deg,#8f2ff2,#7523d6);box-shadow:0 0 15px rgba(150,70,255,.35)}
+.ladT.lkr{border-top-right-radius:6px;border-bottom-right-radius:6px}.ladT.lkl{border-top-left-radius:6px;border-bottom-left-radius:6px}
+.ladJ{flex:none;width:5px;position:relative;transition:width .5s cubic-bezier(.4,0,.2,1)}.ladJ.on{width:1.5px}
+.ladJ i{position:absolute;left:50%;top:50%;width:9px;height:9px;margin:-4.5px 0 0 -4.5px;box-sizing:border-box;border:1.5px solid #8a63d6;background:#14101f;border-radius:50%;cursor:pointer;z-index:3;transition:background .18s,border-color .18s,transform .18s}
+.ladJ i::after{content:'';position:absolute;inset:-9px -8px}
+.ladJ.on i{background:#a770ff;border-color:#c9a6ff}
+.ladJ.hint i{animation:ladDp 1.3s ease-in-out infinite;border-color:#c9a6ff;background:#7a2fe0}
+.ladJ.hint::before,.ladJ.hint::after{content:'';position:absolute;left:50%;top:50%;width:9px;height:9px;margin:-4.5px 0 0 -4.5px;box-sizing:border-box;border:1.5px solid #b98cff;border-radius:50%;pointer-events:none;z-index:2;animation:ladWv 1.8s ease-out infinite}.ladJ.hint::after{animation-delay:.9s}
+@keyframes ladDp{0%,100%{transform:scale(1)}50%{transform:scale(1.35)}}@keyframes ladWv{0%{transform:scale(1);opacity:.9}100%{transform:scale(4.2);opacity:0}}
+.ladBr{position:absolute;left:0;top:-21px;height:21px;width:0;opacity:0;transition:opacity .15s;pointer-events:none;z-index:5}.ladBr.on{opacity:1}
+.ladBsv{position:absolute;left:0;top:0;overflow:visible;-webkit-mask-image:linear-gradient(180deg,#000 0,#000 60%,rgba(0,0,0,.6) 100%);mask-image:linear-gradient(180deg,#000 0,#000 60%,rgba(0,0,0,.6) 100%)}
+.ladBsv path{fill:none;stroke:#a770ff;stroke-width:1.6;stroke-dasharray:2.2 3;stroke-linecap:round}
+.ladBl{position:absolute;left:50%;top:-8px;transform:translateX(-50%);background:#7a2fe0;color:#fff;font-size:8.5px;font-weight:700;line-height:1;padding:3px 6px;border-radius:7px;white-space:nowrap;box-shadow:0 0 8px rgba(150,70,255,.4)}
+.row.ladRowWrap{margin-top:16px}
 </style></head><body>
 <button class="moreBtn" id="moreBtn" aria-label="Другие фразы">Фразы</button><div class="morePanel" id="morePanel"><div class="moreHead"><b>Другие фразы</b><button id="moreClose" aria-label="Закрыть">✕</button></div><div class="moreList" id="moreList"></div></div>
 <button class="dbgBtn" id="dbgBtn" aria-label="Лог">лог</button><div class="dbgBox" id="dbgBox"><textarea id="dbgTa" readonly></textarea><button id="dbgCopy">Скопировать</button><button id="dbgReset" style="border-color:#f87171;color:#f87171">Сбросить прогресс и начать заново</button><button id="dbgClose" style="border-color:#2a2d35;color:#9aa0b4">Закрыть</button></div>
@@ -157,7 +176,7 @@ function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.len
 window.__L=L;
 function tg(){var w=window.Telegram&&Telegram.WebApp;return w?("tg "+w.platform+" v"+w.version+" vh="+w.viewportHeight+" stable="+w.viewportStableHeight+" exp="+w.isExpanded):"без Telegram"}
 function snap(why){var f=document.getElementById("feed"),o=document.getElementById("outer"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollTop="+Math.round(o?o.scrollTop:0)+" scrollH="+(o?o.scrollHeight:0)+"/"+(o?o.clientHeight:0)+" docScroll="+Math.round(scrollY)+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
-var PAGE_V="2026-11-17.6";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
+var PAGE_V="2026-11-19.1-lad";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
 window.addEventListener("error",function(e){L("ОШИБКА: "+e.message+" @"+(e.filename||"").split("/").pop()+":"+e.lineno)});
 window.addEventListener("unhandledrejection",function(e){L("ОШИБКА промиса: "+(e.reason&&e.reason.message||e.reason))});
 // самообновление: Safari и GitHub Pages держат старый HTML в кэше. Раз за сессию страница запрашивает свежую копию и, если версия другая, перезагружается
@@ -285,7 +304,7 @@ function decodeWaveBuf(buf){var AC=window.AudioContext||window.webkitAudioContex
 function loadWave(url){return fetch(url).then(function(r){if(window.__L)window.__L("звук "+url+" → HTTP "+r.status);if(!r.ok)return null;return r.arrayBuffer().then(function(b){return decodeWaveBuf(b).then(function(w){return{w:w}},function(){return{w:null}})})},function(e){if(window.__L)window.__L("звук "+url+" → сеть: "+e);return null})}
 
 function start(C){
- var AK=C.id||C.a||"",SK=C.id?C.id+"s":(C.s||""),AP=C.pre||(C.a?loadWave("a/"+C.a+".mp3"):Promise.resolve(null)),SP=C.preS||(SK?loadWave("a/"+SK+".mp3"):Promise.resolve(null));
+ var AK=C.id||C.a||"",SK=C.id?C.id+"s":(C.s||""),AP=C.pre||(C.a?loadWave("a/"+C.a+".mp3"):Promise.resolve(null)),SP=C.preS||(SK?loadWave("a/"+SK+".mp3"):Promise.resolve(null)),LP=(C.l&&C.l.length&&AK)?loadBuf("a/"+AK+".mp3"):null;
  var KEY="trainer:"+C.e+(C.t?":"+C.t:""),S={left:TRIES,until:0,solved:false};
  try{var s=JSON.parse(localStorage.getItem(KEY)||"null");if(s)S=s}catch(e){}
  if(S.until&&Date.now()>=S.until)S={left:TRIES,until:0,solved:false};
@@ -534,12 +553,65 @@ function start(C){
    else msg("hint bad","Собери фразу из "+toks.length+" "+(toks.length%10===1&&toks.length!==11?"слова":"слов")+".");
    later(function(){later(function(){sys(triesLeft(S.left))},700);rowA.classList.remove("err");red=[];busy=false;draw()},REACT+200)},900)};
 
+ // ── модуль «лесенка»: сообщение из плиток со спектром слов; нажатие играет слово (или связанные слова) по кругу с щелчком посередине паузы
+ var CLICK_B64="AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAuAAAAAAAAAA4AAAAAAAAALgAAAAAAAAAOAAAAAAAAAC4AAAAAAAAADgAAAC4AAAAuAAAADgAAAAAAAAAuAAAAAAAAAA4AAAAAAAAALgAAAAAAAAAOAAAALgAAAC4AAAAOAAAADgAAAC4AAAAuAAAADgAAAAAAACAuAAAAAAAAIA4AAAAAAAAgLgAAAAAAACAOAAAALgAAIC4AAAAOAAAADgAAIC4AAAAuAAAgDgAAAA4AACAuAAAAAAAAMA4AAAAAAAAwLgAAAA4AACAOAAAgLgAAMC4AADAOAAAgDgAACC5AAAAuQAAADkAAAA4AABAuQAAgDgAAIA5AAAguQAAYLkAAPA5AABQugAA4bsAgH68AEClvAAAirwAAAC8AAASOwAALjwAwIQ8AICRPACAbzwAAAQ8AABgOQAA6rsAAEu8AABpvACASbwAAPu7AADcugAAjDsAgA48AIArPACAGzwAANU7AAAUOwAAJLsAANe7AAAQvACADrwAANa7AAA4uwAAxDoAAK87AAD+OwAABzwAANs7AABgOwAAELoAAIa7AADUuwAA7rsAAM27AAByuwAAoLkAAD47AACrOwAAzTsAAL07AAB+OwAAiDoAAAC7AACOuwAAtrsAAK67AAB2uwAAuLoAAJQ6AABSOwAAkDsAAJE7AABeOwAAzDoAABi6AAAeuwAAYrsAAG67AABAuwAA0LoAAMA4AADQOgAAIjsAAC47AAASOwAArDoAAMA4AACEugAA5LoAAPS6AAC4ugAAMLoAAAA4AAAIOgAAUDoAAGA6AAAwOgAAoDkAAIC4AACguQAAoLkAACC5AAAAOAAAIDkAAAA5AAAAAAAAgLgAAIC4AADAuAAAALkAAAC5AACAuAAAADgAAAA5AAAAOQAAgDgAAAAAAAAAuAAAALgAAAC4AAAAAAAAADgAAIA4AACAOAAAAAAAAIC4AADAuAAAALkAAAC5AACAuAAAAAAAAIA4AADAOAAAwDgAAIA4AAAAAAAAALgAAAC4AAAAuAAAAAAAAAA4AAAAOAAAADgAAAAAAACAuAAAwLgAAAC5AADAuAAAALgAAIA4AAAAOQAAADkAAAA5AACAOAAAAAAAAIC4AADAuAAAwLgAAIC4AAAAuAAAAAAAAAA4AAAAOAAAADgAAAA4AAAAOAAAAAAAAAAAAAAAuAAAALgAAAC4AAAAuAAAAAAAAAA4AAAAOAAAADgAAAA4AAAAOAAAADgAAAAAAAAAAAAAALgAAIC4AADAuAAAwLgAAIC4AAAAAAAAgDgAAAA5AAAAOQAAADkAAIA4AAAAAAAAgLgAAMC4AADAuAAAwLgAAAC4AAAAAAAAADgAAAA4AAAAOAAAADgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADgAAAA4AAAAOAAAAAAAAAAAAAAAuAAAALgAAAC4AAAAAAAAAAAAAAA4AAAAOAAAADgAAAAAAAAAAAAAALgAAAC4AAAAuAAAAAAAAAAAAAAAOAAAADgAAAA4AAAAOAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC4AAAAuAAAALgAAAAAAAAAAAAAAAAAAAA4AAAAOAAAADgAAAA4AAAAAAAAAAAAAAC4AAAAuAAAALgAAAC4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",CLICK=null;
+ function clickData(sr){if(!CLICK){var bin=atob(CLICK_B64),u=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);CLICK=new Float32Array(u.buffer)}
+  if(sr===48000)return CLICK;var n=Math.max(1,Math.round(CLICK.length*sr/48000)),o=new Float32Array(n);for(var j=0;j<n;j++){var q=j*48000/sr,k=Math.floor(q),f=q-k;o[j]=(CLICK[k]||0)*(1-f)+(CLICK[k+1]||0)*f}return o}
+ function wordWord(n){var a=n%10,b=n%100;return b>=11&&b<=14?"слов":a===1?"слово":a>=2&&a<=4?"слова":"слов"}
+ function ladderBubble(buf,words,onHeard){
+  var ac=acx();if(!buf||!ac||!words||!words.length)return null;
+  var sr=buf.sampleRate,data=buf.getChannelData(0),n=words.length,TG=10/60,PERIOD=.85;
+  function curve(x){x=Math.max(0,Math.min(1,x));return Math.pow(x,1.5)}
+  function seg(a,b,fl,fr){var i0=Math.max(0,Math.round(a*sr)),i1=Math.min(data.length,Math.round(b*sr)),o=new Float32Array(Math.max(0,i1-i0)),i;for(i=0;i<o.length;i++)o[i]=data[i0+i];
+   var L=Math.min(o.length,Math.ceil(fl*sr)),R=Math.min(o.length,Math.ceil(fr*sr));for(i=0;i<L;i++)o[i]*=curve(i/(fl*sr));for(i=0;i<R;i++)o[o.length-1-i]*=curve(i/(fr*sr));return o}
+  function peak(a,b){var i0=Math.max(0,Math.floor(a*sr)),i1=Math.min(data.length,Math.ceil(b*sr)),m=0;for(var i=i0;i<i1;i++){var v=data[i]<0?-data[i]:data[i];if(v>m)m=v}return m}
+  var vmax=1e-6,k;for(k=0;k<n;k++)vmax=Math.max(vmax,peak(words[k].a,words[k].b));
+  var h=document.createElement("div");h.className="ladWrap";var tiles="";
+  for(k=0;k<n;k++){tiles+='<div class="ladT" data-i="'+k+'" style="width:'+Math.max(18,(72+(words[k].b-words[k].a)*110)*.6)+'px"><canvas></canvas></div>'+(k<n-1?'<div class="ladJ" data-j="'+k+'"><i></i></div>':"")}
+  h.innerHTML='<div class="ladRow"><div class="ladBr"><svg class="ladBsv"><path d=""/></svg><span class="ladBl"></span></div>'+tiles+'</div>';
+  var b=msg("lad",h,true);b.parentNode.classList.add("ladRowWrap");
+  var T=[].slice.call(h.querySelectorAll(".ladT")),J=[].slice.call(h.querySelectorAll(".ladJ")),br=h.querySelector(".ladBr"),bl=h.querySelector(".ladBl"),row=h.querySelector(".ladRow");
+  // плитки по ширине экрана: если не помещаются, сжимаются все вместе
+  later(function(){var room=feed.clientWidth*.94-28,tot=row.scrollWidth;if(tot>room){var kf=room/tot;T.forEach(function(el){el.style.width=Math.max(18,el.offsetWidth*kf)+"px"})}paintAll()},30);
+  var link=words.map(function(){return false}),heard={},hinted=false,cur=null,src=null,raf=0;
+  // столбики как у волны голосового: 2 px, шаг 4 px, от нижней границы, скруглены сверху; громкость к самому громкому слову, степень 0,55
+  function paint(i,p,act){var w=words[i],cv=T[i].querySelector("canvas"),dpr=window.devicePixelRatio||1,W=cv.clientWidth,H=cv.clientHeight;if(!W||!H)return;var pw=Math.round(W*dpr),ph=Math.round(H*dpr);if(cv.width!==pw||cv.height!==ph){cv.width=pw;cv.height=ph}
+   var c=cv.getContext("2d"),nb=Math.max(4,Math.floor((W-8)/4)),x0=(W-(nb*4-2))/2,len=w.b-w.a;c.clearRect(0,0,pw,ph);c.save();c.scale(dpr,dpr);
+   for(var q=0;q<nb;q++){var l0=q/nb*len,l1=(q+1)/nb*len,m=peak(w.a+l0,w.a+Math.max(l1,l0+.002)),mid=(l0+l1)/2,env=1;
+    if(w.fl>0)env*=curve(mid/w.fl);if(w.fr>0)env*=curve((len-mid)/w.fr);var hh=Math.max(2,Math.pow(Math.min(1,m*env/vmax),.55)*(H-6)*.95),bx=x0+q*4,by=H-3-hh;
+    c.fillStyle=!act?"#7e6aa8":(q+.5)/nb<=p?"#ffffff":"rgba(255,255,255,.5)";c.beginPath();if(c.roundRect)c.roundRect(bx,by,2,hh,[2,2,1,1]);else c.rect(bx,by,2,hh);c.fill()}
+   c.restore()}
+  function paintAll(){for(var i=0;i<n;i++)paint(i,0,false)}
+  if(window.ResizeObserver)new ResizeObserver(function(){if(!cur)paintAll()}).observe(h);
+  function group(i){var a=i,b=i;while(a>0&&link[a-1])a--;while(b<n-1&&link[b])b++;return[a,b]}
+  function stop(){cancelAnimationFrame(raf);raf=0;if(src){try{src.onended=null;src.stop()}catch(e){}src=null}cur=null;br.classList.remove("on");T.forEach(function(el){el.classList.remove("on")});paintAll()}
+  function play(i,force){var g=group(i),a=g[0],b=g[1];if(!force&&cur&&cur.a===a&&cur.b===b){stop();return}
+   cancelAnimationFrame(raf);if(src){try{src.onended=null;src.stop()}catch(e){}src=null}
+   var q;for(q=a;q<=b;q++)heard[q]=1;
+   if(!hinted&&J[0]&&!link[0]&&Object.keys(heard).length>=n){J[0].classList.add("hint");if(onHeard)onHeard()}
+   var sa=words[a].a,sb=words[b].b,sg=seg(sa,sb,words[a].fl||0,words[b].fr||0),gap=Math.round(Math.max(TG,PERIOD-sg.length/sr)*sr),bf=new Float32Array(sg.length+gap),ck=clickData(sr);bf.set(sg);bf.set(ck,sg.length+Math.max(0,Math.round((gap-ck.length)/2)));
+   var ab=ac.createBuffer(1,bf.length,sr);ab.getChannelData(0).set(bf);if(ac.state==="suspended")try{ac.resume()}catch(e){}
+   var s0=ac.createBufferSource();s0.buffer=ab;s0.loop=true;s0.loopStart=0;s0.loopEnd=bf.length/sr;s0.connect(ac.destination);src=s0;
+   var t0=ac.currentTime,dur=sg.length/sr,total=bf.length/sr;cur={a:a,b:b,anchor:i};s0.start(0);
+   var first=T[a],last=T[b],bw=last.offsetLeft+last.offsetWidth-first.offsetLeft,bh=br.offsetHeight||21,rr=Math.min(bh,bw/2-1),sv=br.querySelector("svg");
+   br.style.left=first.offsetLeft+"px";br.style.width=bw+"px";sv.setAttribute("width",bw);sv.setAttribute("height",bh);sv.firstChild.setAttribute("d","M1 "+bh+" V"+rr+" Q1 1 "+rr+" 1 H"+(bw-rr)+" Q"+(bw-1)+" 1 "+(bw-1)+" "+rr+" V"+bh);
+   bl.textContent=a===b?(a+1)+" слово":b===a+1?(a+1)+" и "+(b+1)+" слова":(a+1)+"–"+(b+1)+" слова";br.classList.add("on");
+   if(window.TS)TS.track("ladder_play",{props:{a:a,b:b}});
+   (function tick(){raf=requestAnimationFrame(tick);var e0=((ac.currentTime-t0)%total+total)%total,t=sa+Math.min(dur,e0)/dur*(sb-sa);
+    for(var j=0;j<n;j++){var inG=j>=a&&j<=b;T[j].classList.toggle("on",inG);paint(j,inG?Math.max(0,Math.min(1,(t-words[j].a)/Math.max(.001,words[j].b-words[j].a))):0,inG)}})()}
+  function toggleLink(j){var demo=j===0&&!hinted;if(demo){hinted=true;J[0].classList.remove("hint")}link[j]=!link[j];J[j].classList.toggle("on",link[j]);T[j].classList.toggle("lkr",link[j]);T[j+1].classList.toggle("lkl",link[j]);
+   if(demo&&link[0]){play(0,true);return}
+   if(cur){var g=group(cur.anchor);if(g[0]!==cur.a||g[1]!==cur.b)play(cur.anchor,true)}}
+  h.addEventListener("click",function(e){var j=e.target.closest&&e.target.closest(".ladJ");if(j){toggleLink(+j.getAttribute("data-j"));return}var t=e.target.closest&&e.target.closest(".ladT");if(t)play(+t.getAttribute("data-i"))});
+  return{stop:stop}}
+ function loadBuf(url){var c=acx();if(!c)return Promise.resolve(null);return fetch(url).then(function(r){return r.ok?r.arrayBuffer():null}).then(function(b){return b?new Promise(function(res){c.decodeAudioData(b,res,function(){res(null)})}):null}).catch(function(){return null})}
+
  // ── запуск: точки «печатает», реплика, точки, голосовое с дорожкой звука (его можно слушать и ставить на повтор), затем панель выезжает снизу
  function afterVoice(){
   if(S.solved){later(function(){finale(false)},500);return}
   if(locked()){later(function(){msg("hint bad","Попытки закончились. Следующая попытка откроется "+atTxt(S.until)+".");lockUi();statLine(0)},500);setInterval(function(){if(S.until&&Date.now()>=S.until)location.reload();else $("#lc").textContent=leftTxt(S.until-Date.now())},30000);return}
   draw();later(openPanel,600)}
- var AU,SU;AP.then(function(v){AU=v;TS.track("audio_ready",{props:{ok:!!v}})});SP.then(function(v){SU=v});
+ var AU,SU,LPv=null;AP.then(function(v){AU=v;TS.track("audio_ready",{props:{ok:!!v}})});SP.then(function(v){SU=v});if(LP)LP.then(function(v){LPv=v});
  // слушание. Первое голосовое: следующее сообщение выходит только после того, как человек дослушал его до конца; если он не нажимал играть, через 12 с мягкая подсказка.
  function heard(vc){return new Promise(function(res){vc.ended.then(function(){later(res,400)});later(function(){if(!vc.played())sys("Нажми кнопку воспроизведения, чтобы послушать")},12000)})}
  // Второе голосовое: дослушано, либо через ms мс, если его не включали (если уже играет, ждём конец, но не дольше 15 с)
@@ -556,6 +628,7 @@ function start(C){
    later(function(){typing(TYPE_VOICE,function(){
     if(!AU){msg("hint","Звука для этой фразы нет: прислушайтесь к видео.");toPanel();return}
     TS.step("voice1");var v1=audioBubble(AU.w,AK,false);
+    if(C.l&&C.l.length){heard(v1).then(function(){typing(TYPE_NEXT,function(){TS.step("text2");msg("","Давай послушаем по словам");later(function(){typing(TYPE_VOICE,function(){TS.step("ladder");var ld=ladderBubble(LPv,C.l);later(toPanel,ld?7000:300)},LP)},REACT)})});return}
     if(!SU){heard(v1).then(toPanel);return}
     heard(v1).then(function(){typing(TYPE_NEXT,function(){TS.step("text2");msg("","Давай послушаем замедленно");
      later(function(){typing(TYPE_VOICE,function(){TS.step("voice2");var v2=audioBubble(SU.w,SK,true);heardOr(v2,4000).then(toPanel)},SP)},REACT)})})},AP)},REACT)})
