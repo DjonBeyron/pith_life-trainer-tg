@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Собери фразу</title>
+<meta name="robots" content="noindex"><meta name="theme-color" content="#0e1013"><meta name="color-scheme" content="dark">
+<style>html,body{background:#0e1013;color-scheme:dark}body{opacity:0}body.on{opacity:1;transition:opacity .22s ease-out}@keyframes showAnyway{to{opacity:1}}body{animation:showAnyway 0s 3s forwards}</style>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script>(function(){try{var w=window.Telegram&&Telegram.WebApp;if(!w)return;["setHeaderColor","setBackgroundColor","setBottomBarColor"].forEach(function(f){try{w[f]("#0e1013")}catch(e){}});try{if(w.initData)document.documentElement.style.setProperty("--lift","36px")}catch(e){}try{w.ready()}catch(e){}}catch(e){}})()</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600;700&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'"><noscript><link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600;700&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet"></noscript>
+<style>
+/* Вид и поведение повторяют модуль «Собери фразу» приложения Pith (панель ответа, чипы, пузыри, блик, тряска, салют) */
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+html,body{touch-action:manipulation;-webkit-text-size-adjust:100%}
+#dbgTa{-webkit-user-select:text;user-select:text}
+html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none}
+body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',system-ui,sans-serif;font-size:14px;line-height:1.45;overflow-x:hidden}
+/* Система чата приложения (PlayerFeed + feed.css): корень fixed, лента - отдельный прокручиваемый контейнер, перевёрнутый дважды (scaleY(-1)),
+   поэтому scrollTop=0 = нижний край чата и новое сообщение видно без единой прокрутки; страница сама не прокручивается и дёргаться ей нечему.
+   Индикатор «печатает» лежит вне потока в постоянно зарезервированном месте (--wait-slot), его появление ничего не двигает. */
+:root{--wait-slot:28px;--lift:0px;--safe-b:calc(env(safe-area-inset-bottom,0px) + var(--lift))}   /* --lift: подъём всего нижнего интерфейса (в Mini App Telegram он задаётся скриптом), панели при этом тянутся фоном до низа экрана */
+#app{position:fixed;inset:0;display:flex;flex-direction:column;background:#0e1013}
+#app::after{content:'';position:absolute;left:0;right:0;bottom:0;height:calc(12px + var(--safe-b) + var(--wait-slot));pointer-events:none;z-index:90;background:linear-gradient(to top,rgba(14,16,19,1) 0%,rgba(14,16,19,.78) 28%,rgba(14,16,19,.42) 56%,rgba(14,16,19,.16) 80%,transparent 100%)}
+.playerFeed{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;transform:scaleY(-1);overflow-anchor:none;overscroll-behavior:none;padding:calc(12px + var(--safe-b) + var(--wait-slot)) 0 12px;scrollbar-width:none}
+.playerFeed::-webkit-scrollbar{display:none;width:0;height:0}
+.inner{transform:scaleY(-1);position:relative;display:flex;flex-direction:column;max-width:600px;width:100%;margin:0 auto;padding:0 10px;box-sizing:border-box}
+#feed{display:flex;flex-direction:column;gap:6px;padding-top:16px}
+#spacer{flex:none;height:0;margin-bottom:calc((var(--safe-b) + var(--wait-slot)) * -1);min-height:calc(var(--safe-b) + var(--wait-slot))}
+.row{display:flex;justify-content:flex-start;padding:2px 0}
+.row.right{justify-content:flex-end}
+.bubble{background:#1a1d22;border-radius:4px 18px 18px 18px;padding:10px 14px;max-width:92%;word-break:break-word;position:relative}
+.bubble.me{background:#16212e;border-radius:18px 18px 4px 18px;padding:6px 14px;max-width:92%}
+.bubble.me::after{content:'';display:inline-block;width:12px;margin-left:7px;font-size:12px;font-weight:700;text-align:center}
+.bubble.me.ok::after{content:'✓';color:#b6fe3b;animation:markIn .32s cubic-bezier(.22,1,.36,1) both,markFlash .5s cubic-bezier(.22,1,.36,1) 1.45s both}
+.bubble.me.err::after{content:'✕';color:#f87171;animation:markIn .32s cubic-bezier(.22,1,.36,1) both}
+.bubble.me.err{color:#f2c9c9}
+/* жирным в чате только верный ответ и перевод */
+.bubble{font-weight:400}.bubble .ln{display:block}.bubble.me.ok{font-weight:700}
+@keyframes markIn{from{opacity:0;transform:scale(.4)}60%{opacity:1;transform:scale(1.2)}to{opacity:1;transform:scale(1)}}
+@keyframes markFlash{0%{color:#b6fe3b;transform:scale(1)}40%{color:#fff;transform:scale(1.45)}100%{color:#b6fe3b;transform:scale(1)}}
+.sheen{position:absolute;inset:0;border-radius:inherit;overflow:hidden;pointer-events:none}
+.sheen::before{content:'';position:absolute;top:0;bottom:0;left:0;width:300%;background-image:linear-gradient(100deg,rgba(255,255,255,0) 36%,rgba(255,255,255,.18) 43%,rgba(255,255,255,.55) 47%,rgba(255,255,255,.95) 50%,rgba(255,255,255,.55) 53%,rgba(255,255,255,.18) 57%,rgba(255,255,255,0) 64%);transform:translateX(-66.7%);opacity:0;animation:sheen .7s cubic-bezier(.35,0,.25,1) .05s 2 both}
+@keyframes sheen{0%{transform:translateX(-66.7%);opacity:0}10%{opacity:1}80%{opacity:1}100%{transform:translateX(6.7%);opacity:0}}
+.row.mid{justify-content:center;margin:20px 0}
+.bubble.sys{background:none;padding:2px 0;color:#6f7885;font-size:12px;max-width:100%;text-align:center;border-radius:0}
+.bubble.emo{background:none;padding:0 4px;font-size:30px;line-height:1.2}
+.bubble.hint.bad{background:rgba(248,113,113,.10);color:#f87171}
+/* «печатает»: три точки как WaitingDots приложения (пузырь #1a1d22, точка 5px, прыжок 1.2 с, выход 150 мс) */
+.typingRow{position:absolute;left:0;right:0;bottom:calc(12px + var(--safe-b));height:24px;max-width:600px;margin:0 auto;padding:0 10px;z-index:95;pointer-events:none;animation:typIn .18s cubic-bezier(.34,1.56,.64,1) both;transform-origin:left bottom}.typingRow .bubble{display:inline-block;height:24px}.typingRow.out{animation:typOut .15s ease-in both}
+@keyframes typIn{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:scale(1)}}@keyframes typOut{to{opacity:0;transform:scale(.4)}}
+.typingB{border-radius:4px 14px 14px 14px;padding:5px 12px}
+.dots{display:inline-flex;align-items:center;height:14px}
+.dots i{width:5px;height:5px;margin:0 2px;border-radius:50%;background:#9aa0b4;animation:wb 1.2s infinite ease-in-out}.dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
+@keyframes wb{0%,80%,100%{transform:translateY(0);opacity:.5}40%{transform:translateY(-3px);opacity:1}}
+/* кружок загрузки (как launchSpinner приложения) */
+.veil{position:fixed;inset:0;z-index:150;display:flex;align-items:center;justify-content:center;background:rgba(14,16,19,.86);transition:opacity .4s ease}.veil.off{opacity:0;pointer-events:none}
+.spin{width:26px;height:26px;border-radius:50%;border:3px solid rgba(255,255,255,.15);border-top-color:#b6fe3b;animation:spinr .78s linear infinite}@keyframes spinr{to{transform:rotate(360deg)}}
+/* перевод под плавающими точками: нажатие раскрывает */
+/* перевод открытым текстом: брендовый зелёный, жирный (жирным в чате только он и верный ответ) */
+.bubble.trv{color:#b6fe3b;font-weight:700}
+.trI{width:13px;height:13px;vertical-align:-1px;margin-right:7px;fill:none;stroke:#6d717c;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.bubble.me.pick::after{content:none}
+/* панель «Выбери слово» приложения (choose-word.css): варианты кнопками, вылетает снизу вместе с историей */
+.cwInner{max-width:600px;margin:0 auto;display:flex;flex-direction:column;gap:6px;padding:12px 16px 16px}
+.cwBtn{background:#12141d;border:2px solid #2a2d35;border-radius:11px;padding:10px 16px;font:600 14px 'Montserrat','Comfortaa',sans-serif;color:#e0e0e0;text-align:left;width:100%;cursor:pointer;transition:border-color .15s,background .15s}
+.cwBtn:hover:not(:disabled){border-color:#3b82f6;background:rgba(59,130,246,.08)}.cwBtn:disabled{cursor:default}
+@keyframes cwPick{0%{border-color:#b6fe3b;background:rgba(182,254,59,.24);color:#b6fe3b}55%{border-color:#b6fe3b;background:rgba(182,254,59,.15);color:#b6fe3b}100%{border-color:#2a2d35;background:#12141d;color:#e0e0e0;opacity:.2}}
+.cwBtn.pick{animation:cwPick .75s cubic-bezier(.4,0,.6,1) forwards}.cwBtn.dim{opacity:.2;transition:opacity .2s ease}
+.exitRow{justify-content:center;flex-direction:column;align-items:center;gap:12px;padding:22px 0 calc(40px + var(--safe-b))}
+.moreChatBtn{display:flex;align-items:center;justify-content:center;min-width:180px;height:46px;padding:0 24px;background:#12141d;border:2px solid #2a2d35;border-radius:12px;font:inherit;font-size:15px;font-weight:600;color:#e0e0e0;cursor:pointer;touch-action:manipulation}.moreChatBtn:active{border-color:#b6fe3b}
+.exitBtn{display:flex;align-items:center;justify-content:center;min-width:180px;height:46px;padding:0 24px;background:#12141d;border:2px solid #b6fe3b;border-radius:12px;font:inherit;font-size:15px;font-weight:700;color:#b6fe3b;cursor:pointer;touch-action:manipulation;transition:background .15s,color .15s}
+.exitBtn:hover,.exitBtn:active{background:#b6fe3b;color:#000}
+/* голосовое сообщение: как в приложении (AudioModule + audio.css): кнопка, волна на canvas с заливкой прогресса, таймер */
+.bubble.audio{background:transparent;padding:8px 12px;width:fit-content;min-width:min(94%,calc(min(30vw,168px) + var(--audio-dur,4)*8px));max-width:94%;display:flex;flex-direction:column;gap:4px;overflow:hidden;position:relative;isolation:isolate}
+.bubble.audio::before{content:'';position:absolute;inset:0;background:#1a1d22;border-radius:inherit;z-index:0;pointer-events:none}
+.bubble.audio>*{position:relative;z-index:1}
+.playerAudio{display:flex;flex-direction:column;width:100%}
+.audioRow{display:flex;align-items:flex-start;width:100%}
+.audioBtn{width:36px;height:36px;border-radius:50%;border:1.5px solid #b6fe3b;background:#b6fe3b;color:#0e1013;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0;margin:0 8px 0 0;position:relative}
+.audioBtn::after{content:'';position:absolute;inset:-6px}
+.audioBtn svg{width:12px;height:12px;fill:#0e1013;stroke:#0e1013}
+.waveCol{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.wave{display:block;width:100%;height:26px;transition:opacity .25s ease}.wave.pending{opacity:0}
+.audMeta{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.dur{font-size:9px;color:#888;font-family:'Comfortaa',system-ui,sans-serif;white-space:nowrap;line-height:1;padding-left:1px}
+.ctl{display:flex;gap:6px;margin:-3px 0 -4px}
+.chip{border:1px solid #2a2d35;background:#12141d;color:#9aa0b4;border-radius:9px;min-width:30px;height:22px;padding:0 7px;font:inherit;font-size:11px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:border-color .15s,color .15s,background .15s,transform .1s}
+.chip:active{transform:scale(.94)}.chip svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.chip.on{border-color:#b6fe3b;color:#b6fe3b;background:rgba(182,254,59,.08)}
+.chip[data-k=rep]{min-width:22px;width:22px;height:20px;padding:0;border-color:transparent;background:transparent;border-radius:7px;color:#6f7885}.chip[data-k=rep] svg{width:13px;height:13px;stroke-width:2}.chip[data-k=rep].on{border-color:transparent;background:rgba(182,254,59,.12);color:#b6fe3b}
+.audioRing{animation:ringSpin .9s linear infinite}@keyframes ringSpin{to{transform:rotate(360deg)}}
+/* перевод */
+.rv{border:2px solid #2a2d35;background:#12141d;color:#e0e0e0;border-radius:12px;padding:8px 16px;font:inherit;font-weight:600;cursor:pointer;transition:border-color .15s,transform .1s}
+.rv:hover{border-color:#b6fe3b}.rv:active{transform:scale(.97)}
+.tr{display:grid;place-items:start}.tr>*{grid-area:1/1;transition:opacity .4s ease,transform .4s ease}
+.tr .txt{opacity:0;transform:translateY(8px);pointer-events:none}.tr.on .rv{opacity:0;transform:scale(.94);pointer-events:none}.tr.on .txt{opacity:1;transform:none}
+/* панель ответа */
+.phrasePanel{position:fixed;left:0;right:0;bottom:0;background:#1a1d22;border-top:1px solid #2a2d35;transform:translateY(100%);z-index:80;padding-bottom:var(--safe-b)}
+.phrasePanel.show{transform:translateY(0)}
+.phraseInner{max-width:600px;margin:0 auto;display:flex;flex-direction:column;gap:10px;padding:12px 16px 14px}
+.phraseCounter{font-size:11px;color:#555d72;text-align:right;letter-spacing:.02em;opacity:0;transition:opacity .3s;min-height:16px}.phraseCounter.on{opacity:1}
+.phraseAnswerRow{min-height:50px;border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:8px 12px;display:flex;flex-wrap:wrap;gap:2px;align-items:center;justify-content:center;transition:border-color .2s,background .2s}
+.phraseAnswerRow.filled{border-color:rgba(255,255,255,.22)}
+.phraseAnswerRow.err{animation:shake .6s ease}
+.phraseAnswerPlaceholder{font-size:14px;color:#3a4050;margin:auto}
+.phraseAnswerChip{background:none;border:none;padding:2px;font:inherit;font-size:15px;font-weight:700;color:#e8eaee;cursor:pointer;transition:opacity .15s,transform .15s;animation:chipIn .22s cubic-bezier(.22,1,.36,1) both}
+.phraseAnswerChip:hover{opacity:.7;transform:scale(.95)}.phraseAnswerChip.red{color:#f87171}
+@keyframes chipIn{from{opacity:0;transform:translateY(10px) scale(.85)}to{opacity:1;transform:none}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+.phrasePool{--h:38px;display:flex;flex-wrap:wrap;column-gap:8px;row-gap:0;justify-content:center;align-content:center;margin:-4px 0}
+.phrasePool.two{min-height:calc(2*(var(--h) + 8px))}
+.br{display:none}.br.on{display:block;flex:0 0 100%;height:0}
+.phraseChip{height:var(--h);margin:4px 0;flex:0 0 auto;max-width:100%;display:inline-flex;align-items:center;white-space:nowrap;background:#12141d;border:2px solid #2a2d35;border-radius:12px;padding:0 16px;font:inherit;font-size:14px;font-weight:600;line-height:1;color:#e0e0e0;cursor:pointer;transition:border-color .15s,transform .1s,opacity .2s}
+.phraseChip:hover:not(:disabled){border-color:#b6fe3b;transform:translateY(-2px)}
+.phraseChip:active:not(:disabled){transform:scale(.95)}
+.phraseChip.used{opacity:.25;cursor:default;pointer-events:none}
+.phraseCheckBtn{display:flex;align-items:center;justify-content:center;width:100%;height:46px;margin:0;padding:0 16px;background:#12141d;border:2px solid #b6fe3b;border-radius:12px;font-family:inherit;font-size:clamp(13px,3.6vw,16px);font-weight:700;line-height:1;white-space:nowrap;color:#b6fe3b;cursor:pointer;touch-action:manipulation;transition:background .15s,color .15s}
+.phraseCheckBtn:hover:not(:disabled),.phraseCheckBtn:active:not(:disabled){background:#b6fe3b;color:#000}
+.phraseCheckBtn:active:not(:disabled){transform:scale(.98)}
+.phraseCheckBtn:disabled{opacity:1;border-color:#2f3541;color:#5c6574;background:#12141d;cursor:default}
+.tries{display:flex;justify-content:center;gap:7px;margin-top:-2px}.tries i{width:8px;height:8px;border-radius:4px;background:#8b5cf6;transition:background .3s,transform .3s}.tries i.x{background:#f87171;transform:scale(1.15)}
+.lockbar{display:none;flex-direction:column;align-items:center;gap:4px;padding:14px;text-align:center}
+.phrasePanel.locked .lockbar{display:flex}.phrasePanel.locked .phraseInner{display:none}
+.lockbar b{font-size:14px}.lockbar small{color:#6f7885;font-size:12px}.lockbar .lk{font-size:24px;animation:lk 2.4s ease-in-out infinite}
+@keyframes lk{0%,100%{transform:rotate(0)}10%{transform:rotate(-10deg)}20%{transform:rotate(9deg)}30%{transform:rotate(0)}}
+.err2{color:#6f7885;font-size:14px;padding:40px 18px;text-align:center}
+@media (prefers-reduced-motion:reduce){.sheen::before{animation:sheenStill .7s ease-out .05s both}@keyframes sheenStill{0%,100%{opacity:0}45%{opacity:1}}}
+.dbgBtn{position:fixed;top:0;right:0;z-index:200;width:56px;height:56px;padding:0;border:0;background:transparent;color:transparent;font-size:0;cursor:default;opacity:0}   /* секретная кнопка лога: невидимая зона в правом верхнем углу, открывается двойным касанием */
+.dbgBtn:active{color:#b6fe3b;border-color:#b6fe3b}
+.moreBtn{position:fixed;top:calc(6px + env(safe-area-inset-top,0px));left:8px;z-index:200;height:22px;padding:0 9px;border-radius:11px;border:1px solid #2a2d35;background:rgba(18,20,29,.78);color:#9aa0b4;font:600 10px/20px 'Montserrat',system-ui,sans-serif;letter-spacing:.03em;cursor:pointer}.moreBtn:active{color:#b6fe3b;border-color:#b6fe3b}
+.morePanel{position:fixed;inset:0;z-index:300;display:none;flex-direction:column;background:#0e1013;padding-top:env(safe-area-inset-top,0px)}.morePanel.on{display:flex}
+.moreHead{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px;font-size:16px;color:#e0e0e0}.moreHead button{background:none;border:0;color:#9aa0b4;font:inherit;font-size:20px;padding:4px 8px;cursor:pointer}
+.moreList{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:4px 16px calc(24px + var(--safe-b));display:flex;flex-direction:column;gap:8px}
+.moreItem{display:flex;align-items:center;justify-content:space-between;width:100%;background:#1a1d22;border:2px solid transparent;border-radius:14px;padding:13px 16px;font:inherit;font-size:15px;color:#e0e0e0;text-align:left;cursor:pointer}.moreItem:active{border-color:#b6fe3b}.moreItem .st{font-size:13px;color:#6f7885}.moreItem.ok .st{color:#b6fe3b;font-weight:700}
+.moreNote{color:#6f7885;font-size:14px;padding:8px 2px}
+.dbgBox{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.86);display:none;flex-direction:column;gap:8px;padding:12px}
+.dbgBox.on{display:flex}.dbgBox textarea{flex:1;background:#12141d;color:#cfd6e4;border:1px solid #2a2d35;border-radius:10px;padding:8px;font:11px/1.35 Consolas,monospace;resize:none}
+.dbgBox button{height:38px;border-radius:10px;border:2px solid #b6fe3b;background:#12141d;color:#b6fe3b;font:700 14px 'Montserrat',system-ui,sans-serif}
+</style></head><body>
+<button class="moreBtn" id="moreBtn" aria-label="Другие фразы">Фразы</button><div class="morePanel" id="morePanel"><div class="moreHead"><b>Другие фразы</b><button id="moreClose" aria-label="Закрыть">✕</button></div><div class="moreList" id="moreList"></div></div>
+<button class="dbgBtn" id="dbgBtn" aria-label="Лог">лог</button><div class="dbgBox" id="dbgBox"><textarea id="dbgTa" readonly></textarea><button id="dbgCopy">Скопировать</button><button id="dbgReset" style="border-color:#f87171;color:#f87171">Сбросить прогресс и начать заново</button><button id="dbgClose" style="border-color:#2a2d35;color:#9aa0b4">Закрыть</button></div>
+<div class="veil" id="veil"><span class="spin"></span></div>
+<div id="app"><div class="playerFeed" id="outer"><div class="inner" id="inner"><div id="feed"></div><div id="spacer"></div></div></div></div>
+<div class="phrasePanel" id="panel">
+ <div class="phraseInner">
+  <div class="phraseCounter" id="cnt"></div>
+  <div class="phraseAnswerRow" id="rowA"></div>
+  <div class="phrasePool" id="pool"></div>
+  <button class="phraseCheckBtn" id="chk" disabled>Проверить</button>
+ </div>
+ <div class="lockbar"><span class="lk">🔒</span><b>Следующая попытка через <span id="lc"></span></b><small id="lt"></small></div>
+</div>
+<script>
+// Журнал для разбора: события страницы, размеры окна, ошибки. Кнопка «лог» сверху копирует его (или показывает текст, чтобы выделить и скопировать).
+(function(){
+var t0=Date.now(),LG=[],last={};
+function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.length>900)LG.shift()}
+window.__L=L;
+function tg(){var w=window.Telegram&&Telegram.WebApp;return w?("tg "+w.platform+" v"+w.version+" vh="+w.viewportHeight+" stable="+w.viewportStableHeight+" exp="+w.isExpanded):"без Telegram"}
+function snap(why){var f=document.getElementById("feed"),o=document.getElementById("outer"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollTop="+Math.round(o?o.scrollTop:0)+" scrollH="+(o?o.scrollHeight:0)+"/"+(o?o.clientHeight:0)+" docScroll="+Math.round(scrollY)+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
+var PAGE_V="2026-11-17.6";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
+window.addEventListener("error",function(e){L("ОШИБКА: "+e.message+" @"+(e.filename||"").split("/").pop()+":"+e.lineno)});
+window.addEventListener("unhandledrejection",function(e){L("ОШИБКА промиса: "+(e.reason&&e.reason.message||e.reason))});
+// самообновление: Safari и GitHub Pages держат старый HTML в кэше. Раз за сессию страница запрашивает свежую копию и, если версия другая, перезагружается
+window.__pvCheck=new Promise(function(res){try{if(sessionStorage.getItem("pv-reloaded")){res(false);return}
+ fetch(location.pathname+"?v="+Date.now(),{cache:"reload"}).then(function(r){return r.text()}).then(function(t){var m=/PAGE_V="([^"]+)"/.exec(t);
+  if(m&&m[1]!==PAGE_V){sessionStorage.setItem("pv-reloaded","1");L("страница устарела ("+PAGE_V+" → "+m[1]+"), перезагрузка");var go=function(){res(true);location.reload()};fetch(location.pathname,{cache:"reload"}).then(go,go)}
+  else{L("версия страницы актуальна");res(false)}}).catch(function(){res(false)})}catch(e){res(false)}});
+var jk=0,fr=0,worst=0,lastT=0,sumT=0,rafOn=true,t00=performance.now();
+(function perf(t){if(!rafOn)return;if(lastT){var d=t-lastT;fr++;window.__pf.fr++;if(d>24){jk++;window.__pf.jk++;if(d>window.__pf.w)window.__pf.w=d;if(d>worst)worst=d;if(d>45){var f=document.getElementById("feed"),lr=f&&f.lastElementChild;L("РЫВОК кадра "+Math.round(d)+" мс; последнее: "+(lr?String(lr.textContent).trim().slice(0,24)||lr.className:"-"))}}}lastT=t;if(t-t00>120000){rafOn=false;return}requestAnimationFrame(perf)})(performance.now());
+setInterval(function(){if(fr>0){L("кадры за 5 с: "+fr+" (60 Гц = около 300), рывков >24 мс: "+jk+", худший "+Math.round(worst)+" мс");fr=0;jk=0;worst=0}},5000);
+var rs=0;window.addEventListener("resize",function(){rs++;L("resize #"+rs+" "+innerWidth+"x"+innerHeight)});
+if(window.visualViewport){var vc=0;visualViewport.addEventListener("resize",function(){vc++;if(vc<40)L("visualViewport resize "+Math.round(visualViewport.height))})}
+var sc=0,sl=0;document.getElementById("outer").addEventListener("scroll",function(){sc++;var n=Date.now();if(n-sl>400){sl=n;L("лента scrollTop → "+Math.round(this.scrollTop)+" (событий "+sc+")");sc=0}},{passive:true});window.addEventListener("scroll",function(){L("СТРАНИЦА прокрутилась → "+Math.round(scrollY))},{passive:true});
+// переходы, которые страница сама делает: сообщения, панель
+new MutationObserver(function(ms){ms.forEach(function(m){m.addedNodes.forEach(function(n){if(n.nodeType===1&&n.className&&String(n.className).indexOf("row")>=0)L("+ "+String(n.firstElementChild&&n.firstElementChild.className||n.className)+": "+String(n.textContent).trim().slice(0,40))});m.removedNodes.forEach(function(n){if(n.nodeType===1&&String(n.className).indexOf("typingRow")>=0)L("- точки")})})}).observe(document.getElementById("feed"),{childList:true});
+var pn=document.getElementById("panel");if(pn)new MutationObserver(function(){L(snap("панель "+(pn.classList.contains("show")?"показана":"скрыта")))}).observe(pn,{attributes:true,attributeFilter:["class"]});
+// каждые 700 мс: если размеры/прокрутка поменялись, запись (так видно дрожание: прокрутка и высота прыгают без причины)
+setInterval(function(){var f=document.getElementById("feed"),o=document.getElementById("outer"),k=(o?o.scrollTop+"|"+o.scrollHeight:"")+"|"+scrollY+"|"+innerHeight+"|"+(f?f.offsetHeight:0);if(k!==last.k){last.k=k;L(snap("изменение"))}},700);
+function text(){return LG.join("\n")+"\n"+snap("итог")+"\n"+tg()}
+var box=document.getElementById("dbgBox"),ta=document.getElementById("dbgTa");
+document.getElementById("dbgBtn").onclick=function(){var nn=Date.now();if(nn-(window.__dbgTap||0)>450){window.__dbgTap=nn;return}window.__dbgTap=0;var tx=text();ta.value=tx;box.classList.add("on");try{navigator.clipboard.writeText(tx).then(function(){document.getElementById("dbgCopy").textContent="Скопировано ✓"},function(){})}catch(e){}};
+document.getElementById("dbgCopy").onclick=function(){var tx=ta.value;try{navigator.clipboard.writeText(tx).then(function(){document.getElementById("dbgCopy").textContent="Скопировано ✓"},function(){ta.select();document.execCommand("copy")})}catch(e){ta.select();try{document.execCommand("copy")}catch(_){}}};
+document.getElementById("dbgReset").onclick=function(){try{Object.keys(localStorage).forEach(function(k){if(k.indexOf("trainer:")===0)localStorage.removeItem(k)})}catch(e){}location.reload()};
+document.getElementById("dbgClose").onclick=function(){box.classList.remove("on");document.getElementById("dbgCopy").textContent="Скопировать"}
+})();
+</script>
+<div class="phrasePanel" id="cwPanel"><div class="cwInner"><button class="cwBtn" data-k="reveal">Раскрыть перевод</button><button class="cwBtn" data-k="try">Попробовать перевести</button></div></div>
+<script src="stats-config.js"></script>
+<script>
+// Статистика тренажёра. Без stats-config.js (url и публичный ключ anon) ничего не отправляется.
+// Страница пишет события только через функцию trainer_log в базе (таблицы закрыты), хэшированием айпи и человека занимается база: здесь отправляется id Telegram или id устройства.
+// Личная мини-статистика (сколько фраз собрано, с первой попытки, дней подряд) живёт только в браузере человека.
+(function(){
+var CFG=window.TRAINER_STATS||{},ON=!!(CFG.url&&CFG.key),T0=Date.now(),Q=[],TASK="",STEP="",SOLVED=false,tm=0,SENT=0;
+function rnd(n){var a="abcdefghijklmnopqrstuvwxyz0123456789",s="";for(var i=0;i<n;i++)s+=a.charAt(Math.random()*a.length|0);return s}
+var SID=rnd(12);
+function dev(){try{var d=localStorage.getItem("trainer:dev");if(!d){d=rnd(16);localStorage.setItem("trainer:dev",d)}return d}catch(e){return"x"+SID}}
+function tgUser(){try{var u=window.Telegram&&Telegram.WebApp&&Telegram.WebApp.initDataUnsafe&&Telegram.WebApp.initDataUnsafe.user;return u&&u.id?String(u.id):""}catch(e){return""}}
+function person(){var t=tgUser();return t?"tg:"+t:"dev:"+dev()}
+function now(){return Date.now()-T0}
+function ev(kind,o){o=o||{};return{kind:kind,session:SID,person:person(),task:TASK||"-",step:o.step||STEP||null,attempt:o.attempt===undefined?null:o.attempt,ms:o.ms===undefined?now():o.ms,props:o.props||{},tg:!!tgUser()}}
+// новые ключи Supabase (sb_publishable_…) не JWT: их передают только в apikey; старые anon-JWT идут ещё и в Authorization
+function hdrs(){var h={"apikey":CFG.key,"Content-Type":"application/json"};if(String(CFG.key).indexOf("sb_")!==0)h.Authorization="Bearer "+CFG.key;return h}
+function rpc(name,body,keep){return fetch(CFG.url+"/rest/v1/rpc/"+name,{method:"POST",keepalive:!!keep,headers:hdrs(),body:JSON.stringify(body)})}
+function log(m){if(window.__L)window.__L(m)}
+function flush(final){if(!ON||!Q.length)return;var b=Q.splice(0,40);
+ try{rpc("trainer_log",{p:b},true).then(function(r){SENT+=b.length;log("статистика: отправлено "+b.length+" (HTTP "+r.status+")")},function(e){log("статистика: ошибка отправки "+e)})}catch(e){}
+ if(Q.length)flush(final)}
+function schedule(){if(tm)return;tm=setTimeout(function(){tm=0;flush()},3000)}
+// личная статистика на устройстве
+function today(){var d=new Date();return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2)}
+function dayNum(s){var p=s.split("-");return Math.round(Date.UTC(+p[0],+p[1]-1,+p[2])/86400000)}
+function loadP(){try{return JSON.parse(localStorage.getItem("trainer:stats")||"null")||{}}catch(e){return{}}}
+function saveP(p){try{localStorage.setItem("trainer:stats",JSON.stringify(p))}catch(e){}}
+window.TS={on:ON,
+ begin:function(task){TASK=String(task||"-");var p=loadP();p.visits=(p.visits||0)+1;saveP(p);var w=window.Telegram&&Telegram.WebApp;
+  this.track("open",{ms:0,props:{w:innerWidth,h:innerHeight,lang:navigator.language,tzo:new Date().getTimezoneOffset(),plat:w&&w.platform||"web",ver:window.__PV||"",visits:p.visits,ua:/iPhone|iPad/.test(navigator.userAgent)?"ios":/Android/.test(navigator.userAgent)?"android":"other"}});
+  log("статистика: "+(ON?"включена":"выключена (нет stats-config.js)")+", задание "+TASK)},
+ track:function(kind,o){if(!ON)return;Q.push(ev(kind,o));if(Q.length>200)Q.shift();schedule()},
+ step:function(s){STEP=s;this.track("step",{step:s})},
+ solved:function(){SOLVED=true},
+ done:function(){try{return loadP().done||{}}catch(e){return{}}},
+ flush:flush,
+ // записать результат в личную статистику; повторное открытие уже решённого задания счётчики не увеличивает
+ record:function(attempt){var p=loadP();p.done=p.done||{};var isNew=!p.done[TASK];
+  if(isNew){p.done[TASK]=attempt||1;p.n=(p.n||0)+1;if((attempt||1)===1)p.first=(p.first||0)+1;var t=today();if(p.last!==t){var gap=p.last?dayNum(t)-dayNum(p.last):0;p.streak=gap===1?(p.streak||1)+1:1;p.last=t}}
+  saveP(p);return{n:p.n||0,first:p.first||0,streak:p.streak||1,isNew:isNew}},
+ // публичные счётчики по заданию (без личных данных) для мотивации; не дольше 2,5 с
+ pub:function(){if(!ON)return Promise.resolve(null);
+  return Promise.race([rpc("trainer_public_stats",{p_task:TASK}).then(function(r){return r.ok?r.json():null}).catch(function(){return null}),new Promise(function(r){setTimeout(function(){r(null)},2500)})])}};
+function leave(){if(!ON||!TASK)return;var pf=window.__pf||{};TS.track("leave",{props:{step:STEP,solved:SOLVED,sec:Math.round(now()/1000),fr:pf.fr,jk:pf.jk,w:Math.round(pf.w||0)}});flush(true)}
+document.addEventListener("visibilitychange",function(){if(document.visibilityState==="hidden")leave()});
+window.addEventListener("pagehide",leave);
+})();
+</script>
+<script>
+// Задание: старая ссылка #p=…, короткая #<id> или Mini App (tgWebAppStartParam); задание и звук лежат рядом со страницей: t/<id>.json, a/<id>.mp3
+// Попытки и блокировка хранятся в браузере (localStorage); строгую блокировку по пользователю может дать только бот.
+(function(){
+var TRIES=3,LOCK_H=5;
+var P=["you","he","she","they","we","it","him"],G=["to","of","do","are","was","for","with","and"],E=["go","day","time","home","good","now","way","know"];
+var $=function(s){return document.querySelector(s)};
+function R(){return Math.random()}
+function shuf(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=R()*(i+1)|0,t=a[i];a[i]=a[j];a[j]=t}return a}
+function norm(s){return s.toLowerCase().replace(/[^a-z']/g,"")}
+function pick1(list,used){return shuf(list).filter(function(x){return used.indexOf(norm(x))<0})[0]}
+function dec64(s){s=s.replace(/-/g,"+").replace(/_/g,"/");while(s.length%4)s+="=";var b=atob(s),u=new Uint8Array(b.length);for(var i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return JSON.parse(new TextDecoder().decode(u))}
+function readC(){try{var m=/[#&]p=([^&]+)/.exec(location.hash);if(!m)return null;var c=dec64(m[1]);return c&&c.e?c:null}catch(e){return null}}
+function idOf(){var h=location.hash,m=/[#&]tgWebAppStartParam=([0-9a-zA-Z_-]+)/.exec(h)||/^#(x?[0-9a-f]{6,40})$/.exec(h);if(!m&&window.Telegram&&Telegram.WebApp&&Telegram.WebApp.initDataUnsafe&&Telegram.WebApp.initDataUnsafe.start_param)m=[0,Telegram.WebApp.initDataUnsafe.start_param];return m?m[1]:""}
+// Mini App: SDK подключается после загрузки; каждый вызов в своём try, потому что методы зависят от версии Telegram
+window.addEventListener("load",function(){var w=window.Telegram&&Telegram.WebApp;if(!w)return;
+ function t(f){try{f()}catch(e){}}
+ t(function(){w.ready()});t(function(){w.expand()});
+ t(function(){w.setHeaderColor("#0e1013")});t(function(){w.setBackgroundColor("#0e1013")});t(function(){w.setBottomBarColor("#0e1013")});
+ t(function(){if(w.disableVerticalSwipes)w.disableVerticalSwipes()});   // свайп вниз по чату не закрывает приложение
+ if(window.__L)window.__L("Mini App: "+w.platform+" v"+w.version+(w.initDataUnsafe&&w.initDataUnsafe.user?", пользователь Telegram есть":", без пользователя")+", свайпы "+(w.isVerticalSwipesEnabled===false?"выключены":"как есть"))});
+// вибрация Telegram: верный и неверный ответ, обычное нажатие
+function haptic(kind){try{var h=window.Telegram&&Telegram.WebApp&&Telegram.WebApp.HapticFeedback;if(!h)return;if(kind==="ok")h.notificationOccurred("success");else if(kind==="bad")h.notificationOccurred("error");else h.impactOccurred("light")}catch(e){}}
+
+// ── звуки интерфейса (те же файлы, что в приложении)
+// громкость как в приложении: часть звуков записана тихо, поэтому они усиливаются через Web Audio (GainNode, до ×3 как в sounds.js приложения); множители подобраны по пику файла, чтобы не было хруста
+var SGAIN={"typing-1":3,"message-in":3,"xp-gain":2,"answer-correct":2,"answer-wrong":1.5},snds={},lastSnd={},ACX=null,SBUF={};
+function acx(){if(!ACX){var AC=window.AudioContext||window.webkitAudioContext;if(AC){try{ACX=new AC();try{navigator.audioSession.type="playback"}catch(e){}}catch(e){}}}return ACX}
+function sbuf(n){var c=acx();if(!c)return Promise.reject(0);return SBUF[n]||(SBUF[n]=fetch("s/"+n+".mp3").then(function(r){return r.arrayBuffer()}).then(function(b){return new Promise(function(res,rej){c.decodeAudioData(b,res,rej)})}))}
+function playHtml(n){try{var a=snds[n]||(snds[n]=new Audio("s/"+n+".mp3"));a.currentTime=0;var p=a.play();if(p&&p.catch)p.catch(function(){})}catch(e){}}
+function snd(n){var tn=Date.now();if(lastSnd[n]&&tn-lastSnd[n]<300)return;lastSnd[n]=tn;if(n==="answer-correct")haptic("ok");else if(n==="answer-wrong")haptic("bad");var g=SGAIN[n]||1,c=g>1?acx():null;
+ if(!c){playHtml(n);return}
+ try{if(c.state==="suspended")c.resume()}catch(e){}
+ sbuf(n).then(function(buf){if(c.state!=="running"){playHtml(n);return}var s=c.createBufferSource(),gn=c.createGain();s.buffer=buf;gn.gain.value=g;s.connect(gn);gn.connect(c.destination);s.start(0)}).catch(function(){playHtml(n)})}
+document.addEventListener("pointerdown",function(){var c=acx();if(c&&c.state==="suspended")try{c.resume()}catch(e){}},{passive:true});
+
+// ── салют: DOM-частицы на WAAPI (как fireBurst в приложении): вся анимация на композиторе, JS после старта не участвует
+var COLORS=["#b6fe3b","#ff6b6b","#ffd93d","#6bcfff","#c77dff","#ff9f43","#ff6fd8"],SAMPLES=14,FRAMES=105,GRAVITY=.32;
+function particle(W,H,size){var speed=Math.sqrt(H*GRAVITY)*(.92+R()*.22),ang=-Math.PI/2+(R()-.5)*1.22,vx=Math.cos(ang)*speed*.6,vy=Math.sin(ang)*speed,life=FRAMES*(.78+R()*.42),spin=(3+R()*5)*(R()>.5?1:-1),fr=[];
+ for(var i=0;i<SAMPLES;i++){var p=i/(SAMPLES-1),t=p*life;fr.push({offset:p,transform:"translate("+(vx*t).toFixed(1)+"px,"+(vy*t+GRAVITY*t*t/2).toFixed(1)+"px) rotate("+(t*spin).toFixed(0)+"deg)",opacity:p<.55?1:Math.max(0,1-(p-.55)/.45)})}
+ return{left:W*(.2+R()*.6),size:size+R()*size,color:COLORS[R()*COLORS.length|0],round:R()>.5,duration:life*(1000/60),frames:fr}}
+function fireBurst(count,size){var host=document.createElement("div");host.style.cssText="position:fixed;inset:0;pointer-events:none;z-index:85;overflow:hidden;contain:strict";document.body.appendChild(host);
+ var W=innerWidth,H=innerHeight,longest=null;
+ for(var k=0;k<count;k++){var p=particle(W,H,size),el=document.createElement("i");el.style.cssText="position:absolute;left:"+p.left.toFixed(0)+"px;top:"+(H+8)+"px;width:"+p.size.toFixed(1)+"px;height:"+(p.size*.6).toFixed(1)+"px;background:"+p.color+";border-radius:"+(p.round?"50%":"1px");host.appendChild(el);
+  var an=el.animate(p.frames,{duration:p.duration,easing:"linear",fill:"forwards"});if(!longest||p.duration>longest.d)longest={d:p.duration,a:an}}
+ if(longest)longest.a.finished.then(function(){host.remove()}).catch(function(){host.remove()});else host.remove()}
+
+function decodeWaveBuf(buf){var AC=window.AudioContext||window.webkitAudioContext,ac=new AC();return ac.decodeAudioData(buf).then(function(ab){try{ac.close()}catch(e){}var fs=Math.floor(ab.sampleRate/30),d=ab.getChannelData(0),rms=[];for(var i=0;i<d.length;i+=fs){var sum=0,end=Math.min(i+fs,d.length);for(var j=i;j<end;j++)sum+=d[j]*d[j];rms.push(Math.sqrt(sum/(end-i)))}var so=rms.slice().sort(function(a,b){return a-b}),p99=so[Math.floor(so.length*.99)]||.001;return{wave:rms.map(function(v){return Math.round(Math.min(v/p99,1)*255)}),dur:ab.duration}})}
+// null: файла звука нет; {w}: звук есть (w — волна или null, если не декодировалась)
+function loadWave(url){return fetch(url).then(function(r){if(window.__L)window.__L("звук "+url+" → HTTP "+r.status);if(!r.ok)return null;return r.arrayBuffer().then(function(b){return decodeWaveBuf(b).then(function(w){return{w:w}},function(){return{w:null}})})},function(e){if(window.__L)window.__L("звук "+url+" → сеть: "+e);return null})}
+
+function start(C){
+ var AK=C.id||C.a||"",SK=C.id?C.id+"s":(C.s||""),AP=C.pre||(C.a?loadWave("a/"+C.a+".mp3"):Promise.resolve(null)),SP=C.preS||(SK?loadWave("a/"+SK+".mp3"):Promise.resolve(null));
+ var KEY="trainer:"+C.e+(C.t?":"+C.t:""),S={left:TRIES,until:0,solved:false};
+ try{var s=JSON.parse(localStorage.getItem(KEY)||"null");if(s)S=s}catch(e){}
+ if(S.until&&Date.now()>=S.until)S={left:TRIES,until:0,solved:false};
+ function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+ var toks=C.e.split(/\s+/),dec=[];[P,G,E].forEach(function(l){dec.push(pick1(l,toks.map(norm).concat(dec)))});
+ var bank=shuf(toks.concat(dec)),placed=[],used={},red=[],busy=false,wrongN=TRIES-S.left;
+ var PANEL_AT=0,checkedSig="",phText="Собери фразу...";
+ function sigNow(){return placed.map(function(p){return p.i}).join(",")}
+ // «фраза не полная»: текст меняется при повторах; смайликов у неполной и неверной попытки нет
+ var INC_TXT=["Ты на верном пути, фраза не полная","Уже ближе, но фраза ещё не полная","Почти получилось, не хватает слов","Хорошо идёшь, добавь недостающие слова","Правильное начало, продолжай собирать"],incN=0;
+ var outer=$("#outer"),inner=$("#inner"),app=$("#app"),feed=$("#feed"),panel=$("#panel"),cwp=$("#cwPanel"),pool=$("#pool"),rowA=$("#rowA"),chk=$("#chk"),spacer=$("#spacer");
+ // как приложение: без жестов масштабирования, выделения текста, контекстного меню и двойного касания
+ ["gesturestart","gesturechange","gestureend"].forEach(function(n){document.addEventListener(n,function(e){e.preventDefault()},{passive:false})});
+ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length>1)e.preventDefault()},{passive:false});
+ document.addEventListener("selectstart",function(e){if(!(e.target&&e.target.id==="dbgTa"))e.preventDefault()});
+ document.addEventListener("contextmenu",function(e){e.preventDefault()});
+ document.addEventListener("dblclick",function(e){e.preventDefault()},{passive:false});
+ function locked(){return S.until&&Date.now()<S.until}
+ function scrollNow(){outer.scrollTop=0}
+ // появление сообщения как в PlayerFeed: влетает снизу (путь 200px, 240 мс), звук «новое сообщение» за 60 мс до конца; у реплик ученика звука нет
+ var TRAVEL=200,SLIDE=240,EASE_FLY="cubic-bezier(0.4,0,1,1)",EASE_PUSH="cubic-bezier(0,0,0.2,1)";
+ function rowFrames(push){var c=Math.max(0,TRAVEL-push)/TRAVEL;if(c<=0)return[{transform:"translateY("+(TRAVEL-push)+"px)",easing:EASE_PUSH},{transform:"translateY(0)"}];return[{transform:"translateY("+(TRAVEL-push)+"px)",easing:EASE_FLY},{transform:"translateY(0)",offset:c,easing:EASE_PUSH},{transform:"translateY(0)"}]}
+ function histFrames(push){var c=Math.max(0,TRAVEL-push)/TRAVEL;if(c<=0)return[{transform:"scaleY(-1) translateY("+push+"px)",easing:EASE_PUSH},{transform:"scaleY(-1) translateY(0)"}];return[{transform:"scaleY(-1) translateY("+push+"px)",easing:"linear"},{transform:"scaleY(-1) translateY("+push+"px)",offset:c,easing:EASE_PUSH},{transform:"scaleY(-1) translateY(0)"}]}
+ // появление сообщения как в PlayerFeed: новая строка летит снизу (200px, 240 мс); история, которую вставка мгновенно сдвинула, отбрасывается назад и до касания стоит, потом едет вместе со строкой; звук за 60 мс до конца
+ // замер дёрганья: на каждом кадре положение старых строк чата; движение вниз при приходе сообщения и разворот движения пишутся в лог («лог» вверху справа)
+ var panelMoving=false,preTops=null;
+ function watch(tag,ms,expectUp){var pre=expectUp?preTops:null,jump=0,t0=performance.now(),prev=null,last=[],down=0,rev=0,first="",frames=0,sc=0,vv0=window.visualViewport?Math.round(window.visualViewport.height):0,vvMoved=0;
+  (function f(now){var rows=[].slice.call(feed.children).filter(function(x){return x.firstElementChild}).slice(-4),tops=rows.map(function(x){return x.getBoundingClientRect().top});frames++;
+   if(pre&&frames===1){var k=pre.length;for(var q=0;q<k;q++){var dj=Math.abs(tops[tops.length-1-q-1]-pre[k-1-q]);if(!isNaN(dj))jump=Math.max(jump,dj)}}
+   if(outer.scrollTop!==0)sc=Math.max(sc,outer.scrollTop);
+   if(window.visualViewport&&Math.abs(Math.round(window.visualViewport.height)-vv0)>2)vvMoved=Math.round(window.visualViewport.height)-vv0;
+   if(prev&&prev.length===tops.length){for(var i=0;i<tops.length-(expectUp?1:0);i++){var d=tops[i]-prev[i];if(Math.abs(d)<1.2)continue;
+     if(expectUp&&d>0){down=Math.max(down,d);if(!first)first="кадр "+frames+" ("+Math.round(now-t0)+" мс): строка "+i+" из "+tops.length+" вниз на "+d.toFixed(1)+" px"}
+     if(last[i]&&last[i]*d<0){rev++;if(!first)first="кадр "+frames+" ("+Math.round(now-t0)+" мс): строка "+i+" развернулась ("+last[i].toFixed(1)+" → "+d.toFixed(1)+" px)"}
+     last[i]=d}}
+   prev=tops;
+   if(now-t0<ms)requestAnimationFrame(f);
+   else{var bad=down>1.5||rev>0||sc>0||vvMoved||jump>1.5;if(window.__L)window.__L((bad?"ДЁРГАНЬЕ ":"движение ок ")+"["+tag+"] кадров "+frames+(jump>1.5?", прыжок истории при вставке "+jump.toFixed(1)+" px":"")+(down>0?", вниз max "+down.toFixed(1)+" px":"")+(rev?", разворотов "+rev:"")+(sc?", scrollTop="+sc:"")+(vvMoved?", высота окна изменилась на "+vvMoved:"")+(first?" · первое: "+first:"")+(panelMoving?" · идёт панель":""))}
+  })(t0)}
+ function slideIn(r,sound,hist){var prev=r.previousElementSibling,rb=r.getBoundingClientRect(),naive=prev?Math.max(0,rb.bottom-prev.getBoundingClientRect().bottom):rb.height,push=hist!=null?hist:naive;
+  if(prev&&Math.abs(push-naive)>1.5&&window.__L)window.__L("поправка отступов: сдвиг истории "+Math.round(push)+" px, по краям строк было бы "+Math.round(naive)+" px");
+  try{r.animate(rowFrames(push),{duration:SLIDE,fill:"backwards"});if(push>0)inner.animate(histFrames(push),{duration:SLIDE,fill:"backwards"})}catch(e){}
+  watch(((r.textContent||"").trim().replace(/\s+/g," ").slice(0,26)||(r.className||"строка")),SLIDE+260,!panelMoving);
+  if(sound)later(function(){snd("message-in")},SLIDE-60)}
+ // пузырь по ширине самой длинной строки текста: без пустоты справа у сообщений в несколько строк (как в приложении)
+ function fit(b){try{if(!b||b.querySelector(".playerAudio"))return;b.style.width="";var cs=getComputedStyle(b),pr=parseFloat(cs.paddingRight)||0,br=b.getBoundingClientRect(),mx=0,w=document.createTreeWalker(b,NodeFilter.SHOW_TEXT),n,rg=document.createRange();
+  while((n=w.nextNode())){if(!n.nodeValue.trim())continue;rg.selectNodeContents(n);[].forEach.call(rg.getClientRects(),function(q){if(q.width>0&&q.right>mx)mx=q.right})}
+  var ex=b.querySelector("svg");if(ex){var er=ex.getBoundingClientRect();if(er.right>mx)mx=er.right}
+  var af=getComputedStyle(b,"::after"),ax=af&&af.content&&af.content!=="none"&&af.content!=="normal"?(parseFloat(af.width)||0)+(parseFloat(af.marginLeft)||0):0;
+  if(mx>0){var wd=Math.ceil(mx-br.left+pr+ax)+1;if(wd<br.width-1)b.style.width=wd+"px"}}catch(e){}}
+ function msg(cls,html,nosnd){var r=document.createElement("div");r.className="row"+(cls.indexOf("me")>=0?" right":"")+(cls.indexOf("sys")>=0?" mid":"");var b=document.createElement("div");b.className="bubble "+cls;if(typeof html==="string")b.innerHTML=html;else b.appendChild(html);r.appendChild(b);var pr=feed.lastElementChild,pb=pr?pr.getBoundingClientRect().bottom:0;preTops=[].slice.call(feed.children).filter(function(x){return x.firstElementChild}).slice(-3).map(function(x){return x.getBoundingClientRect().top});feed.appendChild(r);if(typeof html==="string")fit(b);scrollNow();var hist=pr?Math.max(0,pb-pr.getBoundingClientRect().bottom):null;slideIn(r,cls.indexOf("me")<0&&!nosnd,hist);return b}
+ function esc(s){return String(s).replace(/[&<>]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;"}[c]})}
+ function later(f,t){return setTimeout(f,t)}
+ function wordForm(n){var a=n%10,b=n%100;return b>=11&&b<=14?"слов":a===1?"слово":a>=2&&a<=4?"слова":"слов"}
+
+ // ── голосовое сообщение (AudioModule приложения): кнопка, волна из RMS самого файла с заливкой прогресса, таймер; повтор и ½× — рядом
+ var audio=null,half=false,loop=false;
+ function fmt(sec){if(sec==null||!isFinite(sec)||sec<0)return"00:00";var x=Math.max(0,Math.round(sec));return("0"+Math.floor(x/60)).slice(-2)+":"+("0"+x%60).slice(-2)}
+ var WBASE=[7,11,16,22,14,19,24,17,10,20,13,22,18,11,25,21,15,9,18,24,16,12,21,14,19,10,17,23,15,9,13,19,21,14,17,24,11,18,22,15,10,19,13,25,16,9,20,23,12,17];
+ function barAmp(wd,i,n){if(!wd||!wd.length)return WBASE[Math.floor(i/n*WBASE.length)]/25;var from=Math.floor(i/n*wd.length),to=Math.max(from+1,Math.floor((i+1)/n*wd.length)),pk=0;for(var k=from;k<to&&k<wd.length;k++)if(wd[k]>pk)pk=wd[k];return Math.pow(pk/255,.55)}
+ function drawWave(cv,wd,progress,ga,rng){var dpr=window.devicePixelRatio||1,w=cv.clientWidth,h=cv.clientHeight;if(!w||!h)return 0;var pw=Math.round(w*dpr),ph=Math.round(h*dpr);if(cv.width!==pw||cv.height!==ph){cv.width=pw;cv.height=ph}var c=cv.getContext("2d"),n=Math.max(8,Math.floor(w/4)),gs=rng?Math.round(rng.a*n):0,ge=rng?Math.round(rng.b*n):n,green=Math.floor(progress*Math.max(0,ge-gs));c.clearRect(0,0,pw,ph);c.save();c.scale(dpr,dpr);
+  for(var i=0;i<n;i++){var bh=Math.max(2,barAmp(wd,i,n)*h*.95);c.beginPath();if(c.roundRect)c.roundRect(i*4,h-bh,2,bh,[2,2,1,1]);else c.rect(i*4,h-bh,2,bh);var g=i>=gs&&i<gs+green;if(!g||ga<1){c.fillStyle="#2a2d35";c.fill()}if(g){c.globalAlpha=ga;c.fillStyle="#b6fe3b";c.fill();c.globalAlpha=1}}c.restore();return n}
+ function speechBounds(wd,fps){if(!wd||!wd.length)return null;var st=0,i;for(i=0;i<wd.length-1;i++)if(wd[i]>13&&wd[i+1]>13){st=i;break}var en=wd.length;for(i=wd.length-1;i>0;i--)if(wd[i]>13&&wd[i-1]>13){en=i+1;break}var lead=st/fps,tail=(wd.length-en)/fps,total=wd.length/fps;if(en-st<fps*.3||lead+tail>total*.6)return null;return{lead:lead,tail:tail}}
+ var ICON_PLAY='<svg viewBox="0 0 24 24" stroke-width="2" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>',ICON_PAUSE='<svg viewBox="0 0 24 24" stroke-width="2" stroke-linejoin="round"><rect x="14" y="4" width="4" height="16" rx="1"/><rect x="6" y="4" width="4" height="16" rx="1"/></svg>';
+ var ICON_RING='<svg class="audioRing" viewBox="0 0 20 20" width="14" height="14"><circle cx="10" cy="10" r="7" fill="none" stroke="#0e1013" stroke-width="2.2" stroke-opacity=".25"/><circle cx="10" cy="10" r="7" fill="none" stroke="#0e1013" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="14 30"/></svg>';
+ var ICON_REPEAT='<svg viewBox="0 0 24 24"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg>';
+ function audioBubble(wi,key,slow){
+  var audio=null,half=false,loop=false,played=false,endRes=null,ended=new Promise(function(r){endRes=r});
+  var wd=wi&&wi.wave||null,dur=wi&&wi.dur||0;
+  var h=document.createElement("div");h.className="playerAudio";
+  h.innerHTML='<div class="audioRow"><button class="audioBtn" aria-label="Воспроизвести">'+ICON_PLAY+'</button><div class="waveCol"><canvas class="wave"></canvas><div class="audMeta"><span class="dur">'+(dur?fmt(dur):"")+'</span><span class="ctl"><button class="chip" data-k="spd" title="В два раза медленнее">½×</button><button class="chip" data-k="rep" title="Повторять голосовое по кругу" aria-label="Повтор">'+ICON_REPEAT+'</button></span></div></div></div>';
+  var b=msg("audio",h);b.style.setProperty("--audio-dur",Math.min(dur||4,20));
+  var btn=h.querySelector(".audioBtn"),cv=h.querySelector(".wave"),durEl=h.querySelector(".dur"),spd=h.querySelector('[data-k="spd"]'),rep=h.querySelector('[data-k="rep"]'),raf=0,fraf=0,bounds=speechBounds(wd,30),prog=0,faded=false,rng=bounds&&dur>0?{a:Math.max(0,bounds.lead/dur),b:Math.min(1,1-bounds.tail/dur)}:null;
+  function paint(p,a){prog=p;drawWave(cv,wd,p,a==null?1:a,rng)}
+  later(function(){paint(0)},30);if(window.ResizeObserver){var roT=0;new ResizeObserver(function(){if(roT)return;roT=requestAnimationFrame(function(){roT=0;paint(prog)})}).observe(cv)}
+  function stopRaf(){if(raf){cancelAnimationFrame(raf);raf=0}}
+  function setPlayingUi(on){btn.innerHTML=on?ICON_PAUSE:ICON_PLAY;btn.setAttribute("aria-label",on?"Пауза":"Воспроизвести")}
+  function tick(){if(!audio)return;var ct=audio.currentTime,total=isFinite(audio.duration)&&audio.duration>0?audio.duration:(dur||1),from=bounds?bounds.lead:0,len=bounds?Math.max(.1,total-bounds.lead-bounds.tail):total;var pg=Math.min(1,Math.max(0,(ct-from)/len));paint(pg);if(pg>=1&&!loop&&!faded&&bounds){faded=true;stopRaf();if(window.__L)window.__L("голосовое"+(slow?" (замедленное)":"")+": речь кончилась на "+ct.toFixed(2)+" с из "+(isFinite(audio.duration)?audio.duration.toFixed(2):"?")+" с, гашение полосок началось до конца файла");fadeEnd();return}var left=fmt(Math.max(0,(dur||total)-ct));if(durEl.textContent!==left)durEl.textContent=left;raf=requestAnimationFrame(tick)}
+  function fadeEnd(){var t0=performance.now(),dn=false;function done(){if(dn)return;dn=true;if(fraf){cancelAnimationFrame(fraf);fraf=0}paint(0);try{var cx=cv.getContext("2d"),dd=cx.getImageData(0,0,cv.width,cv.height).data,gn=0;for(var q=0;q<dd.length;q+=4)if(dd[q+1]>200&&dd[q]>150&&dd[q]<200&&dd[q+2]<100)gn++;if(window.__L)window.__L("голосовое"+(slow?" (замедленное)":"")+": после гашения зелёных пикселей "+gn+(gn?" ← ОСТАЛИСЬ":""))}catch(e){}}var p0=prog;(function f(now){var k=Math.min(1,(now-t0)/1500),a=1-k*k*(3-2*k);paint(p0,a);if(a>0)fraf=requestAnimationFrame(f);else done()})(t0);later(done,1700)}
+  function ensure(){if(audio)return audio;audio=new Audio("a/"+key+".mp3");audio.preload="auto";
+   audio.onended=function(){TS.track("voice_end",{props:{n:slow?2:1}});if(endRes)endRes();stopRaf();setPlayingUi(false);durEl.textContent=fmt(dur||audio.duration);if(!faded){faded=true;fadeEnd()}};
+   audio.onpause=function(){stopRaf();setPlayingUi(false)};audio.onplay=function(){setPlayingUi(true);if(!raf)raf=requestAnimationFrame(tick)};
+   audio.onwaiting=function(){btn.innerHTML=ICON_RING};audio.onplaying=function(){setPlayingUi(true)};
+   audio.onerror=function(){b.closest(".row").remove()};return audio}
+  btn.onclick=function(){var a=ensure();if(!a.paused){a.pause();return}TS.track("voice_play",{props:{n:slow?2:1}});played=true;faded=false;if(fraf){cancelAnimationFrame(fraf);fraf=0}stopRaf();if(a.ended)a.currentTime=0;a.loop=loop;a.playbackRate=half?.5:1;try{a.preservesPitch=true;a.webkitPreservesPitch=true}catch(e){}
+   var p=a.play();if(p&&p.catch)p.catch(function(){setPlayingUi(false)})};
+  if(spd.parentNode)spd.parentNode.removeChild(spd);
+  spd.onclick=function(){half=!half;spd.classList.toggle("on",half);if(audio)audio.playbackRate=half?.5:1};
+  rep.onclick=function(){loop=!loop;rep.classList.toggle("on",loop);if(audio)audio.loop=loop};
+  return{ended:ended,played:function(){return played},isPlaying:function(){return!!audio&&!audio.paused&&!audio.ended}}
+ }
+
+ // ── панель ответа
+ var curPanel=panel;   // панель, которая сейчас поднимается или опускается (сборщик фразы или «Выбери слово»)
+ function panelShown(){return panel.classList.contains("show")||cwp.classList.contains("show")}
+ function spacerSync(){spacer.style.height=curPanel.classList.contains("show")?curPanel.offsetHeight+"px":"0"}
+ // подъём и спуск панели вместе с историей одной парой WAAPI-анимаций (panelRise.js приложения): распорка меняет высоту сразу, видимый скачок гасит сдвиг ленты;
+ // история стоит, пока верх панели не коснётся низа последнего сообщения, и дальше едет с той же скоростью
+ function cubic(x1,y1,x2,y2){function bx(t){return 3*(1-t)*(1-t)*t*x1+3*(1-t)*t*t*x2+t*t*t}function by(t){return 3*(1-t)*(1-t)*t*y1+3*(1-t)*t*t*y2+t*t*t}return function(x){if(x<=0)return 0;if(x>=1)return 1;var lo=0,hi=1;for(var i=0;i<30;i++){var m=(lo+hi)/2;if(bx(m)<x)lo=m;else hi=m}return by((lo+hi)/2)}}
+ function lastBottom(){var r=feed.lastElementChild;return r?r.getBoundingClientRect().bottom:0}
+ function runPanel(open,done){
+  panelMoving=true;var H=curPanel.offsetHeight,dur=open?380:280,ez=open?[.22,1,.36,1]:[.4,0,1,1],f=cubic(ez[0],ez[1],ez[2],ez[3]),css="cubic-bezier("+ez.join(",")+")",before=lastBottom();
+  if(open)curPanel.classList.add("show");
+  spacer.style.height=open?H+"px":"0";scrollNow();
+  var moved=open?Math.max(0,before-lastBottom()):Math.max(0,lastBottom()-before),fr=[],N=48,i,t;
+  for(i=0;i<=N;i++){t=i/N;var p=f(t);fr.push({offset:t,transform:"translateY("+(open?Math.min(moved,H*(1-p)):-(moved-Math.min(moved,H*p))).toFixed(2)+"px)",easing:"linear"})}
+  var pa,ha;try{pa=curPanel.animate([{transform:open?"translateY(100%)":"translateY(0%)"},{transform:open?"translateY(0%)":"translateY(100%)"}],{duration:dur,easing:css,fill:"both"});if(moved>0)ha=feed.animate(fr,{duration:dur,fill:"both"})}catch(e){}
+  watch(open?"панель поднимается":"панель опускается",dur+120,false);
+  function fin(){panelMoving=false;if(!open)curPanel.classList.remove("show");try{pa&&pa.cancel();ha&&ha.cancel()}catch(e){}if(done)done()}
+  if(pa&&pa.finished)pa.finished.then(fin).catch(fin);else fin()}
+ function layoutBank(){var chips=pool.querySelectorAll(".phraseChip"),brs=pool.querySelectorAll(".br");if(chips.length<4)return;var gap=parseFloat(getComputedStyle(pool).columnGap)||8,w=[].map.call(chips,function(e){return e.getBoundingClientRect().width}),max=pool.clientWidth,n=w.length,pre=[0];w.forEach(function(x){pre.push(pre[pre.length-1]+x)});
+  function rw(a,b){return pre[b]-pre[a]+gap*(b-a-1)}function fits(x){return x<=max+.5}
+  var best=null,cuts=[];for(var k=1;k<n;k++){var l=rw(0,k),r=rw(k,n);if(!fits(l)||!fits(r))continue;var d=Math.abs(l-r);if(!best||d<best.s-.01)best={s:d,c:[k-1]}}
+  if(!best)for(var i=1;i<n-1;i++)for(var j=i+1;j<n;j++){var rows=[rw(0,i),rw(i,j),rw(j,n)];if(!rows.every(fits))continue;var sp=Math.max.apply(0,rows)-Math.min.apply(0,rows);if(!best||sp<best.s-.01)best={s:sp,c:[i-1,j-1]}}
+  cuts=best?best.c:[];[].forEach.call(brs,function(b,i){b.classList.toggle("on",cuts.indexOf(i)>=0)})}
+ function drawBank(){pool.className="phrasePool"+(bank.length>=4?" two":"");pool.innerHTML="";bank.forEach(function(w,i){var b=document.createElement("button");b.className="phraseChip"+(used[i]?" used":"");b.textContent=w;b.disabled=!!used[i]||busy||locked();b.onclick=function(){if(used[i]||busy||locked())return;placed.push({w:w,i:i});used[i]=1;red=[];draw()};pool.appendChild(b);var br=document.createElement("span");br.className="br";pool.appendChild(br)});layoutBank();if(document.fonts&&document.fonts.ready)document.fonts.ready.then(layoutBank)}
+ function drawRow(animateLast){rowA.innerHTML="";rowA.className="phraseAnswerRow"+(placed.length?" filled":"");if(!placed.length){rowA.innerHTML='<span class="phraseAnswerPlaceholder">'+phText+'</span>';return}
+  placed.forEach(function(p,k){var b=document.createElement("button");b.className="phraseAnswerChip"+(red.indexOf(p.i)>=0?" red":"");b.textContent=p.w;if(!(animateLast&&k===placed.length-1))b.style.animation="none";b.onclick=function(){if(busy||locked())return;used[p.i]=0;placed.splice(k,1);red=[];draw()};rowA.appendChild(b)})}
+ function drawTries(){}
+ function draw(){var n=placed.length;drawBank();drawRow(true);chk.disabled=!n||busy||locked()||(checkedSig!==""&&sigNow()===checkedSig);drawTries();var c=$("#cnt");c.textContent="выбрано "+n+" "+wordForm(n)+" из "+toks.length;c.classList.toggle("on",wrongN>=2)}
+ function openPanel(){TS.step("panel");PANEL_AT=Date.now();curPanel=panel;runPanel(true)}
+ function closePanel(done){curPanel=panel;runPanel(false,done)}
+ function lockUi(){if(!locked())return;panel.classList.add("locked");$("#lc").textContent=leftTxt(S.until-Date.now());$("#lt").textContent="Откроется "+atTxt(S.until);if(!panel.classList.contains("show"))runPanel(true);else spacerSync()}
+ function leftTxt(ms){var m=Math.ceil(ms/60000),h=Math.floor(m/60);return h+" ч "+("0"+(m%60)).slice(-2)+" мин"}
+ function atTxt(t){var d=new Date(t),z=function(x){return("0"+x).slice(-2)};return"в "+z(d.getHours())+":"+z(d.getMinutes())}
+ window.addEventListener("resize",function(){layoutBank();spacerSync()});
+ // колесо мыши: лента перевёрнута, браузер двигает scrollTop не в ту сторону (wheelScrollShift приложения)
+ outer.addEventListener("wheel",function(e){e.preventDefault();outer.scrollTop-=e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?outer.clientHeight:1)},{passive:false});
+
+ // ── «печатает»: три точки со звуком typing-1 перед сообщением учителя (как WaitingDots приложения); wait — обещание, которое тоже надо дождаться
+ var TYPE_FIRST=1000,TYPE_NEXT=1400,REACT=350;
+ function typing(ms,fn,wait){
+  // пока панель ответа открыта, индикатор не показывается (как в приложении): только пауза
+  var r=null;if(!panelShown()){r=document.createElement("div");r.className="typingRow";r.innerHTML='<div class="bubble typingB"><span class="dots"><i></i><i></i><i></i></span></div>';app.appendChild(r);snd("typing-1")}
+  var t0=Date.now();
+  function done(){later(function(){if(!r){fn();return}r.classList.add("out");later(function(){r.remove();fn()},150)},Math.max(0,ms-(Date.now()-t0)))}
+  if(wait&&wait.then)wait.then(done,done);else done()}
+ function emo(e){return msg("emo",e,true)}
+ function sys(t){return msg("sys",esc(t),true)}
+ function triesLeft(n){return n===1?"Осталась ещё одна попытка":"Осталось ещё "+n+" попытки"}
+
+ // ── перевод под плавающими точками: нажатие на точки раскрывает перевод (брендовый зелёный)
+ // список других заданий: загружается только по нажатию (tasks.json), поэтому на запуск страницы не влияет
+ var moreLoaded=null;
+ function openMore(){var P=$("#morePanel"),L=$("#moreList");P.classList.add("on");TS.track("more_open");
+  if(moreLoaded){drawMore(moreLoaded);return}
+  L.innerHTML='<div class="moreNote">Загружаю…</div>';
+  fetch("tasks.json?v="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(j){moreLoaded=(j&&j.items)||(Array.isArray(j)?j:[]);drawMore(moreLoaded)}).catch(function(){L.innerHTML='<div class="moreNote">Не удалось загрузить список. Попробуй ещё раз позже.</div>'})}
+ function drawMore(items){var L=$("#moreList"),cur=String(C.id||C.a||""),done=TS.done();
+  var list=items.filter(function(x){return x&&x.id&&String(x.id)!==cur&&!/^x/.test(String(x.id))});
+  if(!list.length){L.innerHTML='<div class="moreNote">Других фраз пока нет. Они появятся с новыми постами.</div>';return}
+  L.innerHTML="";list.forEach(function(x){var b=document.createElement("button"),ok=!!done[x.id],d=x.at?new Date(Number(x.at)).toLocaleDateString("ru-RU",{day:"numeric",month:"long"}):"";
+   b.className="moreItem"+(ok?" ok":"");b.innerHTML="<span>Фраза"+(d?" · "+d:"")+'</span><span class="st">'+(ok?"✓ собрана":"новая")+"</span>";
+   b.onclick=function(){TS.track("more_pick",{props:{to:String(x.id)}});TS.flush(true);location.hash=String(x.id);location.reload()};L.appendChild(b)})}
+ $("#moreBtn").onclick=function(){TS.track("more_corner");openMore()};
+ $("#moreClose").onclick=function(){$("#morePanel").classList.remove("on")};
+ function exitBtn(){var r=document.createElement("div");r.className="row exitRow";r.innerHTML='<button class="moreChatBtn">Другие фразы</button><button class="exitBtn">Выйти</button>';feed.appendChild(r);r.querySelector(".moreChatBtn").onclick=function(){TS.track("more_chat");openMore()};scrollNow();slideIn(r,false);
+  r.querySelector(".exitBtn").onclick=function(){TS.track("exit_click");TS.flush(true);try{if(window.Telegram&&Telegram.WebApp&&Telegram.WebApp.initData){Telegram.WebApp.close();return}}catch(e){}try{window.close()}catch(e){}later(function(){r.innerHTML='<div class="bubble sys">Можно закрыть эту страницу</div>'},300)}}
+
+ // ── финал: фраза ответом, смайлик отдельным сообщением, перевод под точками, «скоро выйдет разбор», «Выйти»
+ // мотивация: личные итоги из браузера человека и (если людей набралось достаточно) общий процент по этому заданию
+ function userWord(n){var a=n%10,b=n%100;return b>=11&&b<=14?"пользователей":a===1?"пользователь":a>=2&&a<=4?"пользователя":"пользователей"}
+ // общие числа по заданию одной строкой для системного сообщения (показываем, когда набралось хотя бы 3 пользователя)
+ // фраза про других пользователей: живая, по смыслу (сколько из скольких), несколько вариантов по доле
+ function usersOf(n){var a=n%10,b=n%100;return a===1&&b!==11?"пользователя":"пользователей"}
+ function pickOf(a){return a[Math.random()*a.length|0]}
+ function globalLine(att,g){if(!g||!(g.people>=1))return"";var t=g.people,f=g.first;if(att===1&&f<1)f=1;if(f>t)f=t;
+  // формулировки без рода («расслышал/расслышала» не нужны): «удаётся расслышать», «пока никто не…»
+  if(t===1)return"Эту фразу ещё никто не пробовал до тебя.";
+  var of=f+" из "+t+" "+usersOf(t),r=f/t;
+  if(f===0)return"С первого раза эту фразу пока не удавалось расслышать никому, так что ты в хорошей компании.";
+  if(r<.3)return pickOf(["Фраза непростая: с первого раза её удаётся расслышать только "+of+".","Эту фразу непросто поймать на слух: с первого раза это удаётся всего "+of+"."]);
+  if(r<=.7)return pickOf(["С первого раза эту фразу удаётся расслышать "+of+".","Эту фразу с первого раза удаётся расслышать "+of+"."]);
+  return pickOf(["Фраза лёгкая: с первого раза её удаётся расслышать "+of+".","Многим она даётся сразу: расслышать её с первого раза удаётся "+of+"."])}
+ function statLine(att){TS.pub().then(function(g){var l=globalLine(att,g);if(l)later(function(){sys(l)},900)})}
+ function dayWord(n){var a=n%10,b=n%100;return b>=11&&b<=14?"дней":a===1?"день":a>=2&&a<=4?"дня":"дней"}
+ // мотивация общими словами: личные итоги не пишем (человека можно опознать неверно)
+ var GEN=["Каждая собранная фраза тренирует слух.","Слух растёт шаг за шагом.","С каждым разом получается легче."];
+ function ordF(n){return n===1?"с\u00a0первой":n===2?"со\u00a0второй":"с\u00a0"+n+"-й"}
+ function motivation(att,ru){var L=[];
+  if(ru>0&&att===1&&ru===1)L.push("И фраза, и перевод с первой попытки! Отличный слух.");
+  else if(ru>0)L.push("На слух "+ordF(att)+" попытки, перевод "+ordF(ru)+". Так и учатся.");
+  else if(att===1)L.push("С первой попытки! Отличный слух.");else if(att===2)L.push("Со второй попытки, главное, что получилось.");else if(att>=3)L.push("С "+att+"-й попытки, так и учатся.");
+ L.push(GEN[Math.random()*GEN.length|0]);
+  return L}
+ // ── после верного ответа: «Как думаешь, как переводится эта фраза?» → панель «Выбери слово»: «Раскрыть перевод» / «Попробовать перевести»;
+ // «Попробовать перевести» открывает сборщик русской фразы со словами-путаниками (три попытки, потом перевод открывается сам)
+ var RP=["ты","он","она","они","мы","вы","его","нам","меня","тебя"],RG=["и","не","на","в","с","что","как","для","это","был"],RE=["дом","день","время","хорошо","сейчас","жизнь","только","всегда","вместе","потом"];
+ function normRu(t){return String(t).toLowerCase().replace(/ё/g,"е").replace(/[^а-яa-z0-9]/g,"")}
+ function pickRu(list,usedN){return shuf(list).filter(function(x){return usedN.indexOf(normRu(x))<0})[0]}
+ var TR_ICON='<svg class="trI" viewBox="0 0 24 24"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>';
+ function showTranslation(lead,done){typing(1400,function(){if(lead)msg("",lead);later(function(){msg("trv",TR_ICON+esc(C.r),true);later(done,1000)},lead?1000:0)})}
+ function startRu(done){
+  var rt=String(C.r).split(/\s+/).map(function(w){return w.replace(/^[^\wа-яА-ЯёЁ]+|[^\wа-яА-ЯёЁ]+$/g,"")}).filter(Boolean),dec=[],names=rt.map(normRu);
+  [RP,RG,RE].forEach(function(l){var d=pickRu(l,names.concat(dec.map(normRu)));if(d)dec.push(d)});
+  toks=rt;bank=shuf(rt.concat(dec));placed=[];used={};red=[];busy=false;wrongN=0;checkedSig="";phText="Собери перевод...";
+  var left=3,press=0,incR=0;
+  function finishWin(){busy=true;snd("answer-correct");chk.disabled=true;
+   later(function(){fireBurst(24,4);closePanel(function(){var me=msg("me ok",esc(C.r),true);var sh=document.createElement("span");sh.className="sheen";me.appendChild(sh);later(function(){done(press)},1400)})},700)}
+  chk.onclick=function(){
+   if(busy||!placed.length)return;press++;
+   var marks=placed.map(function(p,k){return normRu(p.w)===normRu(toks[k]||"")}),right=placed.length===toks.length&&marks.every(Boolean);
+   if(right){TS.track("tr_solved",{attempt:press,props:{}});finishWin();return}
+   if(placed.length<toks.length&&marks.every(Boolean)){TS.track("tr_check",{attempt:press,props:{r:"inc"}});msg("hint",INC_TXT[incR++%INC_TXT.length]);checkedSig=sigNow();chk.disabled=true;return}
+   checkedSig=sigNow();busy=true;left--;TS.track("tr_check",{attempt:press,props:{r:"wrong"}});snd("answer-wrong");red=placed.map(function(p){return p.i});drawRow(false);rowA.classList.add("err");
+   msg("me err",esc(placed.map(function(p){return p.w}).join(" ")),true);
+   if(left<=0){TS.track("tr_giveup",{attempt:press,props:{}});later(function(){closePanel(function(){showTranslation("Вот как это переводится:",done)})},900);return}
+   later(function(){msg("hint bad","Не совсем. Попробуй ещё раз.");later(function(){later(function(){sys(triesLeft(left))},700);rowA.classList.remove("err");red=[];busy=false;draw()},REACT+200)},900)};
+  draw();TS.step("tr_panel");curPanel=panel;runPanel(true)}
+ function translateStep(done){
+  if(!C.r){done();return}
+  typing(2000,function(){msg("","Что значит эта фраза?");
+   later(function(){TS.step("tr_choice");curPanel=cwp;runPanel(true);
+    var btns=cwp.querySelectorAll(".cwBtn"),taken=false;
+    [].forEach.call(btns,function(b){b.disabled=false;b.className="cwBtn";b.onclick=function(){if(taken)return;taken=true;var k=b.getAttribute("data-k");TS.track("tr_choice",{props:{c:k}});
+     snd(k==="try"?"answer-correct":"message-in");
+     [].forEach.call(btns,function(o){o.disabled=true;o.classList.add(o===b?"pick":"dim")});
+     later(function(){curPanel=cwp;runPanel(false,function(){
+      if(k==="reveal"){msg("trv",TR_ICON+esc(C.r),true);later(done,1000)}
+      else{msg("me pick",esc(b.textContent),true);later(function(){typing(1400,function(){msg("","Тогда собери перевод из слов.");later(function(){startRu(done)},1400)})},500)}})},760)}})},2000)})}
+ // ответ → пауза → смайлик-салют → «Как думаешь, как переводится?» → выбор → перевод → мотивация → точки → «Скоро выйдет полный разбор» → точки → «Выйти»
+ function finale(fire){
+  var att=S.att||0,pubP=TS.pub();TS.step("finale");
+  var me=msg("me ok",esc(C.e),true);var sh=document.createElement("span");sh.className="sheen";me.appendChild(sh);
+  if(fire){snd("xp-gain")}
+  later(function(){emo("🎉");
+   later(function(){translateStep(function(ru){
+    later(function(){typing(2200,function(){pubP.then(function(g){msg("",motivation(att,ru).map(function(x){return"<span class=\"ln\">"+esc(x)+"</span>"}).join(""));var gl=globalLine(att,g);if(gl)later(function(){sys(gl)},1000);
+     later(function(){typing(2800,function(){msg("","Скоро выйдет полный разбор этой фразы");
+      later(function(){typing(1800,exitBtn)},900)})},1900)})},pubP)},1300)})},1200)},fire?3300:300)}
+
+ chk.onclick=function(){
+  if(busy||locked()||!placed.length)return;
+  S.press=(S.press||0)+1;save();var PR=S.press;
+  var marks=placed.map(function(p,k){return norm(p.w)===norm(toks[k]||"")}),right=placed.length===toks.length&&marks.every(Boolean);
+  if(right){busy=true;S.solved=true;S.att=PR;save();TS.solved();TS.track("check",{attempt:PR,props:{r:"ok"}});TS.track("solved",{attempt:PR,props:{pms:Date.now()-PANEL_AT}});snd("answer-correct");chk.disabled=true;
+   later(function(){fireBurst(30,4);later(function(){fireBurst(18,4)},260);closePanel();later(function(){finale(true)},420)},700);return}
+  if(placed.length<toks.length&&marks.every(Boolean)){TS.track("check",{attempt:PR,props:{r:"inc",words:placed.length}});var ix=incN++%INC_TXT.length;msg("hint",INC_TXT[ix]);checkedSig=sigNow();chk.disabled=true;return}
+  // неверно: ответ в чат, смайлик, подсказка учителя и системное сообщение с числом оставшихся попыток
+  checkedSig=sigNow();busy=true;S.left--;wrongN++;save();TS.track("check",{attempt:PR,props:{r:"wrong",words:placed.length}});snd("answer-wrong");red=placed.map(function(p){return p.i});drawRow(false);rowA.classList.add("err");drawTries();
+  msg("me err",esc(placed.map(function(p){return p.w}).join(" ")),true);
+  if(S.left<=0){S.until=Date.now()+LOCK_H*3600000;save();TS.track("locked",{attempt:PR});
+   later(function(){closePanel();later(function(){msg("hint bad","Попытки закончились. Следующая попытка откроется "+atTxt(S.until)+".");panel.classList.add("locked");lockUi();statLine(0)},350)},700);return}
+  later(function(){
+   if(wrongN===1)msg("hint bad","Не совсем. Послушай ещё раз и попробуй снова.");
+   else msg("hint bad","Собери фразу из "+toks.length+" "+(toks.length%10===1&&toks.length!==11?"слова":"слов")+".");
+   later(function(){later(function(){sys(triesLeft(S.left))},700);rowA.classList.remove("err");red=[];busy=false;draw()},REACT+200)},900)};
+
+ // ── запуск: точки «печатает», реплика, точки, голосовое с дорожкой звука (его можно слушать и ставить на повтор), затем панель выезжает снизу
+ function afterVoice(){
+  if(S.solved){later(function(){finale(false)},500);return}
+  if(locked()){later(function(){msg("hint bad","Попытки закончились. Следующая попытка откроется "+atTxt(S.until)+".");lockUi();statLine(0)},500);setInterval(function(){if(S.until&&Date.now()>=S.until)location.reload();else $("#lc").textContent=leftTxt(S.until-Date.now())},30000);return}
+  draw();later(openPanel,600)}
+ var AU,SU;AP.then(function(v){AU=v;TS.track("audio_ready",{props:{ok:!!v}})});SP.then(function(v){SU=v});
+ // слушание. Первое голосовое: следующее сообщение выходит только после того, как человек дослушал его до конца; если он не нажимал играть, через 12 с мягкая подсказка.
+ function heard(vc){return new Promise(function(res){vc.ended.then(function(){later(res,400)});later(function(){if(!vc.played())sys("Нажми кнопку воспроизведения, чтобы послушать")},12000)})}
+ // Второе голосовое: дослушано, либо через ms мс, если его не включали (если уже играет, ждём конец, но не дольше 15 с)
+ function heardOr(vc,ms){return new Promise(function(res){var d=false;function fin(){if(!d){d=true;later(res,400)}}vc.ended.then(fin);later(function(){if(!vc.isPlaying())fin();else later(fin,15000)},ms)})}
+ function toPanel(){typing(TYPE_NEXT,function(){afterVoice()})}
+ // страница стартует сразу (затемнение снимается без ожидания звука), звук догружается в фоне: пока идут первые точки и текст, файл уже грузится;
+ // голосовое выходит, когда файл готов, и не раньше, чем пройдут точки TYPE_VOICE
+ var TYPE_VOICE=1900;
+ later(function(){veilOff()},150);
+ later(function(){
+  TS.track("ready",{props:{}});
+  typing(TYPE_FIRST,function(){
+   TS.step("q_text");msg("","Послушай ещё раз");
+   later(function(){typing(TYPE_VOICE,function(){
+    if(!AU){msg("hint","Звука для этой фразы нет: прислушайтесь к видео.");toPanel();return}
+    TS.step("voice1");var v1=audioBubble(AU.w,AK,false);
+    if(!SU){heard(v1).then(toPanel);return}
+    heard(v1).then(function(){typing(TYPE_NEXT,function(){TS.step("text2");msg("","Давай послушаем замедленно");
+     later(function(){typing(TYPE_VOICE,function(){TS.step("voice2");var v2=audioBubble(SU.w,SK,true);heardOr(v2,4000).then(toPanel)},SP)},REACT)})})},AP)},REACT)})
+ },650)}
+
+// звуки интерфейса грузятся заранее, чтобы первое сообщение не ждало файлов
+function preloadSounds(){["message-in","typing-1","answer-correct","answer-wrong","xp-gain"].forEach(function(n){try{var a=new Audio("s/"+n+".mp3");a.preload="auto";snds[n]=a}catch(e){}if(SGAIN[n]>1)try{sbuf(n).catch(function(){})}catch(e){}})}
+function cleanTxt(t){return String(t||"").replace(/\s*\[пост\]/gi,"").replace(/\s+/g," ").trim()}
+function veilOff(){var v=document.getElementById("veil");if(v)v.classList.add("off")}
+function boot(){
+ preloadSounds();
+ var c=readC();if(c){c.e=cleanTxt(c.e);c.r=cleanTxt(c.r);TS.begin("long");start(c);return}
+ var id=idOf();if(!id){$("#feed").innerHTML='<div class="err2">Ссылка без задания.<br>Откройте тест по кнопке под видео.</div>';veilOff();return}
+ // звук и задание лежат под одним id: оба файла просим одновременно, пока страница ещё показывает кружок
+ TS.begin(id);
+ var pre=loadWave("a/"+id+".mp3"),preS=loadWave("a/"+id+"s.mp3");
+ 
+ fetch("t/"+id+".json",{cache:"no-store"}).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(j){if(!j||!j.e)throw 0;j.e=cleanTxt(j.e);j.r=cleanTxt(j.r);if(window.__L)window.__L("задание: "+JSON.stringify({e:j.e,a:j.a,s:j.s,t:j.t}));j.id=id;j.pre=pre;j.preS=preS;$("#feed").innerHTML="";start(j)}).catch(function(){$("#feed").innerHTML='<div class="err2">Не удалось загрузить задание.<br>Попробуйте ещё раз через минуту: страница обновляется.</div>';veilOff()})}
+(window.__pvCheck?Promise.race([window.__pvCheck,new Promise(function(r){setTimeout(function(){r(false)},1500)})]):Promise.resolve(false)).then(function(rl){if(rl)return;var shown=false;function show(){if(shown)return;shown=true;document.body.classList.add("on");boot()}
+  var ft=document.fonts&&document.fonts.ready?Promise.race([document.fonts.ready,new Promise(function(r){setTimeout(r,700)})]):Promise.resolve();ft.then(show,show);setTimeout(show,1100)});
+})();
+</script></body></html>
