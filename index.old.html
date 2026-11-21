@@ -138,7 +138,7 @@ body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',syste
 .dbgBox.on{display:flex}.dbgBox textarea{flex:1;background:#12141d;color:#cfd6e4;border:1px solid #2a2d35;border-radius:10px;padding:8px;font:11px/1.35 Consolas,monospace;resize:none}
 .dbgBox button{height:38px;border-radius:10px;border:2px solid #b6fe3b;background:#12141d;color:#b6fe3b;font:700 14px 'Montserrat',system-ui,sans-serif}
 /* модуль «лесенка» вместо замедленного голосового: плитки со спектром слов; нажатие играет слово по кругу, кружок между плитками связывает соседние */
-.bubble.lad{background:none;border:0;padding:0;max-width:96%;overflow:visible;width:fit-content;border-radius:0}
+.bubble.lad{background:none;border:0;padding:0 0 24px;max-width:96%;overflow:visible;width:fit-content;border-radius:0}
 .ladRow{display:flex;align-items:stretch;position:relative}
 .ladT{flex:none;height:48px;border-radius:12px;background:linear-gradient(180deg,#8f2ff2,#7523d6);border:1px solid #b57cff;box-shadow:0 0 15px rgba(150,70,255,.35);position:relative;overflow:hidden;cursor:pointer;transition:border-color .5s cubic-bezier(.4,0,.2,1),background-color .5s cubic-bezier(.4,0,.2,1),background .15s,box-shadow .5s,border-radius .5s cubic-bezier(.4,0,.2,1)}
 .ladT canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block;pointer-events:none}
@@ -160,10 +160,10 @@ body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',syste
 .ladJ.on i{background:#c9a6ff;border-color:#fff;box-shadow:0 0 8px rgba(190,130,255,.9)}
 .ladJ.hint i{border-color:#fff;background:#a45cff;box-shadow:0 0 6px rgba(200,150,255,.6)}
 @keyframes ladDp{0%,100%{transform:scale(1)}50%{transform:scale(1.6)}}@keyframes ladWv{0%{transform:scale(1);opacity:0}12%{opacity:.95}100%{transform:scale(7);opacity:0}}
-.ladBr{position:absolute;left:0;top:-13px;height:13px;width:0;opacity:0;transition:opacity .15s;pointer-events:none;z-index:5}.ladBr.on{opacity:1}
-.ladBsv{position:absolute;left:0;top:0;overflow:visible;-webkit-mask-image:linear-gradient(180deg,#000 0,#000 60%,rgba(0,0,0,.6) 100%);mask-image:linear-gradient(180deg,#000 0,#000 60%,rgba(0,0,0,.6) 100%)}
+.ladBr{position:absolute;left:0;top:100%;height:13px;width:0;opacity:0;transition:opacity .15s;pointer-events:none;z-index:5}.ladBr.on{opacity:1}
+.ladBsv{position:absolute;left:0;top:0;overflow:visible;-webkit-mask-image:linear-gradient(0deg,#000 0,#000 60%,rgba(0,0,0,.6) 100%);mask-image:linear-gradient(0deg,#000 0,#000 60%,rgba(0,0,0,.6) 100%)}
 .ladBsv path{fill:none;stroke:#a770ff;stroke-width:1;stroke-dasharray:4 3;stroke-linecap:butt;stroke-linejoin:miter}
-.ladBl{position:absolute;left:50%;top:-8px;transform:translateX(-50%);background:#7a2fe0;color:#fff;font-size:8.5px;font-weight:700;line-height:1;padding:3px 6px;border-radius:7px;white-space:nowrap;box-shadow:0 0 8px rgba(150,70,255,.4)}
+.ladBl{position:absolute;left:50%;top:5px;transform:translateX(-50%);background:#7a2fe0;color:#fff;font-size:8.5px;font-weight:700;line-height:1;padding:3px 6px;border-radius:7px;white-space:nowrap;box-shadow:0 0 8px rgba(150,70,255,.4)}
 
 /* вступление лесенки: плитки вплотную = единое голосовое; кнопка play поверх, куски расходятся при разрезе */
 .row.ladRowWrap{contain:layout style}
@@ -180,10 +180,10 @@ body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',syste
 .ladRow:not(.pre) .ladJ i{transform:none}
 .ladZ{flex:none;position:relative;width:var(--zw,48px);height:48px;box-sizing:border-box;border:1px solid transparent;border-radius:12px 0 0 12px;background:linear-gradient(180deg,#8f2ff2,#7523d6)}
 .ladZ .lb{position:absolute;left:-1px;right:-2px;top:-1px;bottom:-1px;border:1px solid #b57cff;border-radius:inherit;clip-path:inset(0 1px 0 0);-webkit-clip-path:inset(0 1px 0 0);pointer-events:none}
-.ladZ.ghost{position:absolute;left:0;top:0;opacity:0;transition:opacity .45s ease}
+.ladZ.ghost{position:absolute;left:0;top:0;z-index:0}
 .ladR{flex:none;position:relative;width:var(--zpr,10px);height:48px;box-sizing:border-box;border:1px solid transparent;border-radius:0 12px 12px 0;background:linear-gradient(180deg,#8f2ff2,#7523d6)}
 .ladR .lb{position:absolute;left:-2px;right:-1px;top:-1px;bottom:-1px;border:1px solid #b57cff;border-radius:inherit;clip-path:inset(0 0 0 1px);-webkit-clip-path:inset(0 0 0 1px);pointer-events:none}
-.ladR.ghost{position:absolute;top:0;opacity:0;transition:opacity .45s ease}
+.ladR.ghost{position:absolute;top:0;z-index:0}
 .ladZ.col{width:0;padding-left:0;opacity:0;border-width:1px 0}
 .ladRow>.ladPlay{position:absolute;left:12px;top:50%;margin-top:-17px;z-index:0}
 .ladRow .ladT{z-index:1}
@@ -224,11 +224,29 @@ body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',syste
 // Журнал для разбора: события страницы, размеры окна, ошибки. Кнопка «лог» сверху копирует его (или показывает текст, чтобы выделить и скопировать).
 (function(){
 var t0=Date.now(),LG=[],last={};
-function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.length>900)LG.shift()}window.__L=L;(function(){var v=0;try{v=+(localStorage.getItem("pfx")||0)}catch(e){}window.__FX=v;if(v>=1)document.documentElement.classList.add("fxlite");if(v)L("режим эффектов разреза: "+v)})();
+function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.length>900)LG.shift()}window.__L=L;(function(){
+  // тотал-лог: всё, что может влиять на плавность
+  try{
+   ["play","playing","pause","ended","waiting","stalled","error","suspend","abort","emptied","canplay"].forEach(function(ev){document.addEventListener(ev,function(e){var t=e.target,src=(t&&(t.currentSrc||t.src)||"").split("/").pop();L("аудио "+ev+" "+src+(t&&t.currentTime!=null?" t="+t.currentTime.toFixed(2):""))},true)});
+   var op=HTMLMediaElement.prototype.play;HTMLMediaElement.prototype.play=function(){var u=(this.currentSrc||this.src||"").split("/").pop();L("audio.play() "+u);var r=op.apply(this,arguments);if(r&&r.catch)r.catch(function(er){L("audio.play отказ "+u+": "+(er&&er.name))});return r};
+   document.addEventListener("visibilitychange",function(){L("видимость: "+document.visibilityState)});
+   window.addEventListener("pagehide",function(){L("pagehide")});window.addEventListener("pageshow",function(){L("pageshow")});
+   window.addEventListener("focus",function(){L("focus")});window.addEventListener("blur",function(){L("blur")});
+   window.addEventListener("orientationchange",function(){L("orientationchange")});
+   var tc=0;document.addEventListener("touchstart",function(e){tc++;L("touchstart #"+tc+" касаний "+e.touches.length+" цель "+((e.target&&(e.target.className||e.target.id||e.target.tagName))+"").slice(0,24))},{passive:true,capture:true});
+   var tm=0,tml=0;document.addEventListener("touchmove",function(){tm++;var n=Date.now();if(n-tml>300){tml=n;L("touchmove (за период "+tm+")");tm=0}},{passive:true,capture:true});
+   document.addEventListener("touchend",function(){L("touchend")},{passive:true,capture:true});
+   document.addEventListener("pointerdown",function(e){L("pointerdown "+((e.target&&(e.target.className||e.target.tagName))+"").slice(0,24))},{passive:true,capture:true});
+   if(window.PerformanceObserver){
+    try{new PerformanceObserver(function(l){l.getEntries().forEach(function(en){L("longtask "+Math.round(en.duration)+" мс")})}).observe({type:"longtask",buffered:true})}catch(e){}
+    try{new PerformanceObserver(function(l){l.getEntries().forEach(function(en){if(en.value>0)L("layout-shift "+en.value.toFixed(4)+" источников "+((en.sources||[]).length))})}).observe({type:"layout-shift",buffered:true})}catch(e){}
+   }
+  }catch(e){L("тотал-лог не запущен: "+e)}
+})();(function(){var v=0;try{v=+(localStorage.getItem("pfx")||0)}catch(e){}window.__FX=v;if(v>=1)document.documentElement.classList.add("fxlite");if(v)L("режим эффектов разреза: "+v)})();
 window.__L=L;
 function tg(){var w=window.Telegram&&Telegram.WebApp;return w?("tg "+w.platform+" v"+w.version+" vh="+w.viewportHeight+" stable="+w.viewportStableHeight+" exp="+w.isExpanded):"без Telegram"}
 function snap(why){var f=document.getElementById("feed"),o=document.getElementById("outer"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollTop="+Math.round(o?o.scrollTop:0)+" scrollH="+(o?o.scrollHeight:0)+"/"+(o?o.clientHeight:0)+" docScroll="+Math.round(scrollY)+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
-var PAGE_V="2026-11-21.28-lad";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
+var PAGE_V="2026-11-21.30-lad";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
 window.addEventListener("error",function(e){L("ОШИБКА: "+e.message+" @"+(e.filename||"").split("/").pop()+":"+e.lineno)});
 window.addEventListener("unhandledrejection",function(e){L("ОШИБКА промиса: "+(e.reason&&e.reason.message||e.reason))});
 // самообновление: Safari и GitHub Pages держат старый HTML в кэше. Раз за сессию страница запрашивает свежую копию и, если версия другая, перезагружается
@@ -236,8 +254,8 @@ window.__pvCheck=new Promise(function(res){try{if(sessionStorage.getItem("pv-rel
  fetch(location.pathname+"?v="+Date.now(),{cache:"reload"}).then(function(r){return r.text()}).then(function(t){var m=/PAGE_V="([^"]+)"/.exec(t);
   if(m&&m[1]!==PAGE_V){sessionStorage.setItem("pv-reloaded","1");L("страница устарела ("+PAGE_V+" → "+m[1]+"), перезагрузка");var go=function(){res(true);location.reload()};fetch(location.pathname,{cache:"reload"}).then(go,go)}
   else{L("версия страницы актуальна");res(false)}}).catch(function(){res(false)})}catch(e){res(false)}});
-var jk=0,fr=0,worst=0,lastT=0,sumT=0,rafOn=true,t00=performance.now();
-(function perf(t){if(!rafOn)return;if(lastT){var d=t-lastT;fr++;window.__pf.fr++;if(d>24){jk++;window.__pf.jk++;if(d>window.__pf.w)window.__pf.w=d;if(d>worst)worst=d;if(d>45){var f=document.getElementById("feed"),lr=f&&f.lastElementChild;L("РЫВОК кадра "+Math.round(d)+" мс; последнее: "+(lr?String(lr.textContent).trim().slice(0,24)||lr.className:"-"))}}}lastT=t;if(t-t00>120000){rafOn=false;return}requestAnimationFrame(perf)})(performance.now());
+var jk=0,fr=0,worst=0,lastT=0,sumT=0,rafOn=true,t00=performance.now();var HB=[0,0,0,0,0,0],HL=[0,17.5,20,25,34,50],SLOW=[];window.__SLOW=SLOW;window.__HB=HB;
+(function perf(t){if(!rafOn)return;if(lastT){var d=t-lastT;fr++;(function(){var b=0;for(var q=HL.length-1;q>=0;q--){if(d>=HL[q]){b=q;break}}HB[b]++;if(d>20&&SLOW.length<400)SLOW.push(Math.round((Date.now()-t0))+"мс:"+Math.round(d))})();window.__pf.fr++;if(d>24){jk++;window.__pf.jk++;if(d>window.__pf.w)window.__pf.w=d;if(d>worst)worst=d;if(d>45){var f=document.getElementById("feed"),lr=f&&f.lastElementChild;L("РЫВОК кадра "+Math.round(d)+" мс; последнее: "+(lr?String(lr.textContent).trim().slice(0,24)||lr.className:"-"))}}}lastT=t;if(t-t00>120000){rafOn=false;return}requestAnimationFrame(perf)})(performance.now());
 setInterval(function(){if(fr>0){L("кадры за 5 с: "+fr+" (60 Гц = около 300), рывков >24 мс: "+jk+", худший "+Math.round(worst)+" мс");fr=0;jk=0;worst=0}},5000);
 var rs=0;window.addEventListener("resize",function(){rs++;L("resize #"+rs+" "+innerWidth+"x"+innerHeight)});
 if(window.visualViewport){var vc=0;visualViewport.addEventListener("resize",function(){vc++;if(vc<40)L("visualViewport resize "+Math.round(visualViewport.height))})}
@@ -247,7 +265,7 @@ new MutationObserver(function(ms){ms.forEach(function(m){m.addedNodes.forEach(fu
 var pn=document.getElementById("panel");if(pn)new MutationObserver(function(){L(snap("панель "+(pn.classList.contains("show")?"показана":"скрыта")))}).observe(pn,{attributes:true,attributeFilter:["class"]});
 // каждые 700 мс: если размеры/прокрутка поменялись, запись (так видно дрожание: прокрутка и высота прыгают без причины)
 setInterval(function(){var f=document.getElementById("feed"),o=document.getElementById("outer"),k=(o?o.scrollTop+"|"+o.scrollHeight:"")+"|"+scrollY+"|"+innerHeight+"|"+(f?f.offsetHeight:0);if(k!==last.k){last.k=k;L(snap("изменение"))}},700);
-function text(){return LG.join("\n")+"\n"+snap("итог")+"\n"+tg()}
+function text(){return LG.join("\n")+"\n"+"ВСЕ КАДРЫ: интервал мс <17.5: "+HB[0]+", 17.5–20: "+HB[1]+", 20–25: "+HB[2]+", 25–34: "+HB[3]+", 34–50: "+HB[4]+", >=50: "+HB[5]+"\nмедленные кадры (время с начала мс : интервал мс): "+SLOW.join(" ")+"\n"+snap("итог")+"\n"+tg()}
 var box=document.getElementById("dbgBox"),ta=document.getElementById("dbgTa");
 document.getElementById("dbgBtn").onclick=function(){var nn=Date.now();if(nn-(window.__dbgTap||0)>450){window.__dbgTap=nn;return}window.__dbgTap=0;var tx=text();ta.value=tx;box.classList.add("on");try{navigator.clipboard.writeText(tx).then(function(){document.getElementById("dbgCopy").textContent="Скопировано ✓"},function(){})}catch(e){}};
 document.getElementById("dbgCopy").onclick=function(){var tx=ta.value;try{navigator.clipboard.writeText(tx).then(function(){document.getElementById("dbgCopy").textContent="Скопировано ✓"},function(){ta.select();document.execCommand("copy")})}catch(e){ta.select();try{document.execCommand("copy")}catch(_){}}};
@@ -332,7 +350,7 @@ function haptic(kind){try{var h=window.Telegram&&Telegram.WebApp&&Telegram.WebAp
 // ── звуки интерфейса (те же файлы, что в приложении)
 // громкость как в приложении: часть звуков записана тихо, поэтому они усиливаются через Web Audio (GainNode, до ×3 как в sounds.js приложения); множители подобраны по пику файла, чтобы не было хруста
 var SGAIN={"typing-1":3,"message-in":3,"xp-gain":2,"answer-correct":2,"answer-wrong":1.5},snds={},lastSnd={},ACX=null,SBUF={};
-function acx(){if(!ACX){var AC=window.AudioContext||window.webkitAudioContext;if(AC){try{ACX=new AC();try{navigator.audioSession.type="playback"}catch(e){}}catch(e){}}}return ACX}
+function acx(){if(!ACX){var AC=window.AudioContext||window.webkitAudioContext;if(AC){try{ACX=new AC();ACX.onstatechange=function(){if(window.__L)window.__L("AudioContext → "+ACX.state)};if(window.__L)window.__L("AudioContext создан, "+ACX.state+", частота "+ACX.sampleRate);try{navigator.audioSession.type="playback"}catch(e){}}catch(e){}}}return ACX}
 function sbuf(n){var c=acx();if(!c)return Promise.reject(0);return SBUF[n]||(SBUF[n]=fetch("s/"+n+".mp3").then(function(r){return r.arrayBuffer()}).then(function(b){return new Promise(function(res,rej){c.decodeAudioData(b,res,rej)})}))}
 function playHtml(n){try{var a=snds[n]||(snds[n]=new Audio("s/"+n+".mp3"));a.currentTime=0;var p=a.play();if(p&&p.catch)p.catch(function(){})}catch(e){}}
 function snd(n){var tn=Date.now();if(lastSnd[n]&&tn-lastSnd[n]<300)return;lastSnd[n]=tn;if(n==="answer-correct")haptic("ok");else if(n==="answer-wrong")haptic("bad");var g=SGAIN[n]||1,c=g>1?acx():null;
@@ -705,6 +723,8 @@ function start(C){
      T.forEach(function(el,k){el.classList.remove("lkl","lkr","pl","cr2","cl2");var S=xp[k]-xf[k];
       if(el.animate&&FX<2)el.animate([{left:S+"px",offset:0},{left:"-7px",offset:.68},{left:"0px",offset:1}],{duration:540,delay:k*50,easing:"cubic-bezier(.35,.05,.3,1)",fill:"backwards"})});
      var TS=(n-1)*50+540;
+     // правая зона едет с последней плиткой тем же движением и в конце оказывается под ней; левая остаётся на месте и убирается, когда первая плитка заехала на неё полностью
+     if(rz&&rz.animate&&FX<2){var kL=n-1,SL=xp[kL]-xf[kL],xr=parseFloat(rz.style.left),endX=xr-SL-T[kL].offsetWidth+4;rz.animate([{left:xr+"px",offset:0},{left:(endX-7)+"px",offset:.68},{left:endX+"px",offset:1}],{duration:540,delay:kL*50,easing:"cubic-bezier(.35,.05,.3,1)",fill:"both"})}
      // срезы едут вместе с плитками, за которыми закреплены (стык i — за правым краем плитки i-1, первый — за левым краем первой), и сужаются в ноль
      mk.forEach(function(m,i){var k=i===0?0:i-1,S=xp[k]-xf[k],x0=parseFloat(m.style.left),DM="polygon(50% 0,100% 50%,50% 100%,0 50%)";
       if(m.animate)m.animate([{left:x0+"px",clipPath:DM,offset:0},{left:(x0-S-7)+"px",clipPath:"polygon(50% 0,64% 50%,50% 100%,36% 50%)",offset:.68},{left:(x0-S)+"px",clipPath:"polygon(50% 0,50% 50%,50% 100%,50% 50%)",offset:1}],{duration:540,delay:k*50,easing:"cubic-bezier(.35,.05,.3,1)",fill:"both"});
@@ -747,7 +767,7 @@ function start(C){
    // границы скобки считаются по итоговой раскладке (ширины плиток + зазоры только у несклеенных стыков), а не по текущей: стыки при склейке ещё плавно сжимаются, и замер по ним уводил правый край вправо
    var xs=0,bw=0,k0;for(k0=0;k0<a;k0++)xs+=T[k0].offsetWidth+(link[k0]?0:5);for(k0=a;k0<=b;k0++)bw+=T[k0].offsetWidth;
    var bh=br.offsetHeight||13,rr=Math.min(5,bw/2-1),sv=br.querySelector("svg");
-   br.style.left=xs+"px";br.style.width=bw+"px";sv.setAttribute("width",bw);sv.setAttribute("height",bh);sv.firstChild.setAttribute("d","M1 "+bh+" V"+rr+" Q1 1 "+rr+" 1 H"+(bw-rr)+" Q"+(bw-1)+" 1 "+(bw-1)+" "+rr+" V"+bh);
+   br.style.left=xs+"px";br.style.width=bw+"px";sv.setAttribute("width",bw);sv.setAttribute("height",bh);sv.firstChild.setAttribute("d","M1 0 V"+(bh-rr)+" Q1 "+(bh-1)+" "+rr+" "+(bh-1)+" H"+(bw-rr)+" Q"+(bw-1)+" "+(bh-1)+" "+(bw-1)+" "+(bh-rr)+" V0");
    try{var pl=sv.firstChild.getTotalLength(),nn=Math.max(1,Math.round((pl-4)/7)),gg=(pl-(nn+1)*4)/nn;sv.firstChild.style.strokeDasharray="4 "+gg.toFixed(2)}catch(e){}
    bl.textContent=a===b?(a+1)+" слово":b===a+1?(a+1)+" и "+(b+1)+" слова":(a+1)+"–"+(b+1)+" слова";br.classList.add("on");
    if(window.TS)TS.track("ladder_play",{props:{a:a,b:b}});
