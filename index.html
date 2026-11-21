@@ -166,6 +166,7 @@ body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',syste
 .ladBl{position:absolute;left:50%;top:-8px;transform:translateX(-50%);background:#7a2fe0;color:#fff;font-size:8.5px;font-weight:700;line-height:1;padding:3px 6px;border-radius:7px;white-space:nowrap;box-shadow:0 0 8px rgba(150,70,255,.4)}
 
 /* вступление лесенки: плитки вплотную = единое голосовое; кнопка play поверх, куски расходятся при разрезе */
+.row.ladRowWrap{contain:layout style}
 .ladRow.pre .ladT,.ladRow.pre .ladT .lb,.ladRow.pre .ladZ{transition:none!important}
 .ladRow.pre .ladJ{width:0;margin-right:-1px;pointer-events:none}.ladRow.pre .ladJ i{transform:scale(0)}
 .ladRow.pre .ladT{pointer-events:none;box-shadow:none}
@@ -227,7 +228,7 @@ function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.len
 window.__L=L;
 function tg(){var w=window.Telegram&&Telegram.WebApp;return w?("tg "+w.platform+" v"+w.version+" vh="+w.viewportHeight+" stable="+w.viewportStableHeight+" exp="+w.isExpanded):"без Telegram"}
 function snap(why){var f=document.getElementById("feed"),o=document.getElementById("outer"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollTop="+Math.round(o?o.scrollTop:0)+" scrollH="+(o?o.scrollHeight:0)+"/"+(o?o.clientHeight:0)+" docScroll="+Math.round(scrollY)+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
-var PAGE_V="2026-11-21.26-lad";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
+var PAGE_V="2026-11-21.27-lad";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
 window.addEventListener("error",function(e){L("ОШИБКА: "+e.message+" @"+(e.filename||"").split("/").pop()+":"+e.lineno)});
 window.addEventListener("unhandledrejection",function(e){L("ОШИБКА промиса: "+(e.reason&&e.reason.message||e.reason))});
 // самообновление: Safari и GitHub Pages держат старый HTML в кэше. Раз за сессию страница запрашивает свежую копию и, если версия другая, перезагружается
@@ -678,7 +679,7 @@ function start(C){
   function introEnd(){
    if(iDone)return;iDone=true;iBusy=true;cancelAnimationFrame(iRaf);iRaf=0;iSrc=null;iPaint(1);iPlay.classList.remove("pl");
    // всё действие по длине звука среза (cut.mp3, 0,68 с): нарастание ~0,37 с с тряской и лезвиями, в пике куски расходятся, затем точки
-   later(function(){iPaint(0);var FX=window.__FX||0;if(FX<3)snd("cut");if(FX<2)row.classList.add("shake");
+   later(function(){iPaint(0);var FX=window.__FX||0;var frz=document.getElementById("outer");if(frz){frz.style.overflowY="hidden";frz.__frz=1}if(FX<3)snd("cut");if(FX<2)row.classList.add("shake");
     // лезвие проходит сверху вниз ровно по линии стыка; сразу за ним остаётся видимый срез (тёмная игла), а лезвие, дойдя до низа, укорачивается в точку и исчезает без остановки
     var bl2=[],mk=[],gapT=n>1?70/(n-1):0,BD=260;
     // стыки: 0 — между зоной кнопки и первой плиткой, i — между плитками i-1 и i
@@ -690,7 +691,7 @@ function start(C){
     // диагностика разреза в секретный лог: каждый кадр от начала тряски до конца появления точек (верх плиток/строки, прокрутка, интервал кадров); подозрительные кадры пишутся строками
     (function(){var L=window.__L;if(!L)return;var t00=performance.now(),last=0,base=null,out=0,fr=0,wd=0,mx={};L("разрез: старт записи кадров (4 с), плиток "+n+", dpr "+(window.devicePixelRatio||1)+", режим эффектов "+(window.__FX||0));
      function snapAll(){var vv=window.visualViewport,o=document.getElementById("outer"),rows=document.querySelectorAll("#feed > .row"),f=rows[0],l=rows[rows.length-1],rr=row.getBoundingClientRect(),tt=T[0].getBoundingClientRect(),inn=document.getElementById("inner").getBoundingClientRect();
-      return{first:f?f.getBoundingClientRect().top:0,last:l?l.getBoundingClientRect().bottom:0,row:rr.top,tile:tt.top,tileH:tt.height,inner:inn.top,sc:o?o.scrollTop:0,vvTop:vv?vv.offsetTop:0,vvPage:vv?vv.pageTop:0,vvH:vv?vv.height:0,wy:window.scrollY,ih:window.innerHeight}}
+      return{sh:o?o.scrollHeight:0,sw:o?o.scrollWidth:0,ch:o?o.clientHeight:0,cw:o?o.clientWidth:0,first:f?f.getBoundingClientRect().top:0,last:l?l.getBoundingClientRect().bottom:0,row:rr.top,tile:tt.top,tileH:tt.height,inner:inn.top,sc:o?o.scrollTop:0,vvTop:vv?vv.offsetTop:0,vvPage:vv?vv.pageTop:0,vvH:vv?vv.height:0,wy:window.scrollY,ih:window.innerHeight}}
      (function rec(t){var el=performance.now()-t00;if(el>4000){L("разрез: конец записи, кадров "+fr+", худший интервал "+Math.round(wd)+" мс; максимальные сдвиги (px): "+Object.keys(mx).map(function(k){return k+" "+mx[k].toFixed(2)}).join(", "));return}
       var sn=snapAll(),dt=last?t-last:0;last=t;fr++;if(!base)base=sn;if(dt>wd)wd=dt;var bad=dt>24;
       Object.keys(sn).forEach(function(k){var d=Math.abs(sn[k]-base[k]);if(!(k in mx)||d>mx[k])mx[k]=d;if(d>.3&&k!=="tile"&&k!=="row")bad=true;if(d>.3&&(k==="tile"||k==="row"))bad=true});
@@ -708,7 +709,7 @@ function start(C){
      later(function(){iPlay.remove();intro.remove();if(rz)rz.remove()},TS);
      J.forEach(function(j,q){later(function(){j.classList.add("pop")},TS+60+q*180)});
      T.forEach(function(el,k){later(function(){el.classList.add("glowIn");later(function(){el.classList.remove("glowIn")},800)},k*50+420)});
-     later(function(){bl2.forEach(function(e){e.remove()});J.forEach(function(j){j.classList.remove("pop")});row.classList.remove("cutting");iBusy=false;if(onReady)onReady();later(function(){if(!beckonOff)startBeckon()},800)},TS+60+J.length*180+450)},Math.round(100+Math.max(0,n-1)*gapT+BD*.55+70))
+     later(function(){bl2.forEach(function(e){e.remove()});J.forEach(function(j){j.classList.remove("pop")});row.classList.remove("cutting");var fz=document.getElementById("outer");if(fz&&fz.__frz){fz.style.overflowY="";fz.__frz=0}iBusy=false;if(onReady)onReady();later(function(){if(!beckonOff)startBeckon()},800)},TS+60+J.length*180+450)},Math.round(100+Math.max(0,n-1)*gapT+BD*.55+70))
    },300)}
   function introPlay(){
    if(iDone||iBusy&&!iSrc)return;
