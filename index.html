@@ -128,7 +128,7 @@ body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',syste
 @media (prefers-reduced-motion:reduce){.sheen::before{animation:sheenStill .7s ease-out .05s both}@keyframes sheenStill{0%,100%{opacity:0}45%{opacity:1}}}
 .dbgBtn{position:fixed;top:0;right:0;z-index:200;width:56px;height:56px;padding:0;border:0;background:transparent;color:transparent;font-size:0;cursor:default;opacity:0}   /* секретная кнопка лога: невидимая зона в правом верхнем углу, открывается двойным касанием */
 .dbgBtn:active{color:#b6fe3b;border-color:#b6fe3b}
-.dbgMark{position:fixed;top:0;left:calc(50% - 40px);z-index:200;width:80px;height:56px;padding:0;border:0;background:transparent;color:transparent;font-size:0;opacity:0}
+.dbgMark{position:fixed;top:calc(6px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:200;height:26px;padding:0 12px;border-radius:13px;border:1px solid #f0b429;background:rgba(40,30,8,.85);color:#f0b429;font:700 11px/24px 'Montserrat',system-ui,sans-serif;letter-spacing:.02em;cursor:pointer;opacity:1}.dbgMark:active{background:#f0b429;color:#1a1200}
 .moreBtn{position:fixed;top:calc(6px + env(safe-area-inset-top,0px));left:8px;z-index:200;height:22px;padding:0 9px;border-radius:11px;border:1px solid #2a2d35;background:rgba(18,20,29,.78);color:#9aa0b4;font:600 10px/20px 'Montserrat',system-ui,sans-serif;letter-spacing:.03em;cursor:pointer}.moreBtn:active{color:#b6fe3b;border-color:#b6fe3b}
 .morePanel{position:fixed;inset:0;z-index:300;display:none;flex-direction:column;background:#0e1013;padding-top:env(safe-area-inset-top,0px)}.morePanel.on{display:flex}
 .moreHead{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px;font-size:16px;color:#e0e0e0}.moreHead button{background:none;border:0;color:#9aa0b4;font:inherit;font-size:20px;padding:4px 8px;cursor:pointer}
@@ -151,9 +151,9 @@ body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',syste
 .ladT .lb{position:absolute;left:-1px;right:-1px;top:-1px;bottom:-1px;border:1px solid var(--bc);border-radius:inherit;pointer-events:none;opacity:0;z-index:3;transition:opacity .5s}
 .ladT.lkr .lb,.ladT.lkl .lb{opacity:1}
 /* склейка без растушёвки: на стороне стыка вертикальная линия обводки срезается, верхняя и нижняя идут сплошь через стык */
-.ladT.lkr .lb{right:-2px;-webkit-clip-path:inset(0 1px 0 0);clip-path:inset(0 1px 0 0)}
-.ladT.lkl .lb{left:-2px;-webkit-clip-path:inset(0 0 0 1px);clip-path:inset(0 0 0 1px)}
-.ladT.lkl.lkr .lb{-webkit-clip-path:inset(0 1px 0 1px);clip-path:inset(0 1px 0 1px)}
+.ladT.lkr .lb,.ladT.kr .lb{right:-2px;-webkit-clip-path:inset(0 1px 0 0);clip-path:inset(0 1px 0 0)}
+.ladT.lkl .lb,.ladT.kl .lb{left:-2px;-webkit-clip-path:inset(0 0 0 1px);clip-path:inset(0 0 0 1px)}
+.ladT.lkl.lkr .lb,.ladT.kl.kr .lb{-webkit-clip-path:inset(0 1px 0 1px);clip-path:inset(0 1px 0 1px)}
 .ladJ{flex:none;width:5px;position:relative;transition:width .5s cubic-bezier(.4,0,.2,1),margin-right .5s cubic-bezier(.4,0,.2,1)}.ladJ.on{width:0}
 .ladJ i{position:absolute;left:50%;top:50%;width:9px;height:9px;margin:-4.5px 0 0 -4.5px;box-sizing:border-box;border:1.5px solid #8f78bd;background:#5a2aa6;box-shadow:0 0 4px rgba(130,70,220,.4);border-radius:50%;cursor:pointer;z-index:3;transition:background .18s,border-color .18s,transform .18s}
 .ladJ i::after{content:'';position:absolute;inset:-9px -8px}
@@ -174,10 +174,9 @@ body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',syste
 .ladRow.pre{filter:drop-shadow(0 0 7px rgba(150,70,255,.4))}
 .ladBg{position:absolute;left:0;top:0;right:0;bottom:0;border-radius:12px;background:linear-gradient(180deg,#8f2ff2,#7523d6);border:1px solid #b57cff;box-shadow:0 0 15px rgba(150,70,255,.35);pointer-events:none;transition:opacity .45s ease-out}.ladBg.out{opacity:0}
 .ladRow .ladJ.pop i{transform:scale(1);transition:transform .5s cubic-bezier(.34,1.56,.64,1)}
-.ladWave.dot{border-radius:50%;animation-name:ladRingD}
-@keyframes ladRingD{0%{outline-offset:0;outline-color:rgba(220,190,255,0)}8%{outline-color:rgba(220,190,255,.9)}100%{outline-offset:14px;outline-color:rgba(220,190,255,0)}}
-.ladWave{position:fixed;z-index:150;pointer-events:none;border-radius:12px;outline:1.5px solid rgba(220,190,255,0);outline-offset:0;animation:ladRing 1.8s linear both}
-@keyframes ladRing{0%{outline-offset:0;outline-color:rgba(220,190,255,0)}8%{outline-color:rgba(220,190,255,.9)}100%{outline-offset:15px;outline-color:rgba(220,190,255,0)}}
+.ladWave{position:fixed;left:0;top:0;z-index:150;pointer-events:none;will-change:transform}
+.ladWave i{position:absolute;box-sizing:border-box;border:1.5px solid rgba(220,190,255,.95);animation:ladRing 1.8s linear both;transform-origin:50% 50%;will-change:transform,opacity;backface-visibility:hidden}
+@keyframes ladRing{0%{transform:scale(var(--sx,.7),var(--sy,.7));opacity:0}8%{opacity:.9}100%{transform:scale(1,1);opacity:0}}
 .ladRow:not(.pre) .ladJ i{transform:none}
 .ladZ{flex:none;position:relative;width:var(--zw,48px);height:48px;box-sizing:border-box;border:1px solid transparent;border-radius:12px 0 0 12px;background:linear-gradient(180deg,#8f2ff2,#7523d6)}
 .ladZ .lb{position:absolute;left:-1px;right:-2px;top:-1px;bottom:-1px;border:1px solid #b57cff;border-radius:inherit;clip-path:inset(0 1px 0 0);-webkit-clip-path:inset(0 1px 0 0);pointer-events:none}
@@ -215,7 +214,7 @@ body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',syste
 .ladCutMark{position:absolute;top:-1px;bottom:-1px;width:4px;background:#35086f;clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);opacity:0;z-index:4;pointer-events:none}.ladCutMark.on{opacity:.95}
 </style></head><body>
 <button class="moreBtn" id="moreBtn" aria-label="Другие фразы">Фразы</button><div class="morePanel" id="morePanel"><div class="moreHead"><b>Другие фразы</b><button id="moreClose" aria-label="Закрыть">✕</button></div><div class="moreList" id="moreList"></div></div>
-<button class="dbgBtn" id="dbgBtn" aria-label="Лог">лог</button><button class="dbgMark" id="dbgMark" aria-label="Метка">метка</button><div class="dbgBox" id="dbgBox"><textarea id="dbgTa" readonly></textarea><button id="dbgCopy">Скопировать</button><button id="dbgFx" style="border-color:#7aa2ff;color:#7aa2ff">Эффекты разреза: полные</button><button id="dbgReset" style="border-color:#f87171;color:#f87171">Сбросить прогресс и начать заново</button><button id="dbgClose" style="border-color:#2a2d35;color:#9aa0b4">Закрыть</button></div>
+<button class="dbgBtn" id="dbgBtn" aria-label="Лог">лог</button><button class="dbgMark" id="dbgMark" aria-label="Метка">дёрнулось!</button><div class="dbgBox" id="dbgBox"><textarea id="dbgTa" readonly></textarea><button id="dbgCopy">Скопировать</button><button id="dbgFx" style="border-color:#7aa2ff;color:#7aa2ff">Эффекты разреза: полные</button><button id="dbgReset" style="border-color:#f87171;color:#f87171">Сбросить прогресс и начать заново</button><button id="dbgClose" style="border-color:#2a2d35;color:#9aa0b4">Закрыть</button></div>
 <div class="veil" id="veil"><span class="spin"></span></div>
 <div id="app"><div class="playerFeed" id="outer"><div class="inner" id="inner"><div id="feed"></div><div id="spacer"></div></div></div></div>
 <div class="phrasePanel" id="panel">
@@ -253,7 +252,7 @@ function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.len
 window.__L=L;
 function tg(){var w=window.Telegram&&Telegram.WebApp;return w?("tg "+w.platform+" v"+w.version+" vh="+w.viewportHeight+" stable="+w.viewportStableHeight+" exp="+w.isExpanded):"без Telegram"}
 function snap(why){var f=document.getElementById("feed"),o=document.getElementById("outer"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollTop="+Math.round(o?o.scrollTop:0)+" scrollH="+(o?o.scrollHeight:0)+"/"+(o?o.clientHeight:0)+" docScroll="+Math.round(scrollY)+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
-var PAGE_V="2026-11-21.38-lad";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
+var PAGE_V="2026-11-21.39-lad";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
 window.addEventListener("error",function(e){L("ОШИБКА: "+e.message+" @"+(e.filename||"").split("/").pop()+":"+e.lineno)});
 window.addEventListener("unhandledrejection",function(e){L("ОШИБКА промиса: "+(e.reason&&e.reason.message||e.reason))});
 // самообновление: Safari и GitHub Pages держат старый HTML в кэше. Раз за сессию страница запрашивает свежую копию и, если версия другая, перезагружается
@@ -671,7 +670,7 @@ function start(C){
   function peak(a,b){var i0=Math.max(0,Math.floor(a*sr)),i1=Math.min(data.length,Math.ceil(b*sr)),m=0;for(var i=i0;i<i1;i++){var v=data[i]<0?-data[i]:data[i];if(v>m)m=v}return m}
   var vmax=1e-6,k;for(k=0;k<n;k++)vmax=Math.max(vmax,peak(words[k].a,words[k].b));
   var h=document.createElement("div");h.className="ladWrap";var tiles="";
-  for(k=0;k<n;k++){tiles+='<div class="ladT lkl lkr" data-i="'+k+'" style="width:'+Math.max(18,4*Math.round(((72+(words[k].b-words[k].a)*110)*.6-2)/4)+2)+'px"><canvas></canvas><i class="lb"></i></div>'+(k<n-1?'<div class="ladJ" data-j="'+k+'"><b></b><i></i></div>':"")}
+  for(k=0;k<n;k++){tiles+='<div class="ladT lkl lkr kl kr" data-i="'+k+'" style="width:'+Math.max(18,4*Math.round(((72+(words[k].b-words[k].a)*110)*.6-2)/4)+2)+'px"><canvas></canvas><i class="lb"></i></div>'+(k<n-1?'<div class="ladJ" data-j="'+k+'"><b></b><i></i></div>':"")}
   h.innerHTML='<div class="ladRow pre"><div class="ladBr"><svg class="ladBsv"><path d=""/></svg><span class="ladBl"></span></div>'+tiles+'<div class="ladR"><i class="lb"></i></div></div>';
   var b=msg("lad",h,true);b.parentNode.classList.add("ladRowWrap");
   var T=[].slice.call(h.querySelectorAll(".ladT")),J=[].slice.call(h.querySelectorAll(".ladJ")),br=h.querySelector(".ladBr"),bl=h.querySelector(".ladBl"),row=h.querySelector(".ladRow");
@@ -700,10 +699,12 @@ function start(C){
     prev=s;requestAnimationFrame(f)})()})();
   // волны первого куска: отдельные кольца на уровне страницы (видны поверх всего, в том числе панели), следят за положением плитки; при нажатии новые не запускаются, а уже идущие доживают свой цикл
   var wvRaf=0;
-  function wvPlace(e){var r=e.__t().getBoundingClientRect();e.style.left=r.left+"px";e.style.top=r.top+"px";e.style.width=r.width+"px";e.style.height=r.height+"px"}
+  function wvPlace(e){var r=e.__t().getBoundingClientRect(),x=Math.round(r.left*10)/10,y=Math.round(r.top*10)/10;if(e.__x===x&&e.__y===y)return;e.__x=x;e.__y=y;e.style.transform="translate3d("+x+"px,"+y+"px,0)"}
   function wvLoop(){var all=document.querySelectorAll(".ladWave");if(!all.length){wvRaf=0;return}for(var i=0;i<all.length;i++)wvPlace(all[i]);wvRaf=requestAnimationFrame(wvLoop)}
   function Waves(getEl,dot){var tm=0,on=false;
-   function spawn(){var e=document.createElement("div");e.className="ladWave"+(dot?" dot":"");e.__t=getEl;wvPlace(e);document.body.appendChild(e);e.addEventListener("animationend",function(){e.remove()});if(!wvRaf)wvRaf=requestAnimationFrame(wvLoop)}
+   function spawn(){var t=getEl().getBoundingClientRect(),E=dot?14:15,w=t.width,h=t.height,ring=document.createElement("i"),e=document.createElement("div");e.className="ladWave";e.__t=getEl;
+    ring.style.cssText="left:"+(-E)+"px;top:"+(-E)+"px;width:"+(w+2*E)+"px;height:"+(h+2*E)+"px;border-radius:"+(dot?"50%":(12+E)+"px")+";--sx:"+(w/(w+2*E)).toFixed(3)+";--sy:"+(h/(h+2*E)).toFixed(3);
+    e.appendChild(ring);wvPlace(e);document.body.appendChild(e);ring.addEventListener("animationend",function(){e.remove()});if(!wvRaf)wvRaf=requestAnimationFrame(wvLoop)}
    function pair(){spawn();setTimeout(function(){if(on)spawn()},900)}
    return{start:function(){if(on)return;on=true;pair();tm=setInterval(pair,1800)},stop:function(){on=false;if(tm){clearInterval(tm);tm=0}}}}
   var wordW=Waves(function(){return T[0]},false),dotW=Waves(function(){return J[0].querySelector("i")},true);
@@ -759,7 +760,7 @@ function start(C){
      later(function(){iPlay.remove();intro.remove();if(rz)rz.remove();dropHr()},TS);
      J.forEach(function(j,q){later(function(){j.classList.add("pop")},TS+60+q*180)});
      T.forEach(function(el,k){later(function(){el.classList.add("glowIn");later(function(){el.classList.remove("glowIn")},800)},D+k*50+420)});
-     later(function(){bl2.forEach(function(e){e.remove()});J.forEach(function(j){j.classList.remove("pop")});row.classList.remove("cutting");T.forEach(function(el){el.style.transitionDelay=""});var fz=document.getElementById("outer");if(fz&&fz.__frz){fz.style.overflowY="";fz.__frz=0}iBusy=false;if(onReady)onReady();later(function(){if(!beckonOff)startBeckon()},800)},TS+60+J.length*180+450)},Math.round(100+Math.max(0,n-1)*gapT+BD*.55+70))
+     later(function(){bl2.forEach(function(e){e.remove()});J.forEach(function(j){j.classList.remove("pop")});row.classList.remove("cutting");T.forEach(function(el){el.style.transitionDelay="";el.classList.remove("kl","kr")});var fz=document.getElementById("outer");if(fz&&fz.__frz){fz.style.overflowY="";fz.__frz=0}iBusy=false;if(onReady)onReady();later(function(){if(!beckonOff)startBeckon()},800)},TS+60+J.length*180+450)},Math.round(100+Math.max(0,n-1)*gapT+BD*.55+70))
    },470)}
   function introPlay(){
    if(iDone||iBusy&&!iSrc)return;
