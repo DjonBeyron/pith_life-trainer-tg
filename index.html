@@ -316,7 +316,7 @@ function haptic(kind){try{var h=window.Telegram&&Telegram.WebApp&&Telegram.WebAp
 
 // ── звуки интерфейса (те же файлы, что в приложении)
 // громкость как в приложении: часть звуков записана тихо, поэтому они усиливаются через Web Audio (GainNode, до ×3 как в sounds.js приложения); множители подобраны по пику файла, чтобы не было хруста
-var SGAIN={"typing-1":3,"message-in":1.2,"xp-gain":2,"answer-correct":2,"answer-wrong":1.5},snds={},lastSnd={},ACX=null,SBUF={};
+var SGAIN={"typing-1":3,"message-in":3,"xp-gain":2,"answer-correct":2,"answer-wrong":1.5},snds={},lastSnd={},ACX=null,SBUF={};
 function acx(){if(!ACX){var AC=window.AudioContext||window.webkitAudioContext;if(AC){try{ACX=new AC();try{navigator.audioSession.type="playback"}catch(e){}}catch(e){}}}return ACX}
 function sbuf(n){var c=acx();if(!c)return Promise.reject(0);return SBUF[n]||(SBUF[n]=fetch("s/"+n+".mp3").then(function(r){return r.arrayBuffer()}).then(function(b){return new Promise(function(res,rej){c.decodeAudioData(b,res,rej)})}))}
 function playHtml(n){try{var a=snds[n]||(snds[n]=new Audio("s/"+n+".mp3"));a.currentTime=0;var p=a.play();if(p&&p.catch)p.catch(function(){})}catch(e){}}
