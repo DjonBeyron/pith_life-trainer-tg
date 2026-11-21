@@ -228,7 +228,7 @@ function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.len
 window.__L=L;
 function tg(){var w=window.Telegram&&Telegram.WebApp;return w?("tg "+w.platform+" v"+w.version+" vh="+w.viewportHeight+" stable="+w.viewportStableHeight+" exp="+w.isExpanded):"без Telegram"}
 function snap(why){var f=document.getElementById("feed"),o=document.getElementById("outer"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollTop="+Math.round(o?o.scrollTop:0)+" scrollH="+(o?o.scrollHeight:0)+"/"+(o?o.clientHeight:0)+" docScroll="+Math.round(scrollY)+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
-var PAGE_V="2026-11-21.27-lad";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
+var PAGE_V="2026-11-21.28-lad";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
 window.addEventListener("error",function(e){L("ОШИБКА: "+e.message+" @"+(e.filename||"").split("/").pop()+":"+e.lineno)});
 window.addEventListener("unhandledrejection",function(e){L("ОШИБКА промиса: "+(e.reason&&e.reason.message||e.reason))});
 // самообновление: Safari и GitHub Pages держат старый HTML в кэше. Раз за сессию страница запрашивает свежую копию и, если версия другая, перезагружается
@@ -705,7 +705,10 @@ function start(C){
      T.forEach(function(el,k){el.classList.remove("lkl","lkr","pl","cr2","cl2");var S=xp[k]-xf[k];
       if(el.animate&&FX<2)el.animate([{left:S+"px",offset:0},{left:"-7px",offset:.68},{left:"0px",offset:1}],{duration:540,delay:k*50,easing:"cubic-bezier(.35,.05,.3,1)",fill:"backwards"})});
      var TS=(n-1)*50+540;
-     mk.forEach(function(m,i){later(function(){m.style.transition="opacity .16s";m.classList.remove("on");later(function(){m.remove()},220)},i*50)});
+     // срезы едут вместе с плитками, за которыми закреплены (стык i — за правым краем плитки i-1, первый — за левым краем первой), и сужаются в ноль
+     mk.forEach(function(m,i){var k=i===0?0:i-1,S=xp[k]-xf[k],x0=parseFloat(m.style.left),DM="polygon(50% 0,100% 50%,50% 100%,0 50%)";
+      if(m.animate)m.animate([{left:x0+"px",clipPath:DM,offset:0},{left:(x0-S-7)+"px",clipPath:"polygon(50% 0,64% 50%,50% 100%,36% 50%)",offset:.68},{left:(x0-S)+"px",clipPath:"polygon(50% 0,50% 50%,50% 100%,50% 50%)",offset:1}],{duration:540,delay:k*50,easing:"cubic-bezier(.35,.05,.3,1)",fill:"both"});
+      later(function(){m.remove()},k*50+560)});
      later(function(){iPlay.remove();intro.remove();if(rz)rz.remove()},TS);
      J.forEach(function(j,q){later(function(){j.classList.add("pop")},TS+60+q*180)});
      T.forEach(function(el,k){later(function(){el.classList.add("glowIn");later(function(){el.classList.remove("glowIn")},800)},k*50+420)});
