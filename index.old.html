@@ -149,20 +149,21 @@ body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',syste
 .ladT{--bc:#b57cff}.ladT.on{--bc:#d2b3ff}
 .ladT .lb{position:absolute;left:-1px;right:-1px;top:-1px;bottom:-1px;border:1px solid var(--bc);border-radius:inherit;pointer-events:none;opacity:0;z-index:3;transition:opacity .5s}
 .ladT.lkr .lb,.ladT.lkl .lb{opacity:1}
-.ladT.lkr .lb{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 10px),transparent calc(100% - 2px));mask-image:linear-gradient(90deg,#000 calc(100% - 10px),transparent calc(100% - 2px))}
-.ladT.lkl .lb{-webkit-mask-image:linear-gradient(270deg,#000 calc(100% - 10px),transparent calc(100% - 2px));mask-image:linear-gradient(270deg,#000 calc(100% - 10px),transparent calc(100% - 2px))}
-.ladT.lkl.lkr .lb{-webkit-mask-image:linear-gradient(90deg,transparent 2px,#000 10px,#000 calc(100% - 10px),transparent calc(100% - 2px));mask-image:linear-gradient(90deg,transparent 2px,#000 10px,#000 calc(100% - 10px),transparent calc(100% - 2px))}
+/* склейка без растушёвки: на стороне стыка вертикальная линия обводки срезается, верхняя и нижняя идут сплошь через стык */
+.ladT.lkr .lb{right:-2px;-webkit-clip-path:inset(0 1px 0 0);clip-path:inset(0 1px 0 0)}
+.ladT.lkl .lb{left:-2px;-webkit-clip-path:inset(0 0 0 1px);clip-path:inset(0 0 0 1px)}
+.ladT.lkl.lkr .lb{-webkit-clip-path:inset(0 1px 0 1px);clip-path:inset(0 1px 0 1px)}
 .ladJ{flex:none;width:5px;position:relative;transition:width .5s cubic-bezier(.4,0,.2,1),margin-right .5s cubic-bezier(.4,0,.2,1)}.ladJ.on{width:0}
 .ladJ i{position:absolute;left:50%;top:50%;width:9px;height:9px;margin:-4.5px 0 0 -4.5px;box-sizing:border-box;border:1.5px solid #8f78bd;background:#5a2aa6;box-shadow:0 0 4px rgba(130,70,220,.4);border-radius:50%;cursor:pointer;z-index:3;transition:background .18s,border-color .18s,transform .18s}
 .ladJ i::after{content:'';position:absolute;inset:-9px -8px}
-.ladJ b{position:absolute;left:50%;top:0;bottom:0;width:3px;margin-left:-1.5px;background:#3d0f80;clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);opacity:0;transition:opacity .4s;pointer-events:none;z-index:2}.ladJ.on b{opacity:.75}
+.ladJ b{position:absolute;left:50%;top:-1px;bottom:-1px;width:4px;margin-left:-2px;background:#35086f;clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);opacity:0;transition:opacity .4s;pointer-events:none;z-index:4}.ladJ.on b{opacity:.9}
 .ladJ.on i{background:#c9a6ff;border-color:#fff;box-shadow:0 0 8px rgba(190,130,255,.9)}
 .ladJ.hint i{animation:ladDp 1.1s ease-in-out infinite;border-color:#fff;background:#a45cff;box-shadow:0 0 10px rgba(200,150,255,.9)}
 .ladJ.hint::before,.ladJ.hint::after{content:'';position:absolute;left:50%;top:50%;width:9px;height:9px;margin:-4.5px 0 0 -4.5px;box-sizing:border-box;border:2.5px solid #e4d0ff;border-radius:50%;pointer-events:none;z-index:2;opacity:0;animation:ladWv 1.6s ease-out infinite both}.ladJ.hint::after{animation-delay:.8s}
 @keyframes ladDp{0%,100%{transform:scale(1)}50%{transform:scale(1.6)}}@keyframes ladWv{0%{transform:scale(1);opacity:0}12%{opacity:.95}100%{transform:scale(7);opacity:0}}
 .ladBr{position:absolute;left:0;top:-13px;height:13px;width:0;opacity:0;transition:opacity .15s;pointer-events:none;z-index:5}.ladBr.on{opacity:1}
 .ladBsv{position:absolute;left:0;top:0;overflow:visible;-webkit-mask-image:linear-gradient(180deg,#000 0,#000 60%,rgba(0,0,0,.6) 100%);mask-image:linear-gradient(180deg,#000 0,#000 60%,rgba(0,0,0,.6) 100%)}
-.ladBsv path{fill:none;stroke:#a770ff;stroke-width:1.6;stroke-dasharray:2.2 3;stroke-linecap:butt;stroke-linejoin:miter}
+.ladBsv path{fill:none;stroke:#a770ff;stroke-width:1;stroke-dasharray:4 3;stroke-linecap:butt;stroke-linejoin:miter}
 .ladBl{position:absolute;left:50%;top:-8px;transform:translateX(-50%);background:#7a2fe0;color:#fff;font-size:8.5px;font-weight:700;line-height:1;padding:3px 6px;border-radius:7px;white-space:nowrap;box-shadow:0 0 8px rgba(150,70,255,.4)}
 
 /* вступление лесенки: плитки вплотную = единое голосовое; кнопка play поверх, куски расходятся при разрезе */
@@ -218,7 +219,7 @@ function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.len
 window.__L=L;
 function tg(){var w=window.Telegram&&Telegram.WebApp;return w?("tg "+w.platform+" v"+w.version+" vh="+w.viewportHeight+" stable="+w.viewportStableHeight+" exp="+w.isExpanded):"без Telegram"}
 function snap(why){var f=document.getElementById("feed"),o=document.getElementById("outer"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollTop="+Math.round(o?o.scrollTop:0)+" scrollH="+(o?o.scrollHeight:0)+"/"+(o?o.clientHeight:0)+" docScroll="+Math.round(scrollY)+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
-var PAGE_V="2026-11-21.20-lad";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
+var PAGE_V="2026-11-21.22-lad";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
 window.addEventListener("error",function(e){L("ОШИБКА: "+e.message+" @"+(e.filename||"").split("/").pop()+":"+e.lineno)});
 window.addEventListener("unhandledrejection",function(e){L("ОШИБКА промиса: "+(e.reason&&e.reason.message||e.reason))});
 // самообновление: Safari и GitHub Pages держат старый HTML в кэше. Раз за сессию страница запрашивает свежую копию и, если версия другая, перезагружается
@@ -673,12 +674,13 @@ function start(C){
      later(function(){b.classList.add("out")},t0+230)})(q);
     // в пике: куски слетают влево и задвигаются поверх кнопки play, по очереди ударяются друг о друга и чуть отскакивают; потом по очереди появляются точки
     // диагностика разреза в секретный лог: каждый кадр от начала тряски до конца появления точек (верх плиток/строки, прокрутка, интервал кадров); подозрительные кадры пишутся строками
-    (function(){var L=window.__L;if(!L)return;var t00=performance.now(),last=0,base=null,out=0,fr=0,wd=0,wy=0,wsc=0;L("разрез: старт записи кадров, плиток "+n+", dpr "+(window.devicePixelRatio||1));
-     (function rec(t){var el=performance.now()-t00;if(el>2600){L("разрез: конец записи, кадров "+fr+", худший интервал "+Math.round(wd)+" мс, макс. сдвиг по Y "+wy.toFixed(2)+" px, макс. сдвиг прокрутки "+wsc.toFixed(2)+" px");return}
-      var r=row.getBoundingClientRect(),t0r=T[0].getBoundingClientRect(),f=document.getElementById("outer"),sc=f?f.scrollTop:0,dt=last?t-last:0;last=t;fr++;
-      if(!base)base={y:t0r.top-0,h:t0r.height,ry:r.top,sc:sc};
-      var dy=Math.abs(t0r.top-base.y-(sc-base.sc)*-1),dr=Math.abs(r.top-base.ry),dsc=Math.abs(sc-base.sc);if(dt>wd)wd=dt;if(dr>wy)wy=dr;if(dy>wy)wy=dy;if(dsc>wsc)wsc=dsc;
-      if((dt>24||dr>.3||dsc>.3||Math.abs(t0r.height-base.h)>.3)&&out<60){out++;L("разрез t="+Math.round(el)+" мс: интервал "+Math.round(dt)+" мс, верх плитки "+t0r.top.toFixed(2)+" (был "+base.y.toFixed(2)+"), высота "+t0r.height.toFixed(2)+", верх строки "+r.top.toFixed(2)+" (был "+base.ry.toFixed(2)+"), прокрутка "+sc)}
+    (function(){var L=window.__L;if(!L)return;var t00=performance.now(),last=0,base=null,out=0,fr=0,wd=0,mx={};L("разрез: старт записи кадров (4 с), плиток "+n+", dpr "+(window.devicePixelRatio||1)+", режим эффектов "+(window.__FX||0));
+     function snapAll(){var vv=window.visualViewport,o=document.getElementById("outer"),rows=document.querySelectorAll("#feed > .row"),f=rows[0],l=rows[rows.length-1],rr=row.getBoundingClientRect(),tt=T[0].getBoundingClientRect(),inn=document.getElementById("inner").getBoundingClientRect();
+      return{first:f?f.getBoundingClientRect().top:0,last:l?l.getBoundingClientRect().bottom:0,row:rr.top,tile:tt.top,tileH:tt.height,inner:inn.top,sc:o?o.scrollTop:0,vvTop:vv?vv.offsetTop:0,vvPage:vv?vv.pageTop:0,vvH:vv?vv.height:0,wy:window.scrollY,ih:window.innerHeight}}
+     (function rec(t){var el=performance.now()-t00;if(el>4000){L("разрез: конец записи, кадров "+fr+", худший интервал "+Math.round(wd)+" мс; максимальные сдвиги (px): "+Object.keys(mx).map(function(k){return k+" "+mx[k].toFixed(2)}).join(", "));return}
+      var sn=snapAll(),dt=last?t-last:0;last=t;fr++;if(!base)base=sn;if(dt>wd)wd=dt;var bad=dt>24;
+      Object.keys(sn).forEach(function(k){var d=Math.abs(sn[k]-base[k]);if(!(k in mx)||d>mx[k])mx[k]=d;if(d>.3&&k!=="tile"&&k!=="row")bad=true;if(d>.3&&(k==="tile"||k==="row"))bad=true});
+      if(bad&&out<80){out++;L("разрез t="+Math.round(el)+" мс: интервал "+Math.round(dt)+" мс; "+Object.keys(sn).map(function(k){return k+"="+sn[k].toFixed(1)}).join(" "))}
       requestAnimationFrame(rec)})(performance.now())})();
     later(function(){
      var xp=T.map(function(el){return el.offsetLeft});
@@ -722,8 +724,10 @@ function start(C){
    var ab=ac.createBuffer(1,bf.length,sr);ab.getChannelData(0).set(bf);if(ac.state==="suspended")try{ac.resume()}catch(e){}
    var s0=ac.createBufferSource();s0.buffer=ab;s0.loop=true;s0.loopStart=0;s0.loopEnd=bf.length/sr;s0.connect(ac.destination);src=s0;
    var t0=ac.currentTime,dur=sg.length/sr,total=bf.length/sr;cur={a:a,b:b,anchor:i};s0.start(0);
-   var first=T[a],last=T[b],bw=last.offsetLeft+last.offsetWidth-first.offsetLeft,bh=br.offsetHeight||13,rr=Math.min(5,bw/2-1),sv=br.querySelector("svg");
-   br.style.left=first.offsetLeft+"px";br.style.width=bw+"px";sv.setAttribute("width",bw);sv.setAttribute("height",bh);sv.firstChild.setAttribute("d","M1 "+bh+" V"+rr+" Q1 1 "+rr+" 1 H"+(bw-rr)+" Q"+(bw-1)+" 1 "+(bw-1)+" "+rr+" V"+bh);
+   // границы скобки считаются по итоговой раскладке (ширины плиток + зазоры только у несклеенных стыков), а не по текущей: стыки при склейке ещё плавно сжимаются, и замер по ним уводил правый край вправо
+   var xs=0,bw=0,k0;for(k0=0;k0<a;k0++)xs+=T[k0].offsetWidth+(link[k0]?0:5);for(k0=a;k0<=b;k0++)bw+=T[k0].offsetWidth;
+   var bh=br.offsetHeight||13,rr=Math.min(5,bw/2-1),sv=br.querySelector("svg");
+   br.style.left=xs+"px";br.style.width=bw+"px";sv.setAttribute("width",bw);sv.setAttribute("height",bh);sv.firstChild.setAttribute("d","M1 "+bh+" V"+rr+" Q1 1 "+rr+" 1 H"+(bw-rr)+" Q"+(bw-1)+" 1 "+(bw-1)+" "+rr+" V"+bh);
    bl.textContent=a===b?(a+1)+" слово":b===a+1?(a+1)+" и "+(b+1)+" слова":(a+1)+"–"+(b+1)+" слова";br.classList.add("on");
    if(window.TS)TS.track("ladder_play",{props:{a:a,b:b}});
    (function tick(){raf=requestAnimationFrame(tick);var e0=((ac.currentTime-t0)%total+total)%total,t=sa+Math.min(dur,e0)/dur*(sb-sa);

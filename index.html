@@ -158,8 +158,7 @@ body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',syste
 .ladJ i::after{content:'';position:absolute;inset:-9px -8px}
 .ladJ b{position:absolute;left:50%;top:-1px;bottom:-1px;width:4px;margin-left:-2px;background:#35086f;clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);opacity:0;transition:opacity .4s;pointer-events:none;z-index:4}.ladJ.on b{opacity:.9}
 .ladJ.on i{background:#c9a6ff;border-color:#fff;box-shadow:0 0 8px rgba(190,130,255,.9)}
-.ladJ.hint i{animation:ladDp 1.1s ease-in-out infinite;border-color:#fff;background:#a45cff;box-shadow:0 0 10px rgba(200,150,255,.9)}
-.ladJ.hint::before,.ladJ.hint::after{content:'';position:absolute;left:50%;top:50%;width:9px;height:9px;margin:-4.5px 0 0 -4.5px;box-sizing:border-box;border:2.5px solid #e4d0ff;border-radius:50%;pointer-events:none;z-index:2;opacity:0;animation:ladWv 1.6s ease-out infinite both}.ladJ.hint::after{animation-delay:.8s}
+.ladJ.hint i{border-color:#fff;background:#a45cff;box-shadow:0 0 6px rgba(200,150,255,.6)}
 @keyframes ladDp{0%,100%{transform:scale(1)}50%{transform:scale(1.6)}}@keyframes ladWv{0%{transform:scale(1);opacity:0}12%{opacity:.95}100%{transform:scale(7);opacity:0}}
 .ladBr{position:absolute;left:0;top:-13px;height:13px;width:0;opacity:0;transition:opacity .15s;pointer-events:none;z-index:5}.ladBr.on{opacity:1}
 .ladBsv{position:absolute;left:0;top:0;overflow:visible;-webkit-mask-image:linear-gradient(180deg,#000 0,#000 60%,rgba(0,0,0,.6) 100%);mask-image:linear-gradient(180deg,#000 0,#000 60%,rgba(0,0,0,.6) 100%)}
@@ -172,6 +171,8 @@ body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',syste
 .ladRow.pre .ladT{pointer-events:none;border-radius:0;border-color:transparent;background:none;box-shadow:none}
 .ladBg{position:absolute;left:0;top:0;right:0;bottom:0;border-radius:12px;background:linear-gradient(180deg,#8f2ff2,#7523d6);border:1px solid #b57cff;box-shadow:0 0 15px rgba(150,70,255,.35);pointer-events:none;transition:opacity .45s ease-out}.ladBg.out{opacity:0}
 .ladRow .ladJ.pop i{transform:scale(1);transition:transform .5s cubic-bezier(.34,1.56,.64,1)}
+.ladWave.dot{border-radius:50%;animation-name:ladRingD}
+@keyframes ladRingD{0%{outline-offset:0;outline-color:rgba(220,190,255,0)}8%{outline-color:rgba(220,190,255,.9)}100%{outline-offset:14px;outline-color:rgba(220,190,255,0)}}
 .ladWave{position:fixed;z-index:150;pointer-events:none;border-radius:12px;outline:1.5px solid rgba(220,190,255,0);outline-offset:0;animation:ladRing 1.8s linear both}
 @keyframes ladRing{0%{outline-offset:0;outline-color:rgba(220,190,255,0)}8%{outline-color:rgba(220,190,255,.9)}100%{outline-offset:15px;outline-color:rgba(220,190,255,0)}}
 .ladRow:not(.pre) .ladJ i{transform:none}
@@ -219,7 +220,7 @@ function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.len
 window.__L=L;
 function tg(){var w=window.Telegram&&Telegram.WebApp;return w?("tg "+w.platform+" v"+w.version+" vh="+w.viewportHeight+" stable="+w.viewportStableHeight+" exp="+w.isExpanded):"без Telegram"}
 function snap(why){var f=document.getElementById("feed"),o=document.getElementById("outer"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollTop="+Math.round(o?o.scrollTop:0)+" scrollH="+(o?o.scrollHeight:0)+"/"+(o?o.clientHeight:0)+" docScroll="+Math.round(scrollY)+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
-var PAGE_V="2026-11-21.22-lad";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
+var PAGE_V="2026-11-21.23-lad";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
 window.addEventListener("error",function(e){L("ОШИБКА: "+e.message+" @"+(e.filename||"").split("/").pop()+":"+e.lineno)});
 window.addEventListener("unhandledrejection",function(e){L("ОШИБКА промиса: "+(e.reason&&e.reason.message||e.reason))});
 // самообновление: Safari и GitHub Pages держат старый HTML в кэше. Раз за сессию страница запрашивает свежую копию и, если версия другая, перезагружается
@@ -651,12 +652,16 @@ function start(C){
   var intro=document.createElement("div");intro.className="ladZ";row.insertBefore(intro,T[0]);var iPlay=document.createElement("button");iPlay.type="button";iPlay.className="ladPlay";iPlay.setAttribute("aria-label","Слушать");iPlay.innerHTML='<span class="ic"><i></i><i></i></span>';row.appendChild(iPlay);var bgE=document.createElement("div");bgE.className="ladBg";row.insertBefore(bgE,row.firstChild);
   T[n-1].classList.add("pl");
   // волны первого куска: отдельные кольца на уровне страницы (видны поверх всего, в том числе панели), следят за положением плитки; при нажатии новые не запускаются, а уже идущие доживают свой цикл
-  var wvT=0,wvRaf=0;
-  function wvPlace(e){var r=T[0].getBoundingClientRect();e.style.left=r.left+"px";e.style.top=r.top+"px";e.style.width=r.width+"px";e.style.height=r.height+"px"}
+  var wvRaf=0;
+  function wvPlace(e){var r=e.__t().getBoundingClientRect();e.style.left=r.left+"px";e.style.top=r.top+"px";e.style.width=r.width+"px";e.style.height=r.height+"px"}
   function wvLoop(){var all=document.querySelectorAll(".ladWave");if(!all.length){wvRaf=0;return}for(var i=0;i<all.length;i++)wvPlace(all[i]);wvRaf=requestAnimationFrame(wvLoop)}
-  function wvSpawn(){var e=document.createElement("div");e.className="ladWave";wvPlace(e);document.body.appendChild(e);e.addEventListener("animationend",function(){e.remove()});if(!wvRaf)wvRaf=requestAnimationFrame(wvLoop)}
-  function startBeckon(){if(wvT)return;wvSpawn();setTimeout(function(){if(wvT)wvSpawn()},900);wvT=setInterval(function(){wvSpawn();setTimeout(function(){if(wvT)wvSpawn()},900)},1800)}
-  function stopBeckon(){if(wvT){clearInterval(wvT);wvT=0}}
+  function Waves(getEl,dot){var tm=0,on=false;
+   function spawn(){var e=document.createElement("div");e.className="ladWave"+(dot?" dot":"");e.__t=getEl;wvPlace(e);document.body.appendChild(e);e.addEventListener("animationend",function(){e.remove()});if(!wvRaf)wvRaf=requestAnimationFrame(wvLoop)}
+   function pair(){spawn();setTimeout(function(){if(on)spawn()},900)}
+   return{start:function(){if(on)return;on=true;pair();tm=setInterval(pair,1800)},stop:function(){on=false;if(tm){clearInterval(tm);tm=0}}}}
+  var wordW=Waves(function(){return T[0]},false),dotW=Waves(function(){return J[0].querySelector("i")},true);
+  function startBeckon(){wordW.start()}
+  function stopBeckon(){wordW.stop()}
   var beckonOff=false,iSrc=null,iRaf=0,iDone=false,iBusy=false;
   // прогресс воспроизведения красит столбики самих плиток по времени слов
   // границы кусков по времени идут строго подряд (середина между концом слова и началом следующего), поэтому заливка спектра идёт слева направо без одновременного заполнения соседних плиток
@@ -719,7 +724,7 @@ function start(C){
   function play(i,force){var g=group(i),a=g[0],b=g[1];if(!force&&cur&&cur.a===a&&cur.b===b){stop();return}(window.__vp||[]).forEach(function(f){try{f()}catch(e){}});
    cancelAnimationFrame(raf);if(src){try{src.onended=null;src.stop()}catch(e){}src=null}
    var q;for(q=a;q<=b;q++)heard[q]=1;
-   if(!hinted&&J[0]&&!link[0]&&Object.keys(heard).length>=n){J[0].classList.add("hint");if(onHeard)onHeard()}
+   if(!hinted&&J[0]&&!link[0]&&Object.keys(heard).length>=n){J[0].classList.add("hint");dotW.start();if(onHeard)onHeard()}
    var sa=words[a].a,sb=words[b].b,sg=seg(sa,sb,words[a].fl||0,words[b].fr||0),gap=Math.round(Math.max(TG,PERIOD-sg.length/sr)*sr),bf=new Float32Array(sg.length+gap),ck=clickData(sr);bf.set(sg);bf.set(ck,sg.length+Math.max(0,Math.round((gap-ck.length)/2)));
    var ab=ac.createBuffer(1,bf.length,sr);ab.getChannelData(0).set(bf);if(ac.state==="suspended")try{ac.resume()}catch(e){}
    var s0=ac.createBufferSource();s0.buffer=ab;s0.loop=true;s0.loopStart=0;s0.loopEnd=bf.length/sr;s0.connect(ac.destination);src=s0;
@@ -732,7 +737,7 @@ function start(C){
    if(window.TS)TS.track("ladder_play",{props:{a:a,b:b}});
    (function tick(){raf=requestAnimationFrame(tick);var e0=((ac.currentTime-t0)%total+total)%total,t=sa+Math.min(dur,e0)/dur*(sb-sa);
     for(var j=0;j<n;j++){var inG=j>=a&&j<=b;T[j].classList.toggle("on",inG);paint(j,inG?Math.max(0,Math.min(1,(t-(j===a?words[a].a:iB[j]))/Math.max(.001,(j===b?words[b].b:iB[j+1])-(j===a?words[a].a:iB[j])))):0,inG)}})()}
-  function toggleLink(j){var demo=j===0&&!hinted;if(!hinted){hinted=true;J[0].classList.remove("hint")}link[j]=!link[j];J[j].classList.toggle("on",link[j]);T[j].classList.toggle("lkr",link[j]);T[j+1].classList.toggle("lkl",link[j]);
+  function toggleLink(j){var demo=j===0&&!hinted;if(!hinted){hinted=true;J[0].classList.remove("hint");dotW.stop()}link[j]=!link[j];J[j].classList.toggle("on",link[j]);T[j].classList.toggle("lkr",link[j]);T[j+1].classList.toggle("lkl",link[j]);
    if(demo&&link[0]){play(0,true);return}
    if(cur){var g=group(cur.anchor);if(g[0]!==cur.a||g[1]!==cur.b)play(cur.anchor,true)}}
   h.addEventListener("click",function(e){if(row.classList.contains("pre")||iBusy)return;var j=e.target.closest&&e.target.closest(".ladJ");if(j){toggleLink(+j.getAttribute("data-j"));return}var t=e.target.closest&&e.target.closest(".ladT");if(t){beckonOff=true;stopBeckon()}if(t)play(+t.getAttribute("data-i"))});
