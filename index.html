@@ -178,7 +178,7 @@ body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',syste
 .ladZ.col{width:0;padding-left:0;opacity:0;border-width:1px 0}
 .ladRow>.ladPlay{position:absolute;left:12px;top:50%;margin-top:-17px;z-index:0}
 .ladRow .ladT{z-index:1}
-.ladRow.cutting .ladJ{transition:none!important}.ladRow.cutting .ladJ i{transform:scale(0)}.ladRow.cutting .ladJ.pop i{transform:scale(1);transition:transform .5s cubic-bezier(.34,1.56,.64,1)}.ladZ.nt{transition:none!important}
+.ladRow.cutting .ladJ{transition:none!important}.ladRow.cutting .ladT{transition:none!important}.ladRow.cutting .ladJ i{transform:scale(0)}.ladRow.cutting .ladJ.pop i{transform:scale(1);transition:transform .5s cubic-bezier(.34,1.56,.64,1)}.ladZ.nt{transition:none!important}
 .ladPlay{position:relative;flex:none;width:34px;height:34px;border-radius:50%;border:0;background:#fff;color:#7523d6;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;transition:transform .26s cubic-bezier(.6,0,1,.6),opacity .26s ease-in}
 .ladPlay .ic{position:relative;display:block;width:11px;height:13px;margin-left:2px;transition:margin .26s ease}
 .ladPlay .ic i{position:absolute;top:0;bottom:0;background:currentColor;transition:clip-path .28s cubic-bezier(.4,0,.2,1),left .28s cubic-bezier(.4,0,.2,1),width .28s cubic-bezier(.4,0,.2,1)}
@@ -217,7 +217,7 @@ function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.len
 window.__L=L;
 function tg(){var w=window.Telegram&&Telegram.WebApp;return w?("tg "+w.platform+" v"+w.version+" vh="+w.viewportHeight+" stable="+w.viewportStableHeight+" exp="+w.isExpanded):"без Telegram"}
 function snap(why){var f=document.getElementById("feed"),o=document.getElementById("outer"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollTop="+Math.round(o?o.scrollTop:0)+" scrollH="+(o?o.scrollHeight:0)+"/"+(o?o.clientHeight:0)+" docScroll="+Math.round(scrollY)+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
-var PAGE_V="2026-11-21.15-lad";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
+var PAGE_V="2026-11-21.16-lad";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
 window.addEventListener("error",function(e){L("ОШИБКА: "+e.message+" @"+(e.filename||"").split("/").pop()+":"+e.lineno)});
 window.addEventListener("unhandledrejection",function(e){L("ОШИБКА промиса: "+(e.reason&&e.reason.message||e.reason))});
 // самообновление: Safari и GitHub Pages держат старый HTML в кэше. Раз за сессию страница запрашивает свежую копию и, если версия другая, перезагружается
@@ -668,7 +668,7 @@ function start(C){
      row.classList.add("cutting");intro.classList.add("nt","col");row.classList.remove("shake","pre");bgE.classList.add("out");
      var xf=T.map(function(el){return el.offsetLeft});
      T.forEach(function(el,k){el.classList.remove("pl","cr2","cl2");var S=xp[k]-xf[k];
-      if(el.animate)el.animate([{transform:"translate3d("+S+"px,0,0)",offset:0},{transform:"translate3d(-8px,0,0)",offset:.6},{transform:"translate3d(3px,0,0)",offset:.8},{transform:"translate3d(0,0,0)",offset:1}],{duration:540,delay:k*50,easing:"cubic-bezier(.35,.05,.3,1)",fill:"backwards"})});
+      if(el.animate)el.animate([{transform:"translate3d("+S+"px,0,0)",offset:0},{transform:"translate3d(-7px,0,0)",offset:.68},{transform:"translate3d(0,0,0)",offset:1}],{duration:540,delay:k*50,easing:"cubic-bezier(.35,.05,.3,1)",fill:"backwards"})});
      var TS=(n-1)*50+540;
      later(function(){iPlay.remove();intro.remove();bgE.remove()},TS);
      J.forEach(function(j,q){later(function(){j.classList.add("pop")},TS+60+q*180)});
