@@ -253,7 +253,7 @@ function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.len
 window.__L=L;
 function tg(){var w=window.Telegram&&Telegram.WebApp;return w?("tg "+w.platform+" v"+w.version+" vh="+w.viewportHeight+" stable="+w.viewportStableHeight+" exp="+w.isExpanded):"без Telegram"}
 function snap(why){var f=document.getElementById("feed"),o=document.getElementById("outer"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollTop="+Math.round(o?o.scrollTop:0)+" scrollH="+(o?o.scrollHeight:0)+"/"+(o?o.clientHeight:0)+" docScroll="+Math.round(scrollY)+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
-var PAGE_V="2026-11-21.49-lad";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
+var PAGE_V="2026-11-21.51-lad";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
 window.addEventListener("error",function(e){L("ОШИБКА: "+e.message+" @"+(e.filename||"").split("/").pop()+":"+e.lineno)});
 window.addEventListener("unhandledrejection",function(e){L("ОШИБКА промиса: "+(e.reason&&e.reason.message||e.reason))});
 // самообновление: Safari и GitHub Pages держат старый HTML в кэше. Раз за сессию страница запрашивает свежую копию и, если версия другая, перезагружается
@@ -769,7 +769,7 @@ function start(C){
    if(iSrc){iBusy=false;iReset();return}
    (window.__vp||[]).forEach(function(f){try{f()}catch(e){}});
    if(ac.state==="suspended")try{ac.resume()}catch(e){}
-   var s1=ac.createBufferSource();s1.buffer=buf;s1.connect(ac.destination);iSrc=s1;iBusy=true;var t0=ac.currentTime,d=buf.duration;
+   if(window.TS)TS.track("ladder_intro_play");var s1=ac.createBufferSource();s1.buffer=buf;s1.connect(ac.destination);iSrc=s1;iBusy=true;var t0=ac.currentTime,d=buf.duration;
    s1.onended=function(){if(iSrc===s1)introEnd()};s1.start(0);intro.classList.add("playing");iPlay.classList.add("pl");
    (function tk(){iRaf=requestAnimationFrame(tk);var pg=Math.min(1,(ac.currentTime-t0)/d);if(pg>=.985&&iPlay.classList.contains("pl"))iPlay.classList.remove("pl");iPaint(pg)})()}
   iPlay.onclick=function(e){e.stopPropagation();introPlay()};
@@ -804,7 +804,7 @@ function start(C){
    if(window.TS)TS.track("ladder_play",{props:{a:a,b:b}});
    (function tick(){raf=requestAnimationFrame(tick);var e0=((ac.currentTime-t0)%total+total)%total,t=sa+Math.min(dur,e0)/dur*(sb-sa);
     for(var j=0;j<n;j++){var inG=j>=a&&j<=b;T[j].classList.toggle("on",inG);paint(j,inG?Math.max(0,Math.min(1,(t-(j===a?words[a].a:iB[j]))/Math.max(.001,(j===b?words[b].b:iB[j+1])-(j===a?words[a].a:iB[j])))):0,inG)}})()}
-  function toggleLink(j){var demo=j===0&&!hinted;if(!hinted){hinted=true;J[0].classList.remove("hint");dotW.stop()}link[j]=!link[j];J[j].classList.toggle("on",link[j]);T[j].classList.toggle("lkr",link[j]);T[j+1].classList.toggle("lkl",link[j]);
+  function toggleLink(j){var demo=j===0&&!hinted;if(window.TS)TS.track("ladder_link",{props:{j:j,on:link[j]?0:1}});if(!hinted){hinted=true;J[0].classList.remove("hint");dotW.stop()}link[j]=!link[j];J[j].classList.toggle("on",link[j]);T[j].classList.toggle("lkr",link[j]);T[j+1].classList.toggle("lkl",link[j]);
    if(demo&&link[0]){play(0,true);return}
    if(cur){var g=group(cur.anchor);if(g[0]!==cur.a||g[1]!==cur.b)play(cur.anchor,true)}}
   h.addEventListener("click",function(e){if(row.classList.contains("pre")||iBusy)return;var j=e.target.closest&&e.target.closest(".ladJ");if(j){toggleLink(+j.getAttribute("data-j"));return}var t=e.target.closest&&e.target.closest(".ladT");if(t){beckonOff=true;stopBeckon()}if(t)play(+t.getAttribute("data-i"))});
@@ -833,6 +833,8 @@ function start(C){
  later(function(){veilOff()},150);
  later(function(){
   TS.track("ready",{props:{}});
+  // вернулся до конца таймера (уже решено или попытки кончились): событие для статистики
+  if(S.solved||locked()){TS.track("early_return",{props:{why:S.solved?"solved":"locked",left:Math.max(0,Math.round(((S.solved?(S.solvedAt||Date.now())+LOCK_H*3600000:S.until)-Date.now())/1000))}})}
   if(S.solved){afterVoice();return}
   typing(TYPE_FIRST,function(){
    TS.step("q_text");msg("","Послушай ещё раз");
