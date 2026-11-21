@@ -166,7 +166,7 @@ body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',syste
 .ladBl{position:absolute;left:50%;top:-8px;transform:translateX(-50%);background:#7a2fe0;color:#fff;font-size:8.5px;font-weight:700;line-height:1;padding:3px 6px;border-radius:7px;white-space:nowrap;box-shadow:0 0 8px rgba(150,70,255,.4)}
 
 /* вступление лесенки: плитки вплотную = единое голосовое; кнопка play поверх, куски расходятся при разрезе */
-.ladRow{transition:padding-right .5s cubic-bezier(.4,0,.2,1)}.ladRow.pre{padding-right:var(--zpr,10px)}
+.ladRow.pre .ladT,.ladRow.pre .ladT .lb,.ladRow.pre .ladZ{transition:none!important}
 .ladRow.pre .ladJ{width:0;margin-right:-1px;pointer-events:none}.ladRow.pre .ladJ i{transform:scale(0)}
 .ladRow.pre .ladT{pointer-events:none;box-shadow:none}
 .ladRow.pre{filter:drop-shadow(0 0 7px rgba(150,70,255,.4))}
@@ -180,6 +180,9 @@ body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',syste
 .ladZ{flex:none;position:relative;width:var(--zw,48px);height:48px;box-sizing:border-box;border:1px solid transparent;border-radius:12px 0 0 12px;background:linear-gradient(180deg,#8f2ff2,#7523d6)}
 .ladZ .lb{position:absolute;left:-1px;right:-2px;top:-1px;bottom:-1px;border:1px solid #b57cff;border-radius:inherit;clip-path:inset(0 1px 0 0);-webkit-clip-path:inset(0 1px 0 0);pointer-events:none}
 .ladZ.ghost{position:absolute;left:0;top:0;opacity:0;transition:opacity .45s ease}
+.ladR{flex:none;position:relative;width:var(--zpr,10px);height:48px;box-sizing:border-box;border:1px solid transparent;border-radius:0 12px 12px 0;background:linear-gradient(180deg,#8f2ff2,#7523d6)}
+.ladR .lb{position:absolute;left:-2px;right:-1px;top:-1px;bottom:-1px;border:1px solid #b57cff;border-radius:inherit;clip-path:inset(0 0 0 1px);-webkit-clip-path:inset(0 0 0 1px);pointer-events:none}
+.ladR.ghost{position:absolute;top:0;opacity:0;transition:opacity .45s ease}
 .ladZ.col{width:0;padding-left:0;opacity:0;border-width:1px 0}
 .ladRow>.ladPlay{position:absolute;left:12px;top:50%;margin-top:-17px;z-index:0}
 .ladRow .ladT{z-index:1}
@@ -224,7 +227,7 @@ function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.len
 window.__L=L;
 function tg(){var w=window.Telegram&&Telegram.WebApp;return w?("tg "+w.platform+" v"+w.version+" vh="+w.viewportHeight+" stable="+w.viewportStableHeight+" exp="+w.isExpanded):"без Telegram"}
 function snap(why){var f=document.getElementById("feed"),o=document.getElementById("outer"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollTop="+Math.round(o?o.scrollTop:0)+" scrollH="+(o?o.scrollHeight:0)+"/"+(o?o.clientHeight:0)+" docScroll="+Math.round(scrollY)+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
-var PAGE_V="2026-11-21.25-lad";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
+var PAGE_V="2026-11-21.26-lad";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
 window.addEventListener("error",function(e){L("ОШИБКА: "+e.message+" @"+(e.filename||"").split("/").pop()+":"+e.lineno)});
 window.addEventListener("unhandledrejection",function(e){L("ОШИБКА промиса: "+(e.reason&&e.reason.message||e.reason))});
 // самообновление: Safari и GitHub Pages держат старый HTML в кэше. Раз за сессию страница запрашивает свежую копию и, если версия другая, перезагружается
@@ -247,7 +250,7 @@ function text(){return LG.join("\n")+"\n"+snap("итог")+"\n"+tg()}
 var box=document.getElementById("dbgBox"),ta=document.getElementById("dbgTa");
 document.getElementById("dbgBtn").onclick=function(){var nn=Date.now();if(nn-(window.__dbgTap||0)>450){window.__dbgTap=nn;return}window.__dbgTap=0;var tx=text();ta.value=tx;box.classList.add("on");try{navigator.clipboard.writeText(tx).then(function(){document.getElementById("dbgCopy").textContent="Скопировано ✓"},function(){})}catch(e){}};
 document.getElementById("dbgCopy").onclick=function(){var tx=ta.value;try{navigator.clipboard.writeText(tx).then(function(){document.getElementById("dbgCopy").textContent="Скопировано ✓"},function(){ta.select();document.execCommand("copy")})}catch(e){ta.select();try{document.execCommand("copy")}catch(_){}}};
-(function(){var b=document.getElementById("dbgFx"),N=["полные","упрощённые (без теней и свечения)","минимум (без тряски, лезвий и слёта)"];function cur(){try{return +(localStorage.getItem("pfx")||0)}catch(e){return 0}}function show(){b.textContent="Эффекты разреза: "+N[cur()]+" — нажмите, чтобы сменить"}show();b.onclick=function(){var v=(cur()+1)%3;try{localStorage.setItem("pfx",String(v))}catch(e){}show();window.__FX=v;document.documentElement.classList.toggle("fxlite",v>=1);if(window.__L)window.__L("режим эффектов разреза: "+N[v])}})();
+(function(){var b=document.getElementById("dbgFx"),N=["полные","упрощённые (без теней и свечения)","минимум (без тряски, лезвий и слёта)","минимум и без звука среза"];function cur(){try{return +(localStorage.getItem("pfx")||0)}catch(e){return 0}}function show(){b.textContent="Эффекты разреза: "+N[cur()]+" — нажмите, чтобы сменить"}show();b.onclick=function(){var v=(cur()+1)%4;try{localStorage.setItem("pfx",String(v))}catch(e){}show();window.__FX=v;document.documentElement.classList.toggle("fxlite",v>=1);if(window.__L)window.__L("режим эффектов разреза: "+N[v])}})();
 document.getElementById("dbgReset").onclick=function(){try{Object.keys(localStorage).forEach(function(k){if(k.indexOf("trainer:")===0)localStorage.removeItem(k)})}catch(e){}location.reload()};
 document.getElementById("dbgClose").onclick=function(){box.classList.remove("on");document.getElementById("dbgCopy").textContent="Скопировать"}
 })();
@@ -641,8 +644,8 @@ function start(C){
   function peak(a,b){var i0=Math.max(0,Math.floor(a*sr)),i1=Math.min(data.length,Math.ceil(b*sr)),m=0;for(var i=i0;i<i1;i++){var v=data[i]<0?-data[i]:data[i];if(v>m)m=v}return m}
   var vmax=1e-6,k;for(k=0;k<n;k++)vmax=Math.max(vmax,peak(words[k].a,words[k].b));
   var h=document.createElement("div");h.className="ladWrap";var tiles="";
-  for(k=0;k<n;k++){tiles+='<div class="ladT" data-i="'+k+'" style="width:'+Math.max(18,4*Math.round(((72+(words[k].b-words[k].a)*110)*.6-2)/4)+2)+'px"><canvas></canvas><i class="lb"></i></div>'+(k<n-1?'<div class="ladJ" data-j="'+k+'"><b></b><i></i></div>':"")}
-  h.innerHTML='<div class="ladRow pre"><div class="ladBr"><svg class="ladBsv"><path d=""/></svg><span class="ladBl"></span></div>'+tiles+'</div>';
+  for(k=0;k<n;k++){tiles+='<div class="ladT lkl lkr" data-i="'+k+'" style="width:'+Math.max(18,4*Math.round(((72+(words[k].b-words[k].a)*110)*.6-2)/4)+2)+'px"><canvas></canvas><i class="lb"></i></div>'+(k<n-1?'<div class="ladJ" data-j="'+k+'"><b></b><i></i></div>':"")}
+  h.innerHTML='<div class="ladRow pre"><div class="ladBr"><svg class="ladBsv"><path d=""/></svg><span class="ladBl"></span></div>'+tiles+'<div class="ladR"><i class="lb"></i></div></div>';
   var b=msg("lad",h,true);b.parentNode.classList.add("ladRowWrap");
   var T=[].slice.call(h.querySelectorAll(".ladT")),J=[].slice.call(h.querySelectorAll(".ladJ")),br=h.querySelector(".ladBr"),bl=h.querySelector(".ladBl"),row=h.querySelector(".ladRow");
   // плитки по ширине экрана: если не помещаются, сжимаются все вместе
@@ -654,7 +657,7 @@ function start(C){
   var link=words.map(function(){return false}),heard={},hinted=false,cur=null,src=null,raf=0;
   // вступление: плитки стоят вплотную и выглядят единым фиолетовым голосовым с одним сплошным спектром и кнопкой play; после воспроизведения оно дрожит, режется световыми лезвиями, куски расходятся (строка и пузырь расширяются), появляются точки
   var intro=document.createElement("div");intro.className="ladZ";row.insertBefore(intro,T[0]);var iPlay=document.createElement("button");iPlay.type="button";iPlay.className="ladPlay";iPlay.setAttribute("aria-label","Слушать");iPlay.innerHTML='<span class="ic"><i></i><i></i></span>';row.appendChild(iPlay);intro.innerHTML='<i class="lb"></i>';
-  T.forEach(function(el,k){el.classList.add("lkl");if(k<n-1)el.classList.add("lkr")});
+  var rz=row.querySelector(".ladR");
   // волны первого куска: отдельные кольца на уровне страницы (видны поверх всего, в том числе панели), следят за положением плитки; при нажатии новые не запускаются, а уже идущие доживают свой цикл
   var wvRaf=0;
   function wvPlace(e){var r=e.__t().getBoundingClientRect();e.style.left=r.left+"px";e.style.top=r.top+"px";e.style.width=r.width+"px";e.style.height=r.height+"px"}
@@ -675,10 +678,11 @@ function start(C){
   function introEnd(){
    if(iDone)return;iDone=true;iBusy=true;cancelAnimationFrame(iRaf);iRaf=0;iSrc=null;iPaint(1);iPlay.classList.remove("pl");
    // всё действие по длине звука среза (cut.mp3, 0,68 с): нарастание ~0,37 с с тряской и лезвиями, в пике куски расходятся, затем точки
-   later(function(){iPaint(0);snd("cut");var FX=window.__FX||0;if(FX<2)row.classList.add("shake");
+   later(function(){iPaint(0);var FX=window.__FX||0;if(FX<3)snd("cut");if(FX<2)row.classList.add("shake");
     // лезвие проходит сверху вниз ровно по линии стыка; сразу за ним остаётся видимый срез (тёмная игла), а лезвие, дойдя до низа, укорачивается в точку и исчезает без остановки
-    var bl2=[],mk=[],gapT=n>2?70/(n-2):0,BD=260;
-    for(var q=0;q<n-1&&FX<2;q++)(function(q){var x=T[q].offsetLeft+T[q].offsetWidth-.5,b=document.createElement("div"),m=document.createElement("div");b.className="ladBlade";b.style.left=(x-.65)+"px";m.className="ladCutMark";m.style.left=(x-2)+"px";row.appendChild(b);row.appendChild(m);bl2.push(b);mk.push(m);var t0=100+q*gapT;
+    var bl2=[],mk=[],gapT=n>1?70/(n-1):0,BD=260;
+    // стыки: 0 — между зоной кнопки и первой плиткой, i — между плитками i-1 и i
+    for(var q=0;q<n&&FX<2;q++)(function(q){var x=q===0?T[0].offsetLeft:T[q-1].offsetLeft+T[q-1].offsetWidth-.5,b=document.createElement("div"),m=document.createElement("div");b.className="ladBlade";b.style.left=(x-.65)+"px";m.className="ladCutMark";m.style.left=(x-2)+"px";row.appendChild(b);row.appendChild(m);bl2.push(b);mk.push(m);var t0=100+q*gapT;
      later(function(){b.classList.add("go")},t0);
      later(function(){m.classList.add("on")},t0+BD*.55);
      later(function(){b.remove()},t0+BD+20)})(q);
@@ -693,18 +697,18 @@ function start(C){
       if(bad&&out<80){out++;L("разрез t="+Math.round(el)+" мс: интервал "+Math.round(dt)+" мс; "+Object.keys(sn).map(function(k){return k+"="+sn[k].toFixed(1)}).join(" "))}
       requestAnimationFrame(rec)})(performance.now())})();
     later(function(){
-     mk.forEach(function(m){m.remove()});bl2.forEach(function(e){e.remove()});
      var xp=T.map(function(el){return el.offsetLeft});
-     row.classList.add("cutting");intro.classList.add("ghost");row.classList.remove("shake","pre");
+     if(rz){rz.style.left=rz.offsetLeft+"px";rz.classList.add("ghost")}row.classList.add("cutting");intro.classList.add("ghost");row.classList.remove("shake","pre");
      T.forEach(function(el){el.classList.remove("lkl","lkr")});
      var xf=T.map(function(el){return el.offsetLeft});
      T.forEach(function(el,k){el.classList.remove("lkl","lkr","pl","cr2","cl2");var S=xp[k]-xf[k];
       if(el.animate&&FX<2)el.animate([{left:S+"px",offset:0},{left:"-7px",offset:.68},{left:"0px",offset:1}],{duration:540,delay:k*50,easing:"cubic-bezier(.35,.05,.3,1)",fill:"backwards"})});
      var TS=(n-1)*50+540;
-     later(function(){iPlay.remove();intro.remove()},TS);
+     mk.forEach(function(m,i){later(function(){m.style.transition="opacity .16s";m.classList.remove("on");later(function(){m.remove()},220)},i*50)});
+     later(function(){iPlay.remove();intro.remove();if(rz)rz.remove()},TS);
      J.forEach(function(j,q){later(function(){j.classList.add("pop")},TS+60+q*180)});
      T.forEach(function(el,k){later(function(){el.classList.add("glowIn");later(function(){el.classList.remove("glowIn")},800)},k*50+420)});
-     later(function(){bl2.forEach(function(e){e.remove()});J.forEach(function(j){j.classList.remove("pop")});row.classList.remove("cutting");iBusy=false;if(onReady)onReady();later(function(){if(!beckonOff)startBeckon()},800)},TS+60+J.length*180+450)},Math.round(100+Math.max(0,n-2)*gapT+BD*.55+70))
+     later(function(){bl2.forEach(function(e){e.remove()});J.forEach(function(j){j.classList.remove("pop")});row.classList.remove("cutting");iBusy=false;if(onReady)onReady();later(function(){if(!beckonOff)startBeckon()},800)},TS+60+J.length*180+450)},Math.round(100+Math.max(0,n-1)*gapT+BD*.55+70))
    },300)}
   function introPlay(){
    if(iDone||iBusy&&!iSrc)return;
