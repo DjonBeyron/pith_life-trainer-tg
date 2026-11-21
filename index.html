@@ -176,7 +176,7 @@ body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',syste
 .ladRow:not(.pre) .ladJ i{transform:none}
 .ladZ{flex:none;position:relative;width:var(--zw,48px);padding-left:var(--zg,11px);justify-content:flex-start!important;height:48px;box-sizing:border-box;border:1px solid transparent;display:flex;align-items:center;justify-content:center;overflow:hidden;transition:width .5s cubic-bezier(.4,0,.2,1),padding-left .5s cubic-bezier(.4,0,.2,1),opacity .4s}
 .ladZ.col{width:0;padding-left:0;opacity:0;border-width:1px 0}
-.ladPlay{position:relative;flex:none;width:24px;height:24px;border-radius:50%;border:0;background:#fff;color:#7523d6;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;transition:transform .26s cubic-bezier(.6,0,1,.6),opacity .26s ease-in}
+.ladPlay{position:relative;flex:none;width:34px;height:34px;border-radius:50%;border:0;background:#fff;color:#7523d6;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;transition:transform .26s cubic-bezier(.6,0,1,.6),opacity .26s ease-in}
 .ladPlay.gone{transform:scale(0) rotate(200deg);opacity:0;pointer-events:none}
 .ladRow.shake{animation:ladShake .37s linear both;transform-origin:50% 50%}
 @keyframes ladShake{0%{transform:rotate(0)}7%{transform:rotate(-1.2deg)}15%{transform:rotate(1.8deg)}23%{transform:rotate(-2.4deg)}31%{transform:rotate(3deg)}39%{transform:rotate(-3.4deg)}48%{transform:rotate(3.8deg)}57%{transform:rotate(-4deg)}66%{transform:rotate(3.8deg)}75%{transform:rotate(-3.2deg)}85%{transform:rotate(2.2deg)}93%{transform:rotate(-1deg)}100%{transform:rotate(0)}}
@@ -207,7 +207,7 @@ function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.len
 window.__L=L;
 function tg(){var w=window.Telegram&&Telegram.WebApp;return w?("tg "+w.platform+" v"+w.version+" vh="+w.viewportHeight+" stable="+w.viewportStableHeight+" exp="+w.isExpanded):"без Telegram"}
 function snap(why){var f=document.getElementById("feed"),o=document.getElementById("outer"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollTop="+Math.round(o?o.scrollTop:0)+" scrollH="+(o?o.scrollHeight:0)+"/"+(o?o.clientHeight:0)+" docScroll="+Math.round(scrollY)+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
-var PAGE_V="2026-11-21.4-lad";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
+var PAGE_V="2026-11-21.5-lad";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
 window.addEventListener("error",function(e){L("ОШИБКА: "+e.message+" @"+(e.filename||"").split("/").pop()+":"+e.lineno)});
 window.addEventListener("unhandledrejection",function(e){L("ОШИБКА промиса: "+(e.reason&&e.reason.message||e.reason))});
 // самообновление: Safari и GitHub Pages держат старый HTML в кэше. Раз за сессию страница запрашивает свежую копию и, если версия другая, перезагружается
@@ -631,11 +631,11 @@ function start(C){
   // размеры считаются сразу (до показа), чтобы появление сообщения не дёргалось; отступы вступления: край—play = play—спектр = спектр—край (G)
   (function sizeNow(){var room=feed.clientWidth*.94,tot=row.scrollWidth+(row.classList.contains("pre")?J.length*5:0)+60;if(tot>room){var kf=(room-60)/(tot-60);T.forEach(function(el){el.style.width=Math.max(18,4*Math.round((el.offsetWidth*kf-2)/4)+2)+"px"})}
    var G=12,W0=T[0].clientWidth,W1=T[n-1].clientWidth,x0a=(W0-Math.max(2,Math.floor(W0/4))*4)/2+1,x0b=(W1-Math.max(2,Math.floor(W1/4))*4)/2+1;
-   var zw=Math.round(2*G+24-1-x0a),pr=Math.max(0,Math.round(G-(1+x0b)));row.style.setProperty("--zw",zw+"px");row.style.setProperty("--zpr",pr+"px");row.style.setProperty("--zg",(G-1)+"px")})();
+   var zw=Math.round(2*G+34-1-x0a),pr=Math.max(0,Math.round(G-(1+x0b)));row.style.setProperty("--zw",zw+"px");row.style.setProperty("--zpr",pr+"px");row.style.setProperty("--zg",(G-1)+"px")})();
   later(paintAll,0);
   var link=words.map(function(){return false}),heard={},hinted=false,cur=null,src=null,raf=0;
   // вступление: плитки стоят вплотную и выглядят единым фиолетовым голосовым с одним сплошным спектром и кнопкой play; после воспроизведения оно дрожит, режется световыми лезвиями, куски расходятся (строка и пузырь расширяются), появляются точки
-  var intro=document.createElement("div");intro.className="ladZ";intro.innerHTML='<button type="button" class="ladPlay" aria-label="Слушать"><svg viewBox="0 0 24 24" width="14" height="14"><path d="M9.5 6.5v11l8.5-5.5z" fill="currentColor"/></svg></button>';row.insertBefore(intro,T[0]);var bgE=document.createElement("div");bgE.className="ladBg";row.insertBefore(bgE,row.firstChild);
+  var intro=document.createElement("div");intro.className="ladZ";intro.innerHTML='<button type="button" class="ladPlay" aria-label="Слушать"><svg viewBox="0 0 24 24" width="19" height="19"><path d="M9.5 6.5v11l8.5-5.5z" fill="currentColor"/></svg></button>';row.insertBefore(intro,T[0]);var bgE=document.createElement("div");bgE.className="ladBg";row.insertBefore(bgE,row.firstChild);
   T[n-1].classList.add("pl");
   var beckonOff=false,iPlay=intro.querySelector(".ladPlay"),iSrc=null,iRaf=0,iDone=false,iBusy=false;
   // прогресс воспроизведения красит столбики самих плиток по времени слов
