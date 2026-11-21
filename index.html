@@ -188,13 +188,13 @@ body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',syste
 .ladPlay.pl .ic i:first-child{left:.5px;width:3.4px;clip-path:polygon(0 0,100% 0,100% 100%,0 100%)}
 .ladPlay.pl .ic i:last-child{left:7.1px;width:3.4px;clip-path:polygon(0 0,100% 0,100% 100%,0 100%)}
 .ladPlay.gone{transform:scale(0) rotate(200deg);opacity:0;pointer-events:none}
-.ladRow.shake{animation:ladShake .37s linear both;will-change:transform;backface-visibility:hidden}
-@keyframes ladShake{0%{transform:translate3d(0,0,0)}7%{transform:translate3d(-2px,0,0)}15%{transform:translate3d(3.5px,0,0)}23%{transform:translate3d(-5px,0,0)}31%{transform:translate3d(6.5px,0,0)}39%{transform:translate3d(-7.5px,0,0)}48%{transform:translate3d(8px,0,0)}57%{transform:translate3d(-8px,0,0)}66%{transform:translate3d(7.5px,0,0)}75%{transform:translate3d(-6px,0,0)}85%{transform:translate3d(4px,0,0)}93%{transform:translate3d(-2px,0,0)}100%{transform:translate3d(0,0,0)}}
+.ladRow.shake{animation:ladShake .37s linear both}
+@keyframes ladShake{0%{left:0}7%{left:-2px}15%{left:3.5px}23%{left:-5px}31%{left:6.5px}39%{left:-7.5px}48%{left:8px}57%{left:-8px}66%{left:7.5px}75%{left:-6px}85%{left:4px}93%{left:-2px}100%{left:0}}
 @keyframes ladGlowIn{0%{box-shadow:0 0 20px 2px rgba(190,120,255,.85)}100%{box-shadow:0 0 15px rgba(150,70,255,.35)}}
 .ladT.glowIn{animation:ladGlowIn .9s ease-out both}
-.ladBlade{position:absolute;top:-7px;width:1.3px;z-index:7;pointer-events:none;transform-origin:50% 0;transform:scaleY(0);opacity:1;background:linear-gradient(180deg,rgba(255,255,255,0),#fff 18%,#e9d5ff 80%,rgba(255,255,255,0));box-shadow:0 0 6px 1px rgba(230,200,255,.9),0 0 14px 3px rgba(150,70,255,.7);clip-path:polygon(50% 0,100% 12%,100% 88%,50% 100%,0 88%,0 12%)}
+.ladBlade{position:absolute;top:-7px;width:1.3px;z-index:7;pointer-events:none;height:0;opacity:0;background:linear-gradient(180deg,rgba(255,255,255,0),#fff 18%,#e9d5ff 80%,rgba(255,255,255,0));box-shadow:0 0 6px 1px rgba(230,200,255,.9),0 0 14px 3px rgba(150,70,255,.7);clip-path:polygon(50% 0,100% 12%,100% 88%,50% 100%,0 88%,0 12%)}
 .ladBlade.go{animation:ladBl .24s both}
-@keyframes ladBl{0%{transform:translateY(-3px) scaleY(.06);opacity:0}30%{transform:translateY(-12px) scaleY(.22);opacity:1;animation-timing-function:cubic-bezier(.6,0,.1,1)}100%{transform:translateY(0) scaleY(1)}}.ladBlade.out{opacity:0;transition:opacity .16s}
+@keyframes ladBl{0%{top:3px;height:2px;opacity:0}30%{top:-12px;height:10px;opacity:1;animation-timing-function:cubic-bezier(.6,0,.1,1)}100%{top:-7px;height:calc(100% + 14px);opacity:1}}
 </style></head><body>
 <button class="moreBtn" id="moreBtn" aria-label="Другие фразы">Фразы</button><div class="morePanel" id="morePanel"><div class="moreHead"><b>Другие фразы</b><button id="moreClose" aria-label="Закрыть">✕</button></div><div class="moreList" id="moreList"></div></div>
 <button class="dbgBtn" id="dbgBtn" aria-label="Лог">лог</button><div class="dbgBox" id="dbgBox"><textarea id="dbgTa" readonly></textarea><button id="dbgCopy">Скопировать</button><button id="dbgReset" style="border-color:#f87171;color:#f87171">Сбросить прогресс и начать заново</button><button id="dbgClose" style="border-color:#2a2d35;color:#9aa0b4">Закрыть</button></div>
@@ -217,7 +217,7 @@ function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.len
 window.__L=L;
 function tg(){var w=window.Telegram&&Telegram.WebApp;return w?("tg "+w.platform+" v"+w.version+" vh="+w.viewportHeight+" stable="+w.viewportStableHeight+" exp="+w.isExpanded):"без Telegram"}
 function snap(why){var f=document.getElementById("feed"),o=document.getElementById("outer"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollTop="+Math.round(o?o.scrollTop:0)+" scrollH="+(o?o.scrollHeight:0)+"/"+(o?o.clientHeight:0)+" docScroll="+Math.round(scrollY)+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
-var PAGE_V="2026-11-21.17-lad";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
+var PAGE_V="2026-11-21.18-lad";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
 window.addEventListener("error",function(e){L("ОШИБКА: "+e.message+" @"+(e.filename||"").split("/").pop()+":"+e.lineno)});
 window.addEventListener("unhandledrejection",function(e){L("ОШИБКА промиса: "+(e.reason&&e.reason.message||e.reason))});
 // самообновление: Safari и GitHub Pages держат старый HTML в кэше. Раз за сессию страница запрашивает свежую копию и, если версия другая, перезагружается
@@ -658,7 +658,7 @@ function start(C){
    // всё действие по длине звука среза (cut.mp3, 0,68 с): нарастание ~0,37 с с тряской и лезвиями, в пике куски расходятся, затем точки
    later(function(){iPaint(0);snd("cut");row.classList.add("shake");
     var bl2=[],H=row.offsetHeight,gapT=n>2?70/(n-2):0;
-    for(var q=0;q<n-1;q++)(function(q){var x=T[q+1].offsetLeft,b=document.createElement("div");b.className="ladBlade";b.style.left=(x-1)+"px";b.style.height=(H+14)+"px";row.appendChild(b);bl2.push(b);var t0=100+q*gapT;
+    for(var q=0;q<n-1;q++)(function(q){var x=T[q+1].offsetLeft,b=document.createElement("div");b.className="ladBlade";b.style.left=(x-1)+"px";row.appendChild(b);bl2.push(b);var t0=100+q*gapT;
      later(function(){b.classList.add("go")},t0);
      later(function(){T[q].classList.add("cr2");T[q+1].classList.add("cl2")},t0+140);
      later(function(){b.classList.add("out")},t0+230)})(q);
@@ -676,7 +676,7 @@ function start(C){
      row.classList.add("cutting");intro.classList.add("nt","col");row.classList.remove("shake","pre");bgE.classList.add("out");
      var xf=T.map(function(el){return el.offsetLeft});
      T.forEach(function(el,k){el.classList.remove("pl","cr2","cl2");var S=xp[k]-xf[k];
-      if(el.animate)el.animate([{transform:"translate3d("+S+"px,0,0)",offset:0},{transform:"translate3d(-7px,0,0)",offset:.68},{transform:"translate3d(0,0,0)",offset:1}],{duration:540,delay:k*50,easing:"cubic-bezier(.35,.05,.3,1)",fill:"backwards"})});
+      if(el.animate)el.animate([{left:S+"px",offset:0},{left:"-7px",offset:.68},{left:"0px",offset:1}],{duration:540,delay:k*50,easing:"cubic-bezier(.35,.05,.3,1)",fill:"backwards"})});
      var TS=(n-1)*50+540;
      later(function(){iPlay.remove();intro.remove();bgE.remove()},TS);
      J.forEach(function(j,q){later(function(){j.classList.add("pop")},TS+60+q*180)});

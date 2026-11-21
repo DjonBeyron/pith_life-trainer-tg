@@ -213,11 +213,11 @@ body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',syste
 // Журнал для разбора: события страницы, размеры окна, ошибки. Кнопка «лог» сверху копирует его (или показывает текст, чтобы выделить и скопировать).
 (function(){
 var t0=Date.now(),LG=[],last={};
-function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.length>900)LG.shift()}
+function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.length>900)LG.shift()}window.__L=L;
 window.__L=L;
 function tg(){var w=window.Telegram&&Telegram.WebApp;return w?("tg "+w.platform+" v"+w.version+" vh="+w.viewportHeight+" stable="+w.viewportStableHeight+" exp="+w.isExpanded):"без Telegram"}
 function snap(why){var f=document.getElementById("feed"),o=document.getElementById("outer"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollTop="+Math.round(o?o.scrollTop:0)+" scrollH="+(o?o.scrollHeight:0)+"/"+(o?o.clientHeight:0)+" docScroll="+Math.round(scrollY)+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
-var PAGE_V="2026-11-21.16-lad";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
+var PAGE_V="2026-11-21.17-lad";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
 window.addEventListener("error",function(e){L("ОШИБКА: "+e.message+" @"+(e.filename||"").split("/").pop()+":"+e.lineno)});
 window.addEventListener("unhandledrejection",function(e){L("ОШИБКА промиса: "+(e.reason&&e.reason.message||e.reason))});
 // самообновление: Safari и GitHub Pages держат старый HTML в кэше. Раз за сессию страница запрашивает свежую копию и, если версия другая, перезагружается
@@ -663,6 +663,14 @@ function start(C){
      later(function(){T[q].classList.add("cr2");T[q+1].classList.add("cl2")},t0+140);
      later(function(){b.classList.add("out")},t0+230)})(q);
     // в пике: куски слетают влево и задвигаются поверх кнопки play, по очереди ударяются друг о друга и чуть отскакивают; потом по очереди появляются точки
+    // диагностика разреза в секретный лог: каждый кадр от начала тряски до конца появления точек (верх плиток/строки, прокрутка, интервал кадров); подозрительные кадры пишутся строками
+    (function(){var L=window.__L;if(!L)return;var t00=performance.now(),last=0,base=null,out=0,fr=0,wd=0,wy=0,wsc=0;L("разрез: старт записи кадров, плиток "+n+", dpr "+(window.devicePixelRatio||1));
+     (function rec(t){var el=performance.now()-t00;if(el>2600){L("разрез: конец записи, кадров "+fr+", худший интервал "+Math.round(wd)+" мс, макс. сдвиг по Y "+wy.toFixed(2)+" px, макс. сдвиг прокрутки "+wsc.toFixed(2)+" px");return}
+      var r=row.getBoundingClientRect(),t0r=T[0].getBoundingClientRect(),f=document.getElementById("outer"),sc=f?f.scrollTop:0,dt=last?t-last:0;last=t;fr++;
+      if(!base)base={y:t0r.top-0,h:t0r.height,ry:r.top,sc:sc};
+      var dy=Math.abs(t0r.top-base.y-(sc-base.sc)*-1),dr=Math.abs(r.top-base.ry),dsc=Math.abs(sc-base.sc);if(dt>wd)wd=dt;if(dr>wy)wy=dr;if(dy>wy)wy=dy;if(dsc>wsc)wsc=dsc;
+      if((dt>24||dr>.3||dsc>.3||Math.abs(t0r.height-base.h)>.3)&&out<60){out++;L("разрез t="+Math.round(el)+" мс: интервал "+Math.round(dt)+" мс, верх плитки "+t0r.top.toFixed(2)+" (был "+base.y.toFixed(2)+"), высота "+t0r.height.toFixed(2)+", верх строки "+r.top.toFixed(2)+" (был "+base.ry.toFixed(2)+"), прокрутка "+sc)}
+      requestAnimationFrame(rec)})(performance.now())})();
     later(function(){
      var xp=T.map(function(el){return el.offsetLeft});
      row.classList.add("cutting");intro.classList.add("nt","col");row.classList.remove("shake","pre");bgE.classList.add("out");
