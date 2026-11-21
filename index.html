@@ -152,7 +152,7 @@ body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',syste
 .ladT.lkr .lb{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 24px),transparent calc(100% - 2px));mask-image:linear-gradient(90deg,#000 calc(100% - 24px),transparent calc(100% - 2px))}
 .ladT.lkl .lb{-webkit-mask-image:linear-gradient(270deg,#000 calc(100% - 24px),transparent calc(100% - 2px));mask-image:linear-gradient(270deg,#000 calc(100% - 24px),transparent calc(100% - 2px))}
 .ladT.lkl.lkr .lb{-webkit-mask-image:linear-gradient(90deg,transparent 2px,#000 24px,#000 calc(100% - 24px),transparent calc(100% - 2px));mask-image:linear-gradient(90deg,transparent 2px,#000 24px,#000 calc(100% - 24px),transparent calc(100% - 2px))}
-.ladJ{flex:none;width:5px;position:relative;transition:width .5s cubic-bezier(.4,0,.2,1),margin-right .5s cubic-bezier(.4,0,.2,1)}.ladJ.on{width:1.5px}
+.ladJ{flex:none;width:5px;position:relative;transition:width .5s cubic-bezier(.4,0,.2,1),margin-right .5s cubic-bezier(.4,0,.2,1)}.ladJ.on{width:.75px}
 .ladJ i{position:absolute;left:50%;top:50%;width:9px;height:9px;margin:-4.5px 0 0 -4.5px;box-sizing:border-box;border:1.5px solid #8f78bd;background:#5a2aa6;box-shadow:0 0 4px rgba(130,70,220,.4);border-radius:50%;cursor:pointer;z-index:3;transition:background .18s,border-color .18s,transform .18s}
 .ladJ i::after{content:'';position:absolute;inset:-9px -8px}
 .ladJ.on i{background:#c9a6ff;border-color:#fff;box-shadow:0 0 8px rgba(190,130,255,.9)}
@@ -214,7 +214,7 @@ function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.len
 window.__L=L;
 function tg(){var w=window.Telegram&&Telegram.WebApp;return w?("tg "+w.platform+" v"+w.version+" vh="+w.viewportHeight+" stable="+w.viewportStableHeight+" exp="+w.isExpanded):"без Telegram"}
 function snap(why){var f=document.getElementById("feed"),o=document.getElementById("outer"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollTop="+Math.round(o?o.scrollTop:0)+" scrollH="+(o?o.scrollHeight:0)+"/"+(o?o.clientHeight:0)+" docScroll="+Math.round(scrollY)+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
-var PAGE_V="2026-11-21.11-lad";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
+var PAGE_V="2026-11-21.12-lad";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
 window.addEventListener("error",function(e){L("ОШИБКА: "+e.message+" @"+(e.filename||"").split("/").pop()+":"+e.lineno)});
 window.addEventListener("unhandledrejection",function(e){L("ОШИБКА промиса: "+(e.reason&&e.reason.message||e.reason))});
 // самообновление: Safari и GitHub Pages держат старый HTML в кэше. Раз за сессию страница запрашивает свежую копию и, если версия другая, перезагружается
