@@ -181,10 +181,11 @@ body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',syste
 .ladZ{flex:none;position:relative;width:var(--zw,48px);height:48px;box-sizing:border-box;border:1px solid transparent;border-radius:12px 0 0 12px;background:linear-gradient(180deg,#8f2ff2,#7523d6)}
 .ladZ .lb{position:absolute;left:-1px;right:-2px;top:-1px;bottom:-1px;border:1px solid #b57cff;border-radius:inherit;clip-path:inset(0 1px 0 0);-webkit-clip-path:inset(0 1px 0 0);pointer-events:none}
 .ladZ.ghost{position:absolute;left:0;top:0;z-index:0}
-.ladZ.ghost .lb,.ladR.ghost .lb{opacity:0;transition:opacity .42s ease-in-out .1s}
+.ladZ.ghost .lb,.ladR.ghost .lb{opacity:0;transition:opacity .52s cubic-bezier(.45,0,.55,1) .2s}
 .ladT.hr,.ladT.on.hr{border-right-color:transparent!important}
-.ladRow.cutting .ladT .lb{transition:opacity .42s ease-in-out .1s}
-.ladRow.cutting{filter:drop-shadow(0 0 7px rgba(150,70,255,0));transition:filter .42s ease-in-out .1s}
+.ladRow.cutting .ladT{overflow:visible}
+.ladRow.cutting .ladT .lb{transition:opacity .52s cubic-bezier(.45,0,.55,1) .2s}
+.ladRow.cutting{filter:drop-shadow(0 0 7px rgba(150,70,255,0));transition:filter .52s cubic-bezier(.45,0,.55,1) .2s}
 .ladRow.cutting .ladT{transition:border-color .4s,border-radius .5s cubic-bezier(.4,0,.2,1),background-color .5s,background .15s,box-shadow .5s}
 .ladR{flex:none;position:relative;width:var(--zpr,10px);height:48px;box-sizing:border-box;border:1px solid transparent;border-radius:0 12px 12px 0;background:linear-gradient(180deg,#8f2ff2,#7523d6)}
 .ladR .lb{position:absolute;left:-2px;right:-1px;top:-1px;bottom:-1px;border:1px solid #b57cff;border-radius:inherit;clip-path:inset(0 0 0 1px);-webkit-clip-path:inset(0 0 0 1px);pointer-events:none}
@@ -251,7 +252,7 @@ function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.len
 window.__L=L;
 function tg(){var w=window.Telegram&&Telegram.WebApp;return w?("tg "+w.platform+" v"+w.version+" vh="+w.viewportHeight+" stable="+w.viewportStableHeight+" exp="+w.isExpanded):"без Telegram"}
 function snap(why){var f=document.getElementById("feed"),o=document.getElementById("outer"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollTop="+Math.round(o?o.scrollTop:0)+" scrollH="+(o?o.scrollHeight:0)+"/"+(o?o.clientHeight:0)+" docScroll="+Math.round(scrollY)+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
-var PAGE_V="2026-11-21.35-lad";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
+var PAGE_V="2026-11-21.36-lad";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
 window.addEventListener("error",function(e){L("ОШИБКА: "+e.message+" @"+(e.filename||"").split("/").pop()+":"+e.lineno)});
 window.addEventListener("unhandledrejection",function(e){L("ОШИБКА промиса: "+(e.reason&&e.reason.message||e.reason))});
 // самообновление: Safari и GitHub Pages держат старый HTML в кэше. Раз за сессию страница запрашивает свежую копию и, если версия другая, перезагружается
@@ -734,7 +735,7 @@ function start(C){
       if(bad&&out<80){out++;L("разрез t="+Math.round(el)+" мс: интервал "+Math.round(dt)+" мс; "+Object.keys(sn).map(function(k){return k+"="+sn[k].toFixed(1)}).join(" "))}
       requestAnimationFrame(rec)})(performance.now())})();
     later(function(){
-     var xp=T.map(function(el){return el.offsetLeft}),D=520;
+     var xp=T.map(function(el){return el.offsetLeft}),D=720;
      if(rz){rz.style.left=rz.offsetLeft+"px";rz.classList.add("ghost")}row.classList.add("cutting");intro.classList.add("ghost");row.classList.remove("shake","pre");
      // обводка отдельных кусков появится только вместе с их движением (с задержкой), общая гаснет сразу и плавно
      T.forEach(function(el,k){el.style.transitionDelay=(D+k*50)+"ms";el.classList.remove("lkl","lkr")});T[n-1].classList.add("hr");
