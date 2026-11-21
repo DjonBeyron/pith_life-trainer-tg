@@ -151,13 +151,13 @@ body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',syste
 .ladT .lb{position:absolute;left:-1px;right:-1px;top:-1px;bottom:-1px;border:1px solid var(--bc);border-radius:inherit;pointer-events:none;opacity:0;z-index:3;transition:opacity .5s}
 .ladT.lkr .lb,.ladT.lkl .lb{opacity:1}
 /* склейка без растушёвки: на стороне стыка вертикальная линия обводки срезается, верхняя и нижняя идут сплошь через стык */
-.ladT.lkr .lb,.ladT.kr .lb{right:-2px;-webkit-clip-path:inset(0 1px 0 0);clip-path:inset(0 1px 0 0)}
-.ladT.lkl .lb,.ladT.kl .lb{left:-2px;-webkit-clip-path:inset(0 0 0 1px);clip-path:inset(0 0 0 1px)}
-.ladT.lkl.lkr .lb,.ladT.kl.kr .lb{-webkit-clip-path:inset(0 1px 0 1px);clip-path:inset(0 1px 0 1px)}
+.ladT.lkr .lb,.ladT.kr .lb{border-right-width:0}
+.ladT.lkl .lb,.ladT.kl .lb{border-left-width:0}
+
 .ladJ{flex:none;width:5px;position:relative;transition:width .5s cubic-bezier(.4,0,.2,1),margin-right .5s cubic-bezier(.4,0,.2,1)}.ladJ.on{width:0}
 .ladJ i{position:absolute;left:50%;top:50%;width:9px;height:9px;margin:-4.5px 0 0 -4.5px;box-sizing:border-box;border:1.5px solid #8f78bd;background:#5a2aa6;box-shadow:0 0 4px rgba(130,70,220,.4);border-radius:50%;cursor:pointer;z-index:3;transition:background .18s,border-color .18s,transform .18s}
 .ladJ i::after{content:'';position:absolute;inset:-9px -8px}
-.ladJ b{position:absolute;left:50%;top:-1px;bottom:-1px;width:4px;margin-left:-2px;background:#35086f;clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);opacity:0;transition:opacity .4s;pointer-events:none;z-index:4}.ladJ.on b{opacity:.9}
+.ladJ b{position:absolute;left:50%;top:-1px;bottom:-1px;width:4px;margin-left:-2px;background:#35086f;clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);opacity:0;visibility:hidden;transition:opacity .4s,visibility 0s .4s;pointer-events:none;z-index:4}.ladJ.on b{opacity:.9;visibility:visible;transition:opacity .4s,visibility 0s}
 .ladJ.on i{background:#c9a6ff;border-color:#fff;box-shadow:0 0 8px rgba(190,130,255,.9)}
 .ladJ.hint i{border-color:#fff;background:#a45cff;box-shadow:0 0 6px rgba(200,150,255,.6)}
 @keyframes ladDp{0%,100%{transform:scale(1)}50%{transform:scale(1.6)}}@keyframes ladWv{0%{transform:scale(1);opacity:0}12%{opacity:.95}100%{transform:scale(7);opacity:0}}
@@ -169,9 +169,10 @@ body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',syste
 /* вступление лесенки: плитки вплотную = единое голосовое; кнопка play поверх, куски расходятся при разрезе */
 .row.ladRowWrap{contain:layout style}
 .ladRow.pre .ladT,.ladRow.pre .ladT .lb,.ladRow.pre .ladZ{transition:none!important}
-.ladRow.pre .ladJ{width:0;margin-right:-1px;pointer-events:none}.ladRow.pre .ladJ i{transform:scale(0)}
+.ladRow.pre .ladJ{width:0;margin-right:-1px;pointer-events:none}.ladRow.pre .ladJ i{transform:scale(0);visibility:hidden}
 .ladRow.pre .ladT{pointer-events:none;box-shadow:none}
-.ladRow.pre{filter:drop-shadow(0 0 7px rgba(150,70,255,.4))}
+.ladRow::before{content:'';position:absolute;left:0;top:0;width:var(--gw,100%);height:100%;border-radius:12px;box-shadow:0 0 14px rgba(150,70,255,.4);opacity:0;pointer-events:none;transition:opacity .52s cubic-bezier(.45,0,.55,1) .2s}
+.ladRow.pre::before{opacity:1;transition:none}
 .ladBg{position:absolute;left:0;top:0;right:0;bottom:0;border-radius:12px;background:linear-gradient(180deg,#8f2ff2,#7523d6);border:1px solid #b57cff;box-shadow:0 0 15px rgba(150,70,255,.35);pointer-events:none;transition:opacity .45s ease-out}.ladBg.out{opacity:0}
 .ladRow .ladJ.pop i{transform:scale(1);transition:transform .5s cubic-bezier(.34,1.56,.64,1)}
 .ladWave{position:fixed;left:0;top:0;z-index:150;pointer-events:none;will-change:transform}
@@ -179,22 +180,22 @@ body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',syste
 @keyframes ladRing{0%{transform:scale(var(--sx,.7),var(--sy,.7));opacity:0}8%{opacity:.9}100%{transform:scale(1,1);opacity:0}}
 .ladRow:not(.pre) .ladJ i{transform:none}
 .ladZ{flex:none;position:relative;width:var(--zw,48px);height:48px;box-sizing:border-box;border:1px solid transparent;border-radius:12px 0 0 12px;background:linear-gradient(180deg,#8f2ff2,#7523d6)}
-.ladZ .lb{position:absolute;left:-1px;right:-2px;top:-1px;bottom:-1px;border:1px solid #b57cff;border-radius:inherit;clip-path:inset(0 1px 0 0);-webkit-clip-path:inset(0 1px 0 0);pointer-events:none}
+.ladZ .lb{position:absolute;left:-1px;right:-1px;top:-1px;bottom:-1px;border:1px solid #b57cff;border-right-width:0;border-radius:inherit;pointer-events:none}
 .ladZ.ghost{position:absolute;left:0;top:0;z-index:0}
 .ladZ.ghost .lb,.ladR.ghost .lb{opacity:0;transition:opacity .52s cubic-bezier(.45,0,.55,1) .2s}
 .ladT.hr,.ladT.on.hr{border-right-color:transparent!important}
 .ladRow.cutting .ladT{overflow:visible}
 .ladRow.cutting .ladT .lb{transition:opacity .52s cubic-bezier(.45,0,.55,1) .2s}
-.ladRow.cutting{filter:drop-shadow(0 0 7px rgba(150,70,255,0));transition:filter .52s cubic-bezier(.45,0,.55,1) .2s}
+
 .ladRow.cutting .ladT{transition:border-color .4s,border-radius .5s cubic-bezier(.4,0,.2,1),background-color .5s,background .15s,box-shadow .5s}
 .ladR{flex:none;position:relative;width:var(--zpr,10px);height:48px;box-sizing:border-box;border:1px solid transparent;border-radius:0 12px 12px 0;background:linear-gradient(180deg,#8f2ff2,#7523d6)}
-.ladR .lb{position:absolute;left:-2px;right:-1px;top:-1px;bottom:-1px;border:1px solid #b57cff;border-radius:inherit;clip-path:inset(0 0 0 1px);-webkit-clip-path:inset(0 0 0 1px);pointer-events:none}
+.ladR .lb{position:absolute;left:-1px;right:-1px;top:-1px;bottom:-1px;border:1px solid #b57cff;border-left-width:0;border-radius:inherit;pointer-events:none}
 .ladR.ghost{position:absolute;top:0;z-index:0}
 .ladZ.col{width:0;padding-left:0;opacity:0;border-width:1px 0}
 .ladRow>.ladPlay{position:absolute;left:12px;top:50%;margin-top:-17px;z-index:0}
 .ladRow .ladT{z-index:1}
 .fxlite .ladT,.fxlite .ladBg,.fxlite .ladZ,.fxlite .ladT.on{box-shadow:none!important}.fxlite .ladT.glowIn{animation:none!important}.fxlite .ladBlade{box-shadow:none!important}.fxlite .ladPlay .ic i{transition:none!important}.fxlite .ladJ i{box-shadow:none!important}
-.ladRow.cutting .ladJ{transition:none!important}.ladRow.cutting .ladJ i{transform:scale(0)}.ladRow.cutting .ladJ.pop i{transform:scale(1);transition:transform .5s cubic-bezier(.34,1.56,.64,1)}.ladZ.nt{transition:none!important}
+.ladRow.cutting .ladJ{transition:none!important}.ladRow.cutting .ladJ i{transform:scale(0);visibility:hidden}.ladRow.cutting .ladJ.pop i{visibility:visible;transform:scale(1);transition:transform .5s cubic-bezier(.34,1.56,.64,1)}.ladZ.nt{transition:none!important}
 .ladPlay{position:relative;flex:none;width:34px;height:34px;border-radius:50%;border:0;background:#fff;color:#7523d6;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;transition:transform .26s cubic-bezier(.6,0,1,.6),opacity .26s ease-in}
 .ladPlay .ic{position:relative;display:block;width:11px;height:13px;margin-left:2px;transition:margin .26s ease}
 .ladPlay .ic i{position:absolute;top:0;bottom:0;background:currentColor;transition:clip-path .28s cubic-bezier(.4,0,.2,1),left .28s cubic-bezier(.4,0,.2,1),width .28s cubic-bezier(.4,0,.2,1)}
@@ -252,7 +253,7 @@ function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.len
 window.__L=L;
 function tg(){var w=window.Telegram&&Telegram.WebApp;return w?("tg "+w.platform+" v"+w.version+" vh="+w.viewportHeight+" stable="+w.viewportStableHeight+" exp="+w.isExpanded):"без Telegram"}
 function snap(why){var f=document.getElementById("feed"),o=document.getElementById("outer"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollTop="+Math.round(o?o.scrollTop:0)+" scrollH="+(o?o.scrollHeight:0)+"/"+(o?o.clientHeight:0)+" docScroll="+Math.round(scrollY)+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
-var PAGE_V="2026-11-21.39-lad";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
+var PAGE_V="2026-11-21.42-lad";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
 window.addEventListener("error",function(e){L("ОШИБКА: "+e.message+" @"+(e.filename||"").split("/").pop()+":"+e.lineno)});
 window.addEventListener("unhandledrejection",function(e){L("ОШИБКА промиса: "+(e.reason&&e.reason.message||e.reason))});
 // самообновление: Safari и GitHub Pages держат старый HTML в кэше. Раз за сессию страница запрашивает свежую копию и, если версия другая, перезагружается
@@ -356,11 +357,11 @@ function haptic(kind){try{var h=window.Telegram&&Telegram.WebApp&&Telegram.WebAp
 
 // ── звуки интерфейса (те же файлы, что в приложении)
 // громкость как в приложении: часть звуков записана тихо, поэтому они усиливаются через Web Audio (GainNode, до ×3 как в sounds.js приложения); множители подобраны по пику файла, чтобы не было хруста
-var SGAIN={"cut":1.05,"typing-1":3,"message-in":3,"xp-gain":2,"answer-correct":2,"answer-wrong":1.5},snds={},lastSnd={},ACX=null,SBUF={};
+var SGAIN={"cut":1.05,"typing-1":3,"message-in":1.8,"xp-gain":2,"answer-correct":2,"answer-wrong":1.5},snds={},lastSnd={},ACX=null,SBUF={};
 function acx(){if(!ACX){var AC=window.AudioContext||window.webkitAudioContext;if(AC){try{ACX=new AC();ACX.onstatechange=function(){if(window.__L)window.__L("AudioContext → "+ACX.state)};if(window.__L)window.__L("AudioContext создан, "+ACX.state+", частота "+ACX.sampleRate);try{navigator.audioSession.type="playback"}catch(e){}}catch(e){}}}return ACX}
 function sbuf(n){var c=acx();if(!c)return Promise.reject(0);return SBUF[n]||(SBUF[n]=fetch("s/"+n+".mp3").then(function(r){return r.arrayBuffer()}).then(function(b){return new Promise(function(res,rej){c.decodeAudioData(b,res,rej)})}))}
 function playHtml(n){try{var a=snds[n]||(snds[n]=new Audio("s/"+n+".mp3"));a.currentTime=0;var p=a.play();if(p&&p.catch)p.catch(function(){})}catch(e){}}
-function snd(n){var tn=Date.now();if(lastSnd[n]&&tn-lastSnd[n]<300)return;lastSnd[n]=tn;if(n==="answer-correct")haptic("ok");else if(n==="answer-wrong")haptic("bad");var g=SGAIN[n]||1,c=g>1?acx():null;
+function snd(n){var tn=Date.now();if(lastSnd[n]&&tn-lastSnd[n]<(n==="message-in"?90:300))return;lastSnd[n]=tn;if(n==="answer-correct")haptic("ok");else if(n==="answer-wrong")haptic("bad");var g=SGAIN[n]||1,c=g>1?acx():null;
  if(!c){playHtml(n);return}
  try{if(c.state==="suspended")c.resume()}catch(e){}
  sbuf(n).then(function(buf){if(c.state!=="running"){playHtml(n);return}var s=c.createBufferSource(),gn=c.createGain();s.buffer=buf;gn.gain.value=g;s.connect(gn);gn.connect(c.destination);s.start(0)}).catch(function(){playHtml(n)})}
@@ -595,7 +596,7 @@ function start(C){
  function normRu(t){return String(t).toLowerCase().replace(/ё/g,"е").replace(/[^а-яa-z0-9]/g,"")}
  function pickRu(list,usedN){return shuf(list).filter(function(x){return usedN.indexOf(normRu(x))<0})[0]}
  var TR_ICON='<svg class="trI" viewBox="0 0 24 24"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>';
- function showTranslation(lead,done){typing(1400,function(){if(lead)msg("",lead);later(function(){msg("trv",TR_ICON+esc(C.r),true);later(done,1000)},lead?1000:0)})}
+ function showTranslation(lead,done){typing(1400,function(){if(lead)msg("",lead);later(function(){msg("trv",TR_ICON+esc(C.r));later(done,1000)},lead?1000:0)})}
  function startRu(done){
   var rt=String(C.r).split(/\s+/).map(function(w){return w.replace(/^[^\wа-яА-ЯёЁ]+|[^\wа-яА-ЯёЁ]+$/g,"")}).filter(Boolean),dec=[],names=rt.map(normRu);
   [RP,RG,RE].forEach(function(l){var d=pickRu(l,names.concat(dec.map(normRu)));if(d)dec.push(d)});
@@ -626,7 +627,7 @@ function start(C){
      snd(k==="try"?"answer-correct":"message-in");
      [].forEach.call(btns,function(o){o.disabled=true;o.classList.add(o===b?"pick":"dim")});
      later(function(){curPanel=cwp;runPanel(false,function(){
-      if(k==="reveal"){msg("trv",TR_ICON+esc(C.r),true);later(done,1000)}
+      if(k==="reveal"){msg("trv",TR_ICON+esc(C.r));later(done,1000)}
       else{msg("me pick",esc(b.textContent),true);later(function(){typing(1400,function(){msg("","Тогда собери перевод из слов.");later(function(){startRu(done)},1400)})},500)}})},760)}})},2000)})}
  // ответ → пауза → смайлик-салют → «Как думаешь, как переводится?» → выбор → перевод → мотивация → точки → «Скоро выйдет полный разбор» → точки → «Выйти»
  function finale(fire){
@@ -672,7 +673,7 @@ function start(C){
   var h=document.createElement("div");h.className="ladWrap";var tiles="";
   for(k=0;k<n;k++){tiles+='<div class="ladT lkl lkr kl kr" data-i="'+k+'" style="width:'+Math.max(18,4*Math.round(((72+(words[k].b-words[k].a)*110)*.6-2)/4)+2)+'px"><canvas></canvas><i class="lb"></i></div>'+(k<n-1?'<div class="ladJ" data-j="'+k+'"><b></b><i></i></div>':"")}
   h.innerHTML='<div class="ladRow pre"><div class="ladBr"><svg class="ladBsv"><path d=""/></svg><span class="ladBl"></span></div>'+tiles+'<div class="ladR"><i class="lb"></i></div></div>';
-  var b=msg("lad",h,true);b.parentNode.classList.add("ladRowWrap");
+  var b=msg("lad",h);b.parentNode.classList.add("ladRowWrap");
   var T=[].slice.call(h.querySelectorAll(".ladT")),J=[].slice.call(h.querySelectorAll(".ladJ")),br=h.querySelector(".ladBr"),bl=h.querySelector(".ladBl"),row=h.querySelector(".ladRow");
   // плитки по ширине экрана: если не помещаются, сжимаются все вместе
   // размеры считаются сразу (до показа), чтобы появление сообщения не дёргалось; отступы вступления: край—play = play—спектр = спектр—край (G)
@@ -719,7 +720,7 @@ function start(C){
   function introEnd(){
    if(iDone)return;iDone=true;iBusy=true;cancelAnimationFrame(iRaf);iRaf=0;iSrc=null;iPaint(1);iPlay.classList.remove("pl");(function fd(){var t00=performance.now();(function st(){var k=Math.min(1,(performance.now()-t00)/420);barFade=1-(k*k*(3-2*k));iPaint(1);if(k<1)requestAnimationFrame(st);else{barFade=0;iPaint(1)}})()})();
    // всё действие по длине звука среза (cut.mp3, 0,68 с): нарастание ~0,37 с с тряской и лезвиями, в пике куски расходятся, затем точки
-   later(function(){barFade=1;iPaint(0);var FX=window.__FX||0;var frz=document.getElementById("outer");if(frz){frz.style.overflowY="hidden";frz.__frz=1}if(FX<3)snd("cut");if(FX<2)row.classList.add("shake");
+   later(function(){barFade=1;iPaint(0);var FX=window.__FX||0;if(FX<3)snd("cut");if(FX<2)row.classList.add("shake");
     // лезвие проходит сверху вниз ровно по линии стыка; сразу за ним остаётся видимый срез (тёмная игла), а лезвие, дойдя до низа, укорачивается в точку и исчезает без остановки
     var bl2=[],mk=[],gapT=n>1?70/(n-1):0,BD=260;
     // стыки: 0 — между зоной кнопки и первой плиткой, i — между плитками i-1 и i
@@ -738,7 +739,7 @@ function start(C){
       if(bad&&out<80){out++;L("разрез t="+Math.round(el)+" мс: интервал "+Math.round(dt)+" мс; "+Object.keys(sn).map(function(k){return k+"="+sn[k].toFixed(1)}).join(" "))}
       requestAnimationFrame(rec)})(performance.now())})();
     later(function(){
-     var xp=T.map(function(el){return el.offsetLeft}),D=720;
+     var xp=T.map(function(el){return el.offsetLeft}),D=720;row.style.setProperty("--gw",row.offsetWidth+"px");
      if(rz){rz.style.left=rz.offsetLeft+"px";rz.classList.add("ghost")}row.classList.add("cutting");intro.classList.add("ghost");row.classList.remove("shake","pre");
      // обводка отдельных кусков появится только вместе с их движением (с задержкой), общая гаснет сразу и плавно
      T.forEach(function(el,k){el.style.transitionDelay=(D+k*50)+"ms";el.classList.remove("lkl","lkr")});T[n-1].classList.add("hr");
@@ -760,7 +761,7 @@ function start(C){
      later(function(){iPlay.remove();intro.remove();if(rz)rz.remove();dropHr()},TS);
      J.forEach(function(j,q){later(function(){j.classList.add("pop")},TS+60+q*180)});
      T.forEach(function(el,k){later(function(){el.classList.add("glowIn");later(function(){el.classList.remove("glowIn")},800)},D+k*50+420)});
-     later(function(){bl2.forEach(function(e){e.remove()});J.forEach(function(j){j.classList.remove("pop")});row.classList.remove("cutting");T.forEach(function(el){el.style.transitionDelay="";el.classList.remove("kl","kr")});var fz=document.getElementById("outer");if(fz&&fz.__frz){fz.style.overflowY="";fz.__frz=0}iBusy=false;if(onReady)onReady();later(function(){if(!beckonOff)startBeckon()},800)},TS+60+J.length*180+450)},Math.round(100+Math.max(0,n-1)*gapT+BD*.55+70))
+     later(function(){bl2.forEach(function(e){e.remove()});J.forEach(function(j){j.classList.remove("pop")});row.classList.remove("cutting");T.forEach(function(el){el.style.transitionDelay="";el.classList.remove("kl","kr")});iBusy=false;if(onReady)onReady();later(function(){if(!beckonOff)startBeckon()},800)},TS+60+J.length*180+450)},Math.round(100+Math.max(0,n-1)*gapT+BD*.55+70))
    },470)}
   function introPlay(){
    if(iDone||iBusy&&!iSrc)return;
