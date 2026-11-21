@@ -179,7 +179,7 @@ body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',syste
 .ladPlay{position:relative;flex:none;width:24px;height:24px;border-radius:50%;border:0;background:#fff;color:#7523d6;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;transition:transform .26s cubic-bezier(.6,0,1,.6),opacity .26s ease-in}
 .ladPlay.gone{transform:scale(0) rotate(200deg);opacity:0;pointer-events:none}
 .ladRow.shake{animation:ladShake .37s linear both;transform-origin:50% 50%}
-@keyframes ladShake{0%{transform:rotate(0)}10%{transform:rotate(-.5deg)}22%{transform:rotate(.8deg)}34%{transform:rotate(-1.1deg)}46%{transform:rotate(1.4deg)}58%{transform:rotate(-1.6deg)}70%{transform:rotate(1.6deg)}82%{transform:rotate(-1.2deg)}92%{transform:rotate(.6deg)}100%{transform:rotate(0)}}
+@keyframes ladShake{0%{transform:rotate(0)}7%{transform:rotate(-1.2deg)}15%{transform:rotate(1.8deg)}23%{transform:rotate(-2.4deg)}31%{transform:rotate(3deg)}39%{transform:rotate(-3.4deg)}48%{transform:rotate(3.8deg)}57%{transform:rotate(-4deg)}66%{transform:rotate(3.8deg)}75%{transform:rotate(-3.2deg)}85%{transform:rotate(2.2deg)}93%{transform:rotate(-1deg)}100%{transform:rotate(0)}}
 @keyframes ladGlowIn{0%{box-shadow:0 0 20px 2px rgba(190,120,255,.85)}100%{box-shadow:0 0 15px rgba(150,70,255,.35)}}
 .ladT.glowIn{animation:ladGlowIn .9s ease-out both}
 .ladBlade{position:absolute;top:-7px;width:1.3px;z-index:7;pointer-events:none;transform-origin:50% 0;transform:scaleY(0);opacity:1;background:linear-gradient(180deg,rgba(255,255,255,0),#fff 18%,#e9d5ff 80%,rgba(255,255,255,0));box-shadow:0 0 6px 1px rgba(230,200,255,.9),0 0 14px 3px rgba(150,70,255,.7);clip-path:polygon(50% 0,100% 12%,100% 88%,50% 100%,0 88%,0 12%)}
@@ -207,7 +207,7 @@ function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.len
 window.__L=L;
 function tg(){var w=window.Telegram&&Telegram.WebApp;return w?("tg "+w.platform+" v"+w.version+" vh="+w.viewportHeight+" stable="+w.viewportStableHeight+" exp="+w.isExpanded):"без Telegram"}
 function snap(why){var f=document.getElementById("feed"),o=document.getElementById("outer"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollTop="+Math.round(o?o.scrollTop:0)+" scrollH="+(o?o.scrollHeight:0)+"/"+(o?o.clientHeight:0)+" docScroll="+Math.round(scrollY)+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
-var PAGE_V="2026-11-21.3-lad";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
+var PAGE_V="2026-11-21.4-lad";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
 window.addEventListener("error",function(e){L("ОШИБКА: "+e.message+" @"+(e.filename||"").split("/").pop()+":"+e.lineno)});
 window.addEventListener("unhandledrejection",function(e){L("ОШИБКА промиса: "+(e.reason&&e.reason.message||e.reason))});
 // самообновление: Safari и GitHub Pages держат старый HTML в кэше. Раз за сессию страница запрашивает свежую копию и, если версия другая, перезагружается

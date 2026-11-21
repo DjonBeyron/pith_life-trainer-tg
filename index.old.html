@@ -171,8 +171,8 @@ body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',syste
 .ladBg{position:absolute;left:0;top:0;right:0;bottom:0;border-radius:12px;background:linear-gradient(180deg,#8f2ff2,#7523d6);border:1px solid #b57cff;box-shadow:0 0 15px rgba(150,70,255,.35);pointer-events:none;transition:opacity .45s ease-out}.ladBg.out{opacity:0}
 .ladRow .ladJ.pop i{transform:scale(1);transition:transform .5s cubic-bezier(.34,1.56,.64,1)}
 .ladT.beckon{overflow:visible;z-index:2}
-.ladT.beckon::before,.ladT.beckon::after{content:'';position:absolute;left:-1px;right:-1px;top:-1px;bottom:-1px;border:1.5px solid rgba(200,165,255,.55);border-radius:inherit;pointer-events:none;animation:ladRing 2s ease-out infinite}.ladT.beckon::after{animation-delay:1s}
-@keyframes ladRing{0%{left:-1px;right:-1px;top:-1px;bottom:-1px;opacity:.7}100%{left:-10px;right:-10px;top:-8px;bottom:-8px;opacity:0;border-radius:18px}}
+.ladT.beckon::before,.ladT.beckon::after{content:'';position:absolute;left:-1px;right:-1px;top:-1px;bottom:-1px;border:2.5px solid rgba(220,190,255,.95);border-radius:inherit;pointer-events:none;animation:ladRing 1.7s ease-out infinite}.ladT.beckon::after{animation-delay:.85s}
+@keyframes ladRing{0%{left:-1px;right:-1px;top:-1px;bottom:-1px;opacity:1}100%{left:-17px;right:-17px;top:-14px;bottom:-14px;opacity:0;border-radius:22px}}
 .ladRow:not(.pre) .ladJ i{transform:none}
 .ladZ{flex:none;position:relative;width:var(--zw,48px);padding-left:var(--zg,11px);justify-content:flex-start!important;height:48px;box-sizing:border-box;border:1px solid transparent;display:flex;align-items:center;justify-content:center;overflow:hidden;transition:width .5s cubic-bezier(.4,0,.2,1),padding-left .5s cubic-bezier(.4,0,.2,1),opacity .4s}
 .ladZ.col{width:0;padding-left:0;opacity:0;border-width:1px 0}
@@ -207,7 +207,7 @@ function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.len
 window.__L=L;
 function tg(){var w=window.Telegram&&Telegram.WebApp;return w?("tg "+w.platform+" v"+w.version+" vh="+w.viewportHeight+" stable="+w.viewportStableHeight+" exp="+w.isExpanded):"без Telegram"}
 function snap(why){var f=document.getElementById("feed"),o=document.getElementById("outer"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollTop="+Math.round(o?o.scrollTop:0)+" scrollH="+(o?o.scrollHeight:0)+"/"+(o?o.clientHeight:0)+" docScroll="+Math.round(scrollY)+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
-var PAGE_V="2026-11-21.2-lad";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
+var PAGE_V="2026-11-21.3-lad";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
 window.addEventListener("error",function(e){L("ОШИБКА: "+e.message+" @"+(e.filename||"").split("/").pop()+":"+e.lineno)});
 window.addEventListener("unhandledrejection",function(e){L("ОШИБКА промиса: "+(e.reason&&e.reason.message||e.reason))});
 // самообновление: Safari и GitHub Pages держат старый HTML в кэше. Раз за сессию страница запрашивает свежую копию и, если версия другая, перезагружается
@@ -639,7 +639,9 @@ function start(C){
   T[n-1].classList.add("pl");
   var beckonOff=false,iPlay=intro.querySelector(".ladPlay"),iSrc=null,iRaf=0,iDone=false,iBusy=false;
   // прогресс воспроизведения красит столбики самих плиток по времени слов
-  function iPaint(p){var t=p*buf.duration;for(var i=0;i<n;i++)paint(i,Math.max(0,Math.min(1,(t-words[i].a)/Math.max(.001,words[i].b-words[i].a))),true)}
+  // границы кусков по времени идут строго подряд (середина между концом слова и началом следующего), поэтому заливка спектра идёт слева направо без одновременного заполнения соседних плиток
+  var iB=[words[0].a];for(var q0=1;q0<n;q0++)iB.push(Math.max(iB[q0-1],(words[q0-1].b+words[q0].a)/2));iB.push(Math.max(iB[n-1],words[n-1].b));
+  function iPaint(p){var t=p*buf.duration;for(var i=0;i<n;i++)paint(i,Math.max(0,Math.min(1,(t-iB[i])/Math.max(.001,iB[i+1]-iB[i]))),true)}
   function iReset(){cancelAnimationFrame(iRaf);iRaf=0;if(iSrc){try{iSrc.onended=null;iSrc.stop()}catch(e){}iSrc=null}iPaint(0);intro.classList.remove("playing")}
   function introEnd(){
    if(iDone)return;iDone=true;iBusy=true;cancelAnimationFrame(iRaf);iRaf=0;iSrc=null;iPaint(1);later(function(){iPlay.classList.add("gone")},40);
