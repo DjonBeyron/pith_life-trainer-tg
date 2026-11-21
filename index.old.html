@@ -196,8 +196,9 @@ body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',syste
 @keyframes ladGlowIn{0%{box-shadow:0 0 20px 2px rgba(190,120,255,.85)}100%{box-shadow:0 0 15px rgba(150,70,255,.35)}}
 .ladT.glowIn{animation:ladGlowIn .9s ease-out both}
 .ladBlade{position:absolute;top:-7px;width:1.3px;z-index:7;pointer-events:none;height:0;opacity:0;background:linear-gradient(180deg,rgba(255,255,255,0),#fff 18%,#e9d5ff 80%,rgba(255,255,255,0));box-shadow:0 0 6px 1px rgba(230,200,255,.9),0 0 14px 3px rgba(150,70,255,.7);clip-path:polygon(50% 0,100% 12%,100% 88%,50% 100%,0 88%,0 12%)}
-.ladBlade.go{animation:ladBl .24s both}
-@keyframes ladBl{0%{top:3px;height:2px;opacity:0}30%{top:-12px;height:10px;opacity:1;animation-timing-function:cubic-bezier(.6,0,.1,1)}100%{top:-7px;height:calc(100% + 14px);opacity:1}}
+.ladBlade.go{animation:ladBl .26s cubic-bezier(.45,0,.55,1) both}
+@keyframes ladBl{0%{top:2px;height:2px;opacity:0}20%{top:-12px;height:10px;opacity:1}55%{top:-7px;height:calc(100% + 14px);opacity:1}100%{top:calc(100% + 7px);height:0;opacity:1}}
+.ladCutMark{position:absolute;top:-1px;bottom:-1px;width:4px;background:#35086f;clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);opacity:0;z-index:4;pointer-events:none}.ladCutMark.on{opacity:.95}
 </style></head><body>
 <button class="moreBtn" id="moreBtn" aria-label="Другие фразы">Фразы</button><div class="morePanel" id="morePanel"><div class="moreHead"><b>Другие фразы</b><button id="moreClose" aria-label="Закрыть">✕</button></div><div class="moreList" id="moreList"></div></div>
 <button class="dbgBtn" id="dbgBtn" aria-label="Лог">лог</button><div class="dbgBox" id="dbgBox"><textarea id="dbgTa" readonly></textarea><button id="dbgCopy">Скопировать</button><button id="dbgFx" style="border-color:#7aa2ff;color:#7aa2ff">Эффекты разреза: полные</button><button id="dbgReset" style="border-color:#f87171;color:#f87171">Сбросить прогресс и начать заново</button><button id="dbgClose" style="border-color:#2a2d35;color:#9aa0b4">Закрыть</button></div>
@@ -220,7 +221,7 @@ function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.len
 window.__L=L;
 function tg(){var w=window.Telegram&&Telegram.WebApp;return w?("tg "+w.platform+" v"+w.version+" vh="+w.viewportHeight+" stable="+w.viewportStableHeight+" exp="+w.isExpanded):"без Telegram"}
 function snap(why){var f=document.getElementById("feed"),o=document.getElementById("outer"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollTop="+Math.round(o?o.scrollTop:0)+" scrollH="+(o?o.scrollHeight:0)+"/"+(o?o.clientHeight:0)+" docScroll="+Math.round(scrollY)+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
-var PAGE_V="2026-11-21.23-lad";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
+var PAGE_V="2026-11-21.24-lad";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
 window.addEventListener("error",function(e){L("ОШИБКА: "+e.message+" @"+(e.filename||"").split("/").pop()+":"+e.lineno)});
 window.addEventListener("unhandledrejection",function(e){L("ОШИБКА промиса: "+(e.reason&&e.reason.message||e.reason))});
 // самообновление: Safari и GitHub Pages держат старый HTML в кэше. Раз за сессию страница запрашивает свежую копию и, если версия другая, перезагружается
@@ -672,11 +673,12 @@ function start(C){
    if(iDone)return;iDone=true;iBusy=true;cancelAnimationFrame(iRaf);iRaf=0;iSrc=null;iPaint(1);iPlay.classList.remove("pl");
    // всё действие по длине звука среза (cut.mp3, 0,68 с): нарастание ~0,37 с с тряской и лезвиями, в пике куски расходятся, затем точки
    later(function(){iPaint(0);snd("cut");var FX=window.__FX||0;if(FX<2)row.classList.add("shake");
-    var bl2=[],H=row.offsetHeight,gapT=n>2?70/(n-2):0;
-    for(var q=0;q<n-1&&FX<2;q++)(function(q){var x=T[q+1].offsetLeft,b=document.createElement("div");b.className="ladBlade";b.style.left=(x-1)+"px";row.appendChild(b);bl2.push(b);var t0=100+q*gapT;
+    // лезвие проходит сверху вниз ровно по линии стыка; сразу за ним остаётся видимый срез (тёмная игла), а лезвие, дойдя до низа, укорачивается в точку и исчезает без остановки
+    var bl2=[],mk=[],gapT=n>2?70/(n-2):0,BD=260;
+    for(var q=0;q<n-1&&FX<2;q++)(function(q){var x=T[q].offsetLeft+T[q].offsetWidth-.5,b=document.createElement("div"),m=document.createElement("div");b.className="ladBlade";b.style.left=(x-.65)+"px";m.className="ladCutMark";m.style.left=(x-2)+"px";row.appendChild(b);row.appendChild(m);bl2.push(b);mk.push(m);var t0=100+q*gapT;
      later(function(){b.classList.add("go")},t0);
-     later(function(){T[q].classList.add("cr2");T[q+1].classList.add("cl2")},t0+140);
-     later(function(){b.classList.add("out")},t0+230)})(q);
+     later(function(){m.classList.add("on")},t0+BD*.55);
+     later(function(){b.remove()},t0+BD+20)})(q);
     // в пике: куски слетают влево и задвигаются поверх кнопки play, по очереди ударяются друг о друга и чуть отскакивают; потом по очереди появляются точки
     // диагностика разреза в секретный лог: каждый кадр от начала тряски до конца появления точек (верх плиток/строки, прокрутка, интервал кадров); подозрительные кадры пишутся строками
     (function(){var L=window.__L;if(!L)return;var t00=performance.now(),last=0,base=null,out=0,fr=0,wd=0,mx={};L("разрез: старт записи кадров (4 с), плиток "+n+", dpr "+(window.devicePixelRatio||1)+", режим эффектов "+(window.__FX||0));
@@ -688,6 +690,7 @@ function start(C){
       if(bad&&out<80){out++;L("разрез t="+Math.round(el)+" мс: интервал "+Math.round(dt)+" мс; "+Object.keys(sn).map(function(k){return k+"="+sn[k].toFixed(1)}).join(" "))}
       requestAnimationFrame(rec)})(performance.now())})();
     later(function(){
+     mk.forEach(function(m){m.remove()});bl2.forEach(function(e){e.remove()});
      var xp=T.map(function(el){return el.offsetLeft});
      row.classList.add("cutting");intro.classList.add("nt","col");row.classList.remove("shake","pre");bgE.classList.add("out");
      var xf=T.map(function(el){return el.offsetLeft});
@@ -697,7 +700,7 @@ function start(C){
      later(function(){iPlay.remove();intro.remove();bgE.remove()},TS);
      J.forEach(function(j,q){later(function(){j.classList.add("pop")},TS+60+q*180)});
      T.forEach(function(el,k){later(function(){el.classList.add("glowIn");later(function(){el.classList.remove("glowIn")},800)},k*50+260)});
-     later(function(){bl2.forEach(function(e){e.remove()});J.forEach(function(j){j.classList.remove("pop")});row.classList.remove("cutting");iBusy=false;if(onReady)onReady();later(function(){if(!beckonOff)startBeckon()},800)},TS+60+J.length*180+450)},370)
+     later(function(){bl2.forEach(function(e){e.remove()});J.forEach(function(j){j.classList.remove("pop")});row.classList.remove("cutting");iBusy=false;if(onReady)onReady();later(function(){if(!beckonOff)startBeckon()},800)},TS+60+J.length*180+450)},Math.round(100+Math.max(0,n-2)*gapT+BD*.55+70))
    },300)}
   function introPlay(){
    if(iDone||iBusy&&!iSrc)return;
@@ -733,6 +736,7 @@ function start(C){
    var xs=0,bw=0,k0;for(k0=0;k0<a;k0++)xs+=T[k0].offsetWidth+(link[k0]?0:5);for(k0=a;k0<=b;k0++)bw+=T[k0].offsetWidth;
    var bh=br.offsetHeight||13,rr=Math.min(5,bw/2-1),sv=br.querySelector("svg");
    br.style.left=xs+"px";br.style.width=bw+"px";sv.setAttribute("width",bw);sv.setAttribute("height",bh);sv.firstChild.setAttribute("d","M1 "+bh+" V"+rr+" Q1 1 "+rr+" 1 H"+(bw-rr)+" Q"+(bw-1)+" 1 "+(bw-1)+" "+rr+" V"+bh);
+   try{var pl=sv.firstChild.getTotalLength(),nn=Math.max(1,Math.round((pl-4)/7)),gg=(pl-(nn+1)*4)/nn;sv.firstChild.style.strokeDasharray="4 "+gg.toFixed(2)}catch(e){}
    bl.textContent=a===b?(a+1)+" слово":b===a+1?(a+1)+" и "+(b+1)+" слова":(a+1)+"–"+(b+1)+" слова";br.classList.add("on");
    if(window.TS)TS.track("ladder_play",{props:{a:a,b:b}});
    (function tick(){raf=requestAnimationFrame(tick);var e0=((ac.currentTime-t0)%total+total)%total,t=sa+Math.min(dur,e0)/dur*(sb-sa);
