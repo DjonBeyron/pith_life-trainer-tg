@@ -251,7 +251,7 @@ function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.len
 window.__L=L;
 function tg(){var w=window.Telegram&&Telegram.WebApp;return w?("tg "+w.platform+" v"+w.version+" vh="+w.viewportHeight+" stable="+w.viewportStableHeight+" exp="+w.isExpanded):"без Telegram"}
 function snap(why){var f=document.getElementById("feed"),o=document.getElementById("outer"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollTop="+Math.round(o?o.scrollTop:0)+" scrollH="+(o?o.scrollHeight:0)+"/"+(o?o.clientHeight:0)+" docScroll="+Math.round(scrollY)+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
-var PAGE_V="2026-11-21.33-lad";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
+var PAGE_V="2026-11-21.34-lad";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
 window.addEventListener("error",function(e){L("ОШИБКА: "+e.message+" @"+(e.filename||"").split("/").pop()+":"+e.lineno)});
 window.addEventListener("unhandledrejection",function(e){L("ОШИБКА промиса: "+(e.reason&&e.reason.message||e.reason))});
 // самообновление: Safari и GitHub Pages держат старый HTML в кэше. Раз за сессию страница запрашивает свежую копию и, если версия другая, перезагружается
@@ -270,7 +270,7 @@ new MutationObserver(function(ms){ms.forEach(function(m){m.addedNodes.forEach(fu
 var pn=document.getElementById("panel");if(pn)new MutationObserver(function(){L(snap("панель "+(pn.classList.contains("show")?"показана":"скрыта")))}).observe(pn,{attributes:true,attributeFilter:["class"]});
 // каждые 700 мс: если размеры/прокрутка поменялись, запись (так видно дрожание: прокрутка и высота прыгают без причины)
 setInterval(function(){var f=document.getElementById("feed"),o=document.getElementById("outer"),k=(o?o.scrollTop+"|"+o.scrollHeight:"")+"|"+scrollY+"|"+innerHeight+"|"+(f?f.offsetHeight:0);if(k!==last.k){last.k=k;L(snap("изменение"))}},700);
-function text(){return LG.join("\n")+"\n"+"ВСЕ КАДРЫ: интервал мс <17.5: "+HB[0]+", 17.5–20: "+HB[1]+", 20–25: "+HB[2]+", 25–34: "+HB[3]+", 34–50: "+HB[4]+", >=50: "+HB[5]+"\nмедленные кадры (время с начала мс : интервал мс): "+SLOW.join(" ")+"\n"+snap("итог")+"\n"+tg()}
+function text(){return LG.join("\n")+"\n"+"ВСЕ КАДРЫ: интервал мс <17.5: "+HB[0]+", 17.5–20: "+HB[1]+", 20–25: "+HB[2]+", 25–34: "+HB[3]+", 34–50: "+HB[4]+", >=50: "+HB[5]+"\nОБСЛЕДОВАНИЕ КРАЁВ (изменений, максимум px, разворотов вверх-вниз): "+Object.keys(window.__EDGE||{}).map(function(k){var e=window.__EDGE[k];return k+" "+e.n+"/"+e.max.toFixed(2)+"/"+e.flips}).join("; ")+"\nмедленные кадры (время с начала мс : интервал мс): "+SLOW.join(" ")+"\n"+snap("итог")+"\n"+tg()}
 var box=document.getElementById("dbgBox"),ta=document.getElementById("dbgTa");
 document.getElementById("dbgBtn").onclick=function(){var nn=Date.now();if(nn-(window.__dbgTap||0)>450){window.__dbgTap=nn;return}window.__dbgTap=0;var tx=text();ta.value=tx;box.classList.add("on");try{navigator.clipboard.writeText(tx).then(function(){document.getElementById("dbgCopy").textContent="Скопировано ✓"},function(){})}catch(e){}};
 document.getElementById("dbgCopy").onclick=function(){var tx=ta.value;try{navigator.clipboard.writeText(tx).then(function(){document.getElementById("dbgCopy").textContent="Скопировано ✓"},function(){ta.select();document.execCommand("copy")})}catch(e){ta.select();try{document.execCommand("copy")}catch(_){}}};
@@ -682,6 +682,19 @@ function start(C){
   // вступление: плитки стоят вплотную и выглядят единым фиолетовым голосовым с одним сплошным спектром и кнопкой play; после воспроизведения оно дрожит, режется световыми лезвиями, куски расходятся (строка и пузырь расширяются), появляются точки
   var intro=document.createElement("div");intro.className="ladZ";row.insertBefore(intro,T[0]);var iPlay=document.createElement("button");iPlay.type="button";iPlay.className="ladPlay";iPlay.setAttribute("aria-label","Слушать");iPlay.innerHTML='<span class="ic"><i></i><i></i></span>';row.appendChild(iPlay);intro.innerHTML='<i class="lb"></i>';
   var rz=row.querySelector(".ladR");
+  // ОБСЛЕДОВАНИЕ КРАЁВ: с момента появления голосового каждый кадр меряем края кусков-слов (верх, низ, лево, право), строки ленты, саму ленту, прокрутку и visualViewport.
+  // Любой сдвиг по вертикали >=0,05 px пишется в лог строкой; итог по каждой величине (сколько раз менялась, максимум, сколько разворотов вверх-вниз) идёт в конец лога.
+  (function(){var L=window.__L;if(!L)return;var prev=null,t0=performance.now(),lines=0,E=window.__EDGE=window.__EDGE||{},lastD={};
+   function snap(){var o=document.getElementById("outer"),vv=window.visualViewport,s={},i;
+    for(i=0;i<T.length;i++){var r=T[i].getBoundingClientRect();s["слово"+(i+1)+".верх"]=r.top;s["слово"+(i+1)+".низ"]=r.bottom;s["слово"+(i+1)+".лево"]=r.left;s["слово"+(i+1)+".право"]=r.right}
+    var rows=document.querySelectorAll("#feed > .row");for(i=0;i<rows.length;i++){var b=rows[i].getBoundingClientRect();s["строка"+(i+1)+".верх"]=b.top;s["строка"+(i+1)+".низ"]=b.bottom}
+    var fd=document.getElementById("feed").getBoundingClientRect(),inn=document.getElementById("inner").getBoundingClientRect(),ot=o?o.getBoundingClientRect():{top:0};
+    s["лента.верх"]=fd.top;s["лента.низ"]=fd.bottom;s["inner.верх"]=inn.top;s["окно ленты.верх"]=ot.top;s["scrollTop"]=o?o.scrollTop:0;s["scrollY страницы"]=window.scrollY;
+    s["vv.offsetTop"]=vv?vv.offsetTop:0;s["vv.pageTop"]=vv?vv.pageTop:0;s["vv.height"]=vv?vv.height:0;s["vv.scale"]=vv?vv.scale:1;s["innerHeight"]=window.innerHeight;return s}
+   (function f(){if(performance.now()-t0>240000)return;var s=snap(),now=Math.round(performance.now()-t0);
+    if(prev&&now>1700){Object.keys(s).forEach(function(k){if(!(k in prev))return;var d=s[k]-prev[k];if(Math.abs(d)<.05)return;var e=E[k]||(E[k]={n:0,max:0,flips:0,vert:/верх|низ|scroll|vv|inner|окно|innerHeight|лента/.test(k)});e.n++;if(Math.abs(d)>e.max)e.max=Math.abs(d);if(lastD[k]&&(lastD[k]>0)!==(d>0))e.flips++;lastD[k]=d;
+      if(e.vert&&lines<400){lines++;L("край "+k+": "+prev[k].toFixed(2)+" → "+s[k].toFixed(2)+" ("+(d>0?"+":"")+d.toFixed(2)+") на "+now+" мс после появления голосового")}})}
+    prev=s;requestAnimationFrame(f)})()})();
   // волны первого куска: отдельные кольца на уровне страницы (видны поверх всего, в том числе панели), следят за положением плитки; при нажатии новые не запускаются, а уже идущие доживают свой цикл
   var wvRaf=0;
   function wvPlace(e){var r=e.__t().getBoundingClientRect();e.style.left=r.left+"px";e.style.top=r.top+"px";e.style.width=r.width+"px";e.style.height=r.height+"px"}

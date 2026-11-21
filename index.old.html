@@ -181,6 +181,11 @@ body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',syste
 .ladZ{flex:none;position:relative;width:var(--zw,48px);height:48px;box-sizing:border-box;border:1px solid transparent;border-radius:12px 0 0 12px;background:linear-gradient(180deg,#8f2ff2,#7523d6)}
 .ladZ .lb{position:absolute;left:-1px;right:-2px;top:-1px;bottom:-1px;border:1px solid #b57cff;border-radius:inherit;clip-path:inset(0 1px 0 0);-webkit-clip-path:inset(0 1px 0 0);pointer-events:none}
 .ladZ.ghost{position:absolute;left:0;top:0;z-index:0}
+.ladZ.ghost .lb,.ladR.ghost .lb{opacity:0;transition:opacity .26s ease}
+.ladT.hr,.ladT.on.hr{border-right-color:transparent!important}
+.ladRow.cutting .ladT .lb{transition:opacity .26s ease}
+.ladRow.cutting{filter:drop-shadow(0 0 7px rgba(150,70,255,0));transition:filter .26s ease}
+.ladRow.cutting .ladT{transition:border-color .4s,border-radius .5s cubic-bezier(.4,0,.2,1),background-color .5s,background .15s,box-shadow .5s}
 .ladR{flex:none;position:relative;width:var(--zpr,10px);height:48px;box-sizing:border-box;border:1px solid transparent;border-radius:0 12px 12px 0;background:linear-gradient(180deg,#8f2ff2,#7523d6)}
 .ladR .lb{position:absolute;left:-2px;right:-1px;top:-1px;bottom:-1px;border:1px solid #b57cff;border-radius:inherit;clip-path:inset(0 0 0 1px);-webkit-clip-path:inset(0 0 0 1px);pointer-events:none}
 .ladR.ghost{position:absolute;top:0;z-index:0}
@@ -246,7 +251,7 @@ function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.len
 window.__L=L;
 function tg(){var w=window.Telegram&&Telegram.WebApp;return w?("tg "+w.platform+" v"+w.version+" vh="+w.viewportHeight+" stable="+w.viewportStableHeight+" exp="+w.isExpanded):"без Telegram"}
 function snap(why){var f=document.getElementById("feed"),o=document.getElementById("outer"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollTop="+Math.round(o?o.scrollTop:0)+" scrollH="+(o?o.scrollHeight:0)+"/"+(o?o.clientHeight:0)+" docScroll="+Math.round(scrollY)+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
-var PAGE_V="2026-11-21.32-lad";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
+var PAGE_V="2026-11-21.33-lad";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
 window.addEventListener("error",function(e){L("ОШИБКА: "+e.message+" @"+(e.filename||"").split("/").pop()+":"+e.lineno)});
 window.addEventListener("unhandledrejection",function(e){L("ОШИБКА промиса: "+(e.reason&&e.reason.message||e.reason))});
 // самообновление: Safari и GitHub Pages держат старый HTML в кэше. Раз за сессию страница запрашивает свежую копию и, если версия другая, перезагружается
@@ -716,27 +721,29 @@ function start(C){
       if(bad&&out<80){out++;L("разрез t="+Math.round(el)+" мс: интервал "+Math.round(dt)+" мс; "+Object.keys(sn).map(function(k){return k+"="+sn[k].toFixed(1)}).join(" "))}
       requestAnimationFrame(rec)})(performance.now())})();
     later(function(){
-     var xp=T.map(function(el){return el.offsetLeft});
+     var xp=T.map(function(el){return el.offsetLeft}),D=260;
      if(rz){rz.style.left=rz.offsetLeft+"px";rz.classList.add("ghost")}row.classList.add("cutting");intro.classList.add("ghost");row.classList.remove("shake","pre");
-     T.forEach(function(el){el.classList.remove("lkl","lkr")});
+     // обводка отдельных кусков появится только вместе с их движением (с задержкой), общая гаснет сразу и плавно
+     T.forEach(function(el,k){el.style.transitionDelay=(D+k*50)+"ms";el.classList.remove("lkl","lkr")});T[n-1].classList.add("hr");
      var xf=T.map(function(el){return el.offsetLeft});
      T.forEach(function(el,k){el.classList.remove("lkl","lkr","pl","cr2","cl2");var S=xp[k]-xf[k];
-      if(el.animate&&FX<2)el.animate([{left:S+"px",offset:0},{left:"-7px",offset:.68},{left:"0px",offset:1}],{duration:540,delay:k*50,easing:"cubic-bezier(.35,.05,.3,1)",fill:"backwards"})});
-     var TS=(n-1)*50+540;
+      if(el.animate&&FX<2)el.animate([{left:S+"px",offset:0},{left:"-7px",offset:.68},{left:"0px",offset:1}],{duration:540,delay:D+k*50,easing:"cubic-bezier(.35,.05,.3,1)",fill:"backwards"})});
+     var TS=D+(n-1)*50+540;
+     function dropHr(){var lt=T[n-1];if(lt.classList.contains("hr")){lt.style.transitionDelay="0s";lt.classList.remove("hr")}}
      // как только первая плитка достигла левого края (удар), левый кусок с кнопкой исчезает мгновенно
      (function hit(){if(!intro.parentNode)return;var rl=row.getBoundingClientRect().left,tl=T[0].getBoundingClientRect().left;if(tl<=rl+.5){iPlay.remove();intro.remove();return}requestAnimationFrame(hit)})();
      // правая зона исчезает мгновенно, когда её правый край сошёлся с правым краем последней плитки (с запасом на 1 px внутрь)
-     (function hitR(){if(!rz||!rz.parentNode)return;var rr=rz.getBoundingClientRect().right,tr=T[n-1].getBoundingClientRect().right;if(rr<=tr-1){rz.remove();return}requestAnimationFrame(hitR)})();
+     (function hitR(){if(!rz||!rz.parentNode)return;var rr=rz.getBoundingClientRect().right,tr=T[n-1].getBoundingClientRect().right;if(rr<=tr-1){rz.remove();dropHr();return}requestAnimationFrame(hitR)})();
      // правая зона едет с последней плиткой тем же движением и в конце оказывается под ней; левая остаётся на месте и убирается, когда первая плитка заехала на неё полностью
-     if(rz&&rz.animate&&FX<2){var kL=n-1,SL=xp[kL]-xf[kL],xr=parseFloat(rz.style.left),endX=xr-SL-T[kL].offsetWidth+4;rz.animate([{left:xr+"px",offset:0},{left:(endX-7)+"px",offset:.68},{left:endX+"px",offset:1}],{duration:540,delay:kL*50,easing:"cubic-bezier(.35,.05,.3,1)",fill:"both"})}
+     if(rz&&rz.animate&&FX<2){var kL=n-1,SL=xp[kL]-xf[kL],xr=parseFloat(rz.style.left),endX=xr-SL-T[kL].offsetWidth+4;rz.animate([{left:xr+"px",offset:0},{left:(endX-7)+"px",offset:.68},{left:endX+"px",offset:1}],{duration:540,delay:D+kL*50,easing:"cubic-bezier(.35,.05,.3,1)",fill:"both"})}
      // срезы едут вместе с плитками, за которыми закреплены (стык i — за правым краем плитки i-1, первый — за левым краем первой), и сужаются в ноль
      mk.forEach(function(m,i){var k=i===0?0:i-1,S=xp[k]-xf[k],x0=parseFloat(m.style.left),DM="polygon(50% 0,100% 50%,50% 100%,0 50%)";
-      if(m.animate)m.animate([{left:x0+"px",clipPath:DM,offset:0},{left:(x0-S-7)+"px",clipPath:"polygon(50% 0,64% 50%,50% 100%,36% 50%)",offset:.68},{left:(x0-S)+"px",clipPath:"polygon(50% 0,50% 50%,50% 100%,50% 50%)",offset:1}],{duration:540,delay:k*50,easing:"cubic-bezier(.35,.05,.3,1)",fill:"both"});
-      later(function(){m.remove()},k*50+560)});
-     later(function(){iPlay.remove();intro.remove();if(rz)rz.remove()},TS);
+      if(m.animate)m.animate([{left:x0+"px",clipPath:DM,offset:0},{left:(x0-S-7)+"px",clipPath:"polygon(50% 0,64% 50%,50% 100%,36% 50%)",offset:.68},{left:(x0-S)+"px",clipPath:"polygon(50% 0,50% 50%,50% 100%,50% 50%)",offset:1}],{duration:540,delay:D+k*50,easing:"cubic-bezier(.35,.05,.3,1)",fill:"both"});
+      later(function(){m.remove()},D+k*50+560)});
+     later(function(){iPlay.remove();intro.remove();if(rz)rz.remove();dropHr()},TS);
      J.forEach(function(j,q){later(function(){j.classList.add("pop")},TS+60+q*180)});
-     T.forEach(function(el,k){later(function(){el.classList.add("glowIn");later(function(){el.classList.remove("glowIn")},800)},k*50+420)});
-     later(function(){bl2.forEach(function(e){e.remove()});J.forEach(function(j){j.classList.remove("pop")});row.classList.remove("cutting");var fz=document.getElementById("outer");if(fz&&fz.__frz){fz.style.overflowY="";fz.__frz=0}iBusy=false;if(onReady)onReady();later(function(){if(!beckonOff)startBeckon()},800)},TS+60+J.length*180+450)},Math.round(100+Math.max(0,n-1)*gapT+BD*.55+70))
+     T.forEach(function(el,k){later(function(){el.classList.add("glowIn");later(function(){el.classList.remove("glowIn")},800)},D+k*50+420)});
+     later(function(){bl2.forEach(function(e){e.remove()});J.forEach(function(j){j.classList.remove("pop")});row.classList.remove("cutting");T.forEach(function(el){el.style.transitionDelay=""});var fz=document.getElementById("outer");if(fz&&fz.__frz){fz.style.overflowY="";fz.__frz=0}iBusy=false;if(onReady)onReady();later(function(){if(!beckonOff)startBeckon()},800)},TS+60+J.length*180+450)},Math.round(100+Math.max(0,n-1)*gapT+BD*.55+70))
    },300)}
   function introPlay(){
    if(iDone||iBusy&&!iSrc)return;
