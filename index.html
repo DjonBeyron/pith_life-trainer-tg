@@ -176,6 +176,9 @@ body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',syste
 .ladRow:not(.pre) .ladJ i{transform:none}
 .ladZ{flex:none;position:relative;width:var(--zw,48px);padding-left:var(--zg,11px);justify-content:flex-start!important;height:48px;box-sizing:border-box;border:1px solid transparent;display:flex;align-items:center;justify-content:center;overflow:hidden;transition:width .5s cubic-bezier(.4,0,.2,1),padding-left .5s cubic-bezier(.4,0,.2,1),opacity .4s}
 .ladZ.col{width:0;padding-left:0;opacity:0;border-width:1px 0}
+.ladRow>.ladPlay{position:absolute;left:12px;top:50%;margin-top:-17px;z-index:0}
+.ladRow .ladT{z-index:1}
+.ladRow.cutting .ladJ{transition:none!important}.ladRow.cutting .ladJ i{transform:scale(0)}.ladRow.cutting .ladJ.pop i{transform:scale(1);transition:transform .5s cubic-bezier(.34,1.56,.64,1)}.ladZ.nt{transition:none!important}
 .ladPlay{position:relative;flex:none;width:34px;height:34px;border-radius:50%;border:0;background:#fff;color:#7523d6;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;transition:transform .26s cubic-bezier(.6,0,1,.6),opacity .26s ease-in}
 .ladPlay .ic{position:relative;display:block;width:11px;height:13px;margin-left:2px;transition:margin .26s ease}
 .ladPlay .ic i{position:absolute;top:0;bottom:0;background:currentColor;transition:clip-path .28s cubic-bezier(.4,0,.2,1),left .28s cubic-bezier(.4,0,.2,1),width .28s cubic-bezier(.4,0,.2,1)}
@@ -214,7 +217,7 @@ function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.len
 window.__L=L;
 function tg(){var w=window.Telegram&&Telegram.WebApp;return w?("tg "+w.platform+" v"+w.version+" vh="+w.viewportHeight+" stable="+w.viewportStableHeight+" exp="+w.isExpanded):"без Telegram"}
 function snap(why){var f=document.getElementById("feed"),o=document.getElementById("outer"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollTop="+Math.round(o?o.scrollTop:0)+" scrollH="+(o?o.scrollHeight:0)+"/"+(o?o.clientHeight:0)+" docScroll="+Math.round(scrollY)+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
-var PAGE_V="2026-11-21.12-lad";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
+var PAGE_V="2026-11-21.13-lad";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
 window.addEventListener("error",function(e){L("ОШИБКА: "+e.message+" @"+(e.filename||"").split("/").pop()+":"+e.lineno)});
 window.addEventListener("unhandledrejection",function(e){L("ОШИБКА промиса: "+(e.reason&&e.reason.message||e.reason))});
 // самообновление: Safari и GitHub Pages держат старый HTML в кэше. Раз за сессию страница запрашивает свежую копию и, если версия другая, перезагружается
@@ -642,16 +645,16 @@ function start(C){
   later(paintAll,0);
   var link=words.map(function(){return false}),heard={},hinted=false,cur=null,src=null,raf=0;
   // вступление: плитки стоят вплотную и выглядят единым фиолетовым голосовым с одним сплошным спектром и кнопкой play; после воспроизведения оно дрожит, режется световыми лезвиями, куски расходятся (строка и пузырь расширяются), появляются точки
-  var intro=document.createElement("div");intro.className="ladZ";intro.innerHTML='<button type="button" class="ladPlay" aria-label="Слушать"><span class="ic"><i></i><i></i></span></button>';row.insertBefore(intro,T[0]);var bgE=document.createElement("div");bgE.className="ladBg";row.insertBefore(bgE,row.firstChild);
+  var intro=document.createElement("div");intro.className="ladZ";row.insertBefore(intro,T[0]);var iPlay=document.createElement("button");iPlay.type="button";iPlay.className="ladPlay";iPlay.setAttribute("aria-label","Слушать");iPlay.innerHTML='<span class="ic"><i></i><i></i></span>';row.appendChild(iPlay);var bgE=document.createElement("div");bgE.className="ladBg";row.insertBefore(bgE,row.firstChild);
   T[n-1].classList.add("pl");
-  var beckonOff=false,iPlay=intro.querySelector(".ladPlay"),iSrc=null,iRaf=0,iDone=false,iBusy=false;
+  var beckonOff=false,iSrc=null,iRaf=0,iDone=false,iBusy=false;
   // прогресс воспроизведения красит столбики самих плиток по времени слов
   // границы кусков по времени идут строго подряд (середина между концом слова и началом следующего), поэтому заливка спектра идёт слева направо без одновременного заполнения соседних плиток
   var iB=[words[0].a];for(var q0=1;q0<n;q0++)iB.push(Math.max(iB[q0-1],(words[q0-1].b+words[q0].a)/2));iB.push(Math.max(iB[n-1],words[n-1].b));
   function iPaint(p){var t=p*buf.duration;for(var i=0;i<n;i++)paint(i,Math.max(0,Math.min(1,(t-iB[i])/Math.max(.001,iB[i+1]-iB[i]))),true)}
   function iReset(){iPlay.classList.remove("pl");cancelAnimationFrame(iRaf);iRaf=0;if(iSrc){try{iSrc.onended=null;iSrc.stop()}catch(e){}iSrc=null}iPaint(0);intro.classList.remove("playing")}
   function introEnd(){
-   if(iDone)return;iDone=true;iBusy=true;cancelAnimationFrame(iRaf);iRaf=0;iSrc=null;iPaint(1);later(function(){iPlay.classList.add("gone")},40);
+   if(iDone)return;iDone=true;iBusy=true;cancelAnimationFrame(iRaf);iRaf=0;iSrc=null;iPaint(1);iPlay.classList.remove("pl");
    // всё действие по длине звука среза (cut.mp3, 0,68 с): нарастание ~0,37 с с тряской и лезвиями, в пике куски расходятся, затем точки
    later(function(){iPaint(0);snd("cut");row.classList.add("shake");
     var bl2=[],H=row.offsetHeight,gapT=n>2?70/(n-2):0;
@@ -659,9 +662,18 @@ function start(C){
      later(function(){b.classList.add("go")},t0);
      later(function(){T[q].classList.add("cr2");T[q+1].classList.add("cl2")},t0+140);
      later(function(){b.classList.add("out")},t0+230)})(q);
-    later(function(){intro.classList.add("col");bgE.classList.add("out");later(function(){intro.remove();bgE.remove()},700);row.classList.remove("shake","pre");T.forEach(function(el){el.classList.remove("pl","cr2","cl2");el.classList.add("glowIn");later(function(){el.classList.remove("glowIn")},900)});
-     J.forEach(function(j,q){later(function(){j.classList.add("pop")},300+q*180)});
-     later(function(){bl2.forEach(function(e){e.remove()});J.forEach(function(j){j.classList.remove("pop")});iBusy=false;if(onReady)onReady();later(function(){if(!beckonOff)T[0].classList.add("beckon")},800)},300+J.length*180+500)},370)
+    // в пике: куски слетают влево и задвигаются поверх кнопки play, по очереди ударяются друг о друга и чуть отскакивают; потом по очереди появляются точки
+    later(function(){
+     var xp=T.map(function(el){return el.offsetLeft});
+     row.classList.add("cutting");intro.classList.add("nt","col");row.classList.remove("shake","pre");bgE.classList.add("out");
+     var xf=T.map(function(el){return el.offsetLeft});
+     T.forEach(function(el,k){el.classList.remove("pl","cr2","cl2");var S=xp[k]-xf[k];
+      if(el.animate)el.animate([{transform:"translateX("+S+"px)",offset:0},{transform:"translateX(-8px)",offset:.6},{transform:"translateX(3px)",offset:.8},{transform:"translateX(0)",offset:1}],{duration:540,delay:k*50,easing:"cubic-bezier(.35,.05,.3,1)",fill:"backwards"})});
+     var TS=(n-1)*50+540;
+     later(function(){iPlay.remove();intro.remove();bgE.remove()},TS);
+     J.forEach(function(j,q){later(function(){j.classList.add("pop")},TS+60+q*180)});
+     T.forEach(function(el,k){later(function(){el.classList.add("glowIn");later(function(){el.classList.remove("glowIn")},800)},k*50+260)});
+     later(function(){bl2.forEach(function(e){e.remove()});J.forEach(function(j){j.classList.remove("pop")});row.classList.remove("cutting");iBusy=false;if(onReady)onReady();later(function(){if(!beckonOff)T[0].classList.add("beckon")},800)},TS+60+J.length*180+450)},370)
    },300)}
   function introPlay(){
    if(iDone||iBusy&&!iSrc)return;
