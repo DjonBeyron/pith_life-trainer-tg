@@ -57,7 +57,7 @@ body{background:#0e1013;color:#e0e0e0;font-family:'Montserrat','Comfortaa',syste
 .spin{width:26px;height:26px;border-radius:50%;border:3px solid rgba(255,255,255,.15);border-top-color:#b6fe3b;animation:spinr .78s linear infinite}@keyframes spinr{to{transform:rotate(360deg)}}
 /* перевод под плавающими точками: нажатие раскрывает */
 /* перевод открытым текстом: брендовый зелёный, жирный (жирным в чате только он и верный ответ) */
-.bubble.trv{color:#b6fe3b;font-weight:700}
+.bubble.trv,.bubble.me.ok{font-family:'Comfortaa','Montserrat',system-ui,sans-serif;font-weight:700}.bubble.trv{color:#b6fe3b}
 .trI{width:13px;height:13px;vertical-align:-1px;margin-right:7px;fill:none;stroke:#6d717c;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .bubble.me.pick::after{content:none}
 /* панель «Выбери слово» приложения (choose-word.css): варианты кнопками, вылетает снизу вместе с историей */
@@ -253,7 +253,7 @@ function L(m){var d=((Date.now()-t0)/1000).toFixed(2);LG.push(d+" "+m);if(LG.len
 window.__L=L;
 function tg(){var w=window.Telegram&&Telegram.WebApp;return w?("tg "+w.platform+" v"+w.version+" vh="+w.viewportHeight+" stable="+w.viewportStableHeight+" exp="+w.isExpanded):"без Telegram"}
 function snap(why){var f=document.getElementById("feed"),o=document.getElementById("outer"),p=document.getElementById("panel"),lr=f&&f.lastElementChild,vv=window.visualViewport;return why+": scrollTop="+Math.round(o?o.scrollTop:0)+" scrollH="+(o?o.scrollHeight:0)+"/"+(o?o.clientHeight:0)+" docScroll="+Math.round(scrollY)+" inner="+innerWidth+"x"+innerHeight+(vv?" vv="+Math.round(vv.width)+"x"+Math.round(vv.height)+"+"+Math.round(vv.offsetTop):"")+" panel="+(p&&p.classList.contains("show")?"показана h"+p.offsetHeight:"скрыта")+" feedH="+(f?f.offsetHeight:0)+" последнее.bottom="+(lr?Math.round(lr.getBoundingClientRect().bottom):"-")+" msgs="+(f?f.children.length:0)}
-var PAGE_V="2026-11-21.51-lad";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
+var PAGE_V="2026-11-23.53-lad";window.__PV=PAGE_V;window.__pf={fr:0,jk:0,w:0};L("страница версия "+PAGE_V);L("старт: "+navigator.userAgent);L(tg());L(snap("начало"));
 window.addEventListener("error",function(e){L("ОШИБКА: "+e.message+" @"+(e.filename||"").split("/").pop()+":"+e.lineno)});
 window.addEventListener("unhandledrejection",function(e){L("ОШИБКА промиса: "+(e.reason&&e.reason.message||e.reason))});
 // самообновление: Safari и GitHub Pages держат старый HTML в кэше. Раз за сессию страница запрашивает свежую копию и, если версия другая, перезагружается
@@ -682,7 +682,7 @@ function start(C){
    var G=12,W0=T[0].clientWidth,W1=T[n-1].clientWidth,x0a=(W0-Math.max(2,Math.floor(W0/4))*4)/2+1,x0b=(W1-Math.max(2,Math.floor(W1/4))*4)/2+1;
    var zw=Math.round(2*G+34-1-x0a),pr=Math.max(0,Math.round(G-(1+x0b)));row.style.setProperty("--zw",zw+"px");row.style.setProperty("--zpr",pr+"px");row.style.setProperty("--zg",(G-1)+"px")})();
   later(paintAll,0);
-  var link=words.map(function(){return false}),heard={},hinted=false,cur=null,src=null,raf=0;
+  var link=words.map(function(){return false}),heard={},hinted=false,firstDone=false,cur=null,src=null,raf=0;
   // вступление: плитки стоят вплотную и выглядят единым фиолетовым голосовым с одним сплошным спектром и кнопкой play; после воспроизведения оно дрожит, режется световыми лезвиями, куски расходятся (строка и пузырь расширяются), появляются точки
   var intro=document.createElement("div");intro.className="ladZ";row.insertBefore(intro,T[0]);var iPlay=document.createElement("button");iPlay.type="button";iPlay.className="ladPlay";iPlay.setAttribute("aria-label","Слушать");iPlay.innerHTML='<span class="ic"><i></i><i></i></span>';row.appendChild(iPlay);intro.innerHTML='<i class="lb"></i>';
   var rz=row.querySelector(".ladR");
@@ -800,14 +800,14 @@ function start(C){
    var bh=br.offsetHeight||20,rr=Math.min(5,bw/2-1),sv=br.querySelector("svg");
    br.style.left=xs+"px";br.style.width=bw+"px";sv.setAttribute("width",bw);sv.setAttribute("height",bh);sv.firstChild.setAttribute("d","M1 0 V"+(bh-rr)+" Q1 "+(bh-1)+" "+rr+" "+(bh-1)+" H"+(bw-rr)+" Q"+(bw-1)+" "+(bh-1)+" "+(bw-1)+" "+(bh-rr)+" V0");
    try{var pl=sv.firstChild.getTotalLength(),nn=Math.max(1,Math.round((pl-4)/7)),gg=(pl-(nn+1)*4)/nn;sv.firstChild.style.strokeDasharray="4 "+gg.toFixed(2)}catch(e){}
-   bl.textContent=a===b?(a+1)+" слово":b===a+1?(a+1)+" и "+(b+1)+" слова":(a+1)+"–"+(b+1)+" слова";br.classList.add("on");
+   bl.textContent=(function(){function wc(k){var s=String(words[k].w||"").replace(/^\s+|\s+$/g,"");return s&&s!=="…"?s.split(/\s+/).length:1}var s0=1,e0=0,q;for(q=0;q<a;q++)s0+=wc(q);for(q=0;q<=b;q++)e0+=wc(q);return e0===s0?s0+" слово":e0===s0+1?s0+" и "+e0+" слова":s0+"–"+e0+" "+wordWord(e0-s0+1)})();br.classList.add("on");
    if(window.TS)TS.track("ladder_play",{props:{a:a,b:b}});
    (function tick(){raf=requestAnimationFrame(tick);var e0=((ac.currentTime-t0)%total+total)%total,t=sa+Math.min(dur,e0)/dur*(sb-sa);
     for(var j=0;j<n;j++){var inG=j>=a&&j<=b;T[j].classList.toggle("on",inG);paint(j,inG?Math.max(0,Math.min(1,(t-(j===a?words[a].a:iB[j]))/Math.max(.001,(j===b?words[b].b:iB[j+1])-(j===a?words[a].a:iB[j])))):0,inG)}})()}
   function toggleLink(j){var demo=j===0&&!hinted;if(window.TS)TS.track("ladder_link",{props:{j:j,on:link[j]?0:1}});if(!hinted){hinted=true;J[0].classList.remove("hint");dotW.stop()}link[j]=!link[j];J[j].classList.toggle("on",link[j]);T[j].classList.toggle("lkr",link[j]);T[j+1].classList.toggle("lkl",link[j]);
    if(demo&&link[0]){play(0,true);return}
    if(cur){var g=group(cur.anchor);if(g[0]!==cur.a||g[1]!==cur.b)play(cur.anchor,true)}}
-  h.addEventListener("click",function(e){if(row.classList.contains("pre")||iBusy)return;var j=e.target.closest&&e.target.closest(".ladJ");if(j){toggleLink(+j.getAttribute("data-j"));return}var t=e.target.closest&&e.target.closest(".ladT");if(t){beckonOff=true;stopBeckon()}if(t)play(+t.getAttribute("data-i"))});
+  h.addEventListener("click",function(e){if(row.classList.contains("pre")||iBusy)return;var j=e.target.closest&&e.target.closest(".ladJ");if(j){if(!firstDone){if(+j.getAttribute("data-j")===0){beckonOff=true;stopBeckon();firstDone=true;play(0)}return}toggleLink(+j.getAttribute("data-j"));return}var t=e.target.closest&&e.target.closest(".ladT");if(t){beckonOff=true;stopBeckon();if(+t.getAttribute("data-i")===0)firstDone=true}if(t)play(+t.getAttribute("data-i"))});
   return{stop:stop}}
  function loadBuf(url){var c=acx();if(!c)return Promise.resolve(null);return fetch(url).then(function(r){return r.ok?r.arrayBuffer():null}).then(function(b){return b?new Promise(function(res){c.decodeAudioData(b,res,function(){res(null)})}):null}).catch(function(){return null})}
 
